@@ -13,8 +13,13 @@ public class Assignment2Part1 extends TextProgram {
      * This is the starting method of the program
      */
     public void run() {
-        // getting coefficients from a user
+        // getting the first coefficient from a user
         double a = readDouble("Please enter a: ");
+        while (a == 0) {
+            a = readDouble("a can not be zero. Please enter a: ");
+        }
+
+        // getting the rest of the coefficients
         double b = readDouble("Please enter b: ");
         double c = readDouble("Please enter c: ");
 
@@ -37,20 +42,14 @@ public class Assignment2Part1 extends TextProgram {
      * @return String that contains the result
      */
     private String findRoots(double a, double b, double c, double DISCRIMINANT) {
-        // calculating the first root of the equation
-        double numeratorOfFirstFormula = -b + Math.sqrt(DISCRIMINANT);
-        double denominator = 2 * a;
-        double firstRoot = numeratorOfFirstFormula / denominator;
+        double firstRoot = (-b + Math.sqrt(DISCRIMINANT)) / (2 * a);
 
         // DISCRIMINANT == 0 indicates that there is only one root
         if (DISCRIMINANT == 0) {
             return "There is one root: " + firstRoot;
         } else {
             // DISCRIMINANT > 0 indicates that there are two roots
-
-            // calculating the second root of the equation
-            double numeratorOfSecondFormula = -b - Math.sqrt(DISCRIMINANT);
-            double secondRoot = numeratorOfSecondFormula / denominator;
+            double secondRoot = (-b - Math.sqrt(DISCRIMINANT)) / (2 * a);
 
             return "There are two roots: " + firstRoot + " and " + secondRoot;
         }

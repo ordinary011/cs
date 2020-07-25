@@ -11,39 +11,51 @@ import java.awt.*;
  */
 public class Assignment2Part2 extends WindowProgram {
 
-    // specifies diameter for black circles
+    /* CUSTOMIZABLE CONSTANTS */
+    // specifies diameter of black circles
     private static final int DIAMETER = 100;
+    // The default width and height of the window. These constants will tell Java to
+    // create a window whose size is *approximately* given by these dimensions
+    public static final int APPLICATION_WIDTH = 500;
+    public static final int APPLICATION_HEIGHT = 500;
+
+    /* NOT CUSTOMIZABLE CONSTANTS */
+    // specifies radius of black circles
     private static final double RADIUS = DIAMETER / 2.0;
 
-    // 3 is just a multiplier which makes our pop up window 3 times longer that the diameter
-    public static final int APPLICATION_LENGTH = DIAMETER * 3;
-
-    public static final int APPLICATION_WIDTH = APPLICATION_LENGTH;
-    public static final int APPLICATION_HEIGHT = APPLICATION_LENGTH;
+    /* OTHER CLASS MEMBERS */
+    // is used as a width of the white rectangle and as a left offset for some circles
+    private double horizontal_distance = 0;
+    // is used as a height of the white rectangle and as a top offset for some circles
+    private double vertical_distance = 0;
 
     /**
      * This is the starting method of the program
      */
     public void run() {
-        // HORIZONTAL_DISTANCE is used as a width of the white rectangle
-        // and as a left offset for some circles. We make it twice longer than DIAMETER
-        double HORIZONTAL_DISTANCE = DIAMETER * 2;
+        calculateDistances();
 
-        // VERTICAL_DISTANCE is used as a height of the white rectangle
-        // and as a right offset for some circles. it is 60% of the total height
-        double VERTICAL_DISTANCE = getHeight() * 0.60;
+        drawFourBlackCircles();
 
-        // drawing 4 black circles
+        drawWhiteRectangle();
+    }
+
+    /**
+     * This method calculates distances that are needed for offsets of circles and rectangle
+     */
+    private void calculateDistances() {
+        horizontal_distance = getWidth() - DIAMETER;
+        vertical_distance = getHeight() - DIAMETER;
+    }
+
+    /**
+     * This method depicts four black circles
+     */
+    private void drawFourBlackCircles() {
         drawCircle(0, 0);
-        drawCircle(HORIZONTAL_DISTANCE, 0);
-        drawCircle(0, VERTICAL_DISTANCE);
-        drawCircle(HORIZONTAL_DISTANCE, VERTICAL_DISTANCE);
-
-        // drawing a white square that overlaps black circles
-        GRect square = new GRect(RADIUS, RADIUS, HORIZONTAL_DISTANCE, VERTICAL_DISTANCE);
-        square.setFilled(true);
-        square.setColor(Color.WHITE);
-        add(square);
+        drawCircle(horizontal_distance, 0);
+        drawCircle(0, vertical_distance);
+        drawCircle(horizontal_distance, vertical_distance);
     }
 
     /**
@@ -54,10 +66,17 @@ public class Assignment2Part2 extends WindowProgram {
      */
     private void drawCircle(double x, double y) {
         GOval circle = new GOval(x, y, DIAMETER, DIAMETER);
-
         circle.setFilled(true);
-        circle.setColor(Color.BLACK);
-
         add(circle);
+    }
+
+    /**
+     * This method depicts a white square that overlaps four black circles
+     */
+    private void drawWhiteRectangle() {
+        GRect square = new GRect(RADIUS, RADIUS, horizontal_distance, vertical_distance);
+        square.setFilled(true);
+        square.setColor(Color.WHITE);
+        add(square);
     }
 }

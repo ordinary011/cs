@@ -78,10 +78,7 @@ public class Assignment2Part3 extends WindowProgram {
      */
     private void drawOval(double x, double y, double width, double height) {
         GOval oval = new GOval(x, y, width, height);
-
         oval.setFilled(true);
-        oval.setFillColor(Color.BLACK);
-
         add(oval);
     }
 
