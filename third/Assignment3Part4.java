@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment2;
+package com.shpp.p2p.cs.ldebryniuk.assignment3;
 
 import acm.graphics.GRect;
 import com.shpp.cs.a.graphics.WindowProgram;
@@ -32,19 +32,20 @@ public class Assignment3Part4 extends WindowProgram {
     private void drawPyramid() {
         int numOfBricksInRow = BRICKS_IN_BASE;
 
+        // we want our pyramid to be center horizontally
+        // and to be located at the very bottom of the canvas
+        double rowLength = BRICK_WIDTH * numOfBricksInRow;
+        double x = (getWidth() - rowLength) / 2;
+        double y = getHeight() - BRICK_HEIGHT;
+
         // draw Pyramid. Row by row
-        for (int i = 1; i <= BRICKS_IN_BASE; i++) { // BRICKS_IN_BASE == number of rows in pyramid
-            double rowLength = BRICK_WIDTH * numOfBricksInRow;
+        // number of bricks in first (base) row determines total amount of rows, and amount of iterations
+        for (int i = numOfBricksInRow; i > 0; i--) {
+            drawRowOfBricks(i, x, y);
 
-            // we want our pyramid to be center horozontally
-            // and to be located at the very bottom of the canvas
-            double x = (getWidth() - rowLength) / 2;
-            double y = getHeight() - (BRICK_HEIGHT * i);
-
-            drawRowOfBricks(numOfBricksInRow, x, y);
-
-            // each subsiquent row must be shorter than previous
-            numOfBricksInRow--;
+            // when current row is depicted we change x y offsets for the next row
+            x += (BRICK_WIDTH / 2);
+            y -= BRICK_HEIGHT;
         }
     }
 

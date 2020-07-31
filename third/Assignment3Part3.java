@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment2;
+package com.shpp.p2p.cs.ldebryniuk.assignment3;
 
 import com.shpp.cs.a.console.TextProgram;
 
@@ -11,7 +11,26 @@ public class Assignment3Part3 extends TextProgram {
      * This is the starting method of the program
      */
     public void run() {
-        raiseToPower(2.0, 3);
+        getInputFromUserAndRaiseToPower();
+    }
+
+    /**
+     * The following method receives input from user and calls raiseToPower()
+     */
+    private void getInputFromUserAndRaiseToPower() {
+        double base = 0;
+        int exponent = 0;
+
+        try {
+            base = readDouble("Please enter base: ");
+
+            exponent = readInt("Please enter exponent: ");
+        } catch (Exception e) {
+            System.out.println("sorry wrong input");
+            e.printStackTrace();
+        }
+
+        raiseToPower(base, exponent);
     }
 
     /**

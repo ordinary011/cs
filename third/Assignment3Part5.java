@@ -2,10 +2,8 @@ package com.shpp.p2p.cs.ldebryniuk.assignment3;
 
 import com.shpp.cs.a.console.TextProgram;
 
-import java.util.Random;
-
 /**
- * This class allows us to play saint petersburg's game
+ * This class allows us to play saint petersburg game
  * <p>
  * used resources: https://www.educative.io/edpresso/how-to-generate-random-numbers-in-java
  */
@@ -19,17 +17,15 @@ public class Assignment3Part5 extends TextProgram {
     }
 
     /**
-     * The following method statrts the game
+     * The following method starts the game
      */
     private void startGame() {
-        Random rand = new Random();
-
         int luckyHasMoney = 0;
         int countOfGames = 0;
 
         // start iteration of the game
         while (luckyHasMoney < 20) {
-            int moneyReward = tossCoinUntillTails(1, rand);
+            int moneyReward = tossCoinUntilTailsAndGetReward();
 
             luckyHasMoney += moneyReward;
 
@@ -45,18 +41,16 @@ public class Assignment3Part5 extends TextProgram {
     /**
      * The following method simulates tossing of coin
      *
-     * @param moneyReward amount of money at the beginning of gambling
-     * @param rand        a reference to a random generator
      * @return amount of money that were gained in the current game iteration
      */
-    private int tossCoinUntillTails(int moneyReward, Random rand) {
-        // coin > 15000 means heads
-        // coin < 15000 means tails
-        int coinValue = rand.nextInt(30000); // generates int in range between 1 to 30000
-        while (coinValue > 15000) {
+    private int tossCoinUntilTailsAndGetReward() {
+        int moneyReward = 1;
+
+        int coinValue = (int) (Math.random() * 2); // generates 0 or 1
+        while (coinValue == 1) { // 1 means heads. 0 means tails
             moneyReward *= 2;
 
-            coinValue = rand.nextInt(30000); // generates int in range between 1 to 30000
+            coinValue = (int) (Math.random() * 2); // generates 0 or 1
         }
 
         // if tails we return reward
