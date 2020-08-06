@@ -181,22 +181,18 @@ public class Breakout extends WindowProgram {
     private void initGame() {
         // initial variables for the game
         int bricksLeft = NBRICK_ROWS * NBRICKS_PER_ROW;
-        vy = 5.0; // ball shift per frame
 
         // start game. Each iteration is a new round
         for (int i = NTURNS; i > 0; i--) {
             if (bricksLeft < 1) break; // if true -> user win
 
-            GOval ball = addBall();
-
-            // each round generate random vx
-            generateRandomVXForTheBall();
+            GOval ball = prepareAndDrawBall();
 
             // add start label and wait till user makes a mouse click
             GLabel label = addLabel("Click to start");
             waitForClick();
 
-            // game begins below
+            // round begins below
             remove(label); // removes start label
             bricksLeft = startMovement(ball, bricksLeft);
         }
@@ -205,17 +201,6 @@ public class Breakout extends WindowProgram {
         addLabel(
                 (bricksLeft > 0) ? "Game over" : "You won=)))"
         );
-    }
-
-    /**
-     * The following method generates random horizontal direction for a ball
-     */
-    private void generateRandomVXForTheBall() {
-        RandomGenerator rgen = RandomGenerator.getInstance();
-        vx = rgen.nextDouble(1.0, 3.0);
-        if (rgen.nextBoolean(0.5)) {
-            vx = -vx;
-        }
     }
 
     /**
@@ -247,59 +232,18 @@ public class Breakout extends WindowProgram {
 
             // check for collisions
             collider = getCollidingObject(ball);
-            if (collider != null) {
-                bricksLeft = checkForCollisions(collider, ball, bricksLeft);
-                if (bricksLeft < 1) {  // if true -> user won =))
-                    break;
-                }
+            if (collider != null) { // if ball hit something
+                bricksLeft = determineCollider(collider, ball, bricksLeft);
+                if (bricksLeft < 1) break;  // if true -> user won =))
             }
 
             pause(PAUSE_TIME);
         }
 
-        // either we win or lose we remove ball when round stops
+        // either we win or lose we remove ball when round ends
         remove(ball);
 
         return bricksLeft;
-    }
-
-    /**
-     * The following checks for ball collisions
-     *
-     * @param collider   either a paddle or a brick
-     * @param ball       the ball that is moving
-     * @param bricksLeft amount of bricks that are still in the game
-     * @return amount of bricks that are still in the game
-     */
-    private int checkForCollisions(GObject collider, GOval ball, int bricksLeft) {
-        if (collider == paddle) {
-            if ((ball.getY() + BALL_RADIUS) < paddleY) { // if ball above paddle
-                vy = -vy; // change ball direction
-            }
-        } else { // means ball hits a brick
-            remove(collider); // remove the brick
-            vy = -vy; // change ball direction
-            bricksLeft--;
-        }
-
-        return bricksLeft;
-    }
-
-    /**
-     * The following method depicts a ball
-     *
-     * @return depicted ball
-     */
-    private GOval addBall() {
-        // initial coordinates for the ball to appear in the center
-        double x = (WIDTH / 2.0) - BALL_RADIUS;
-        double y = (HEIGHT / 2.0) - BALL_RADIUS;
-
-        GOval ball = new GOval(x, y, BALL_RADIUS * 2, BALL_RADIUS * 2);
-        ball.setFilled(true);
-
-        add(ball);
-        return ball;
     }
 
     /**
@@ -321,6 +265,62 @@ public class Breakout extends WindowProgram {
 
         return null;
     }
+
+    /**
+     * The following method determines the collider object. can be either a brick or a paddle
+     *
+     * @param collider   either a paddle or a brick
+     * @param ball       the ball that is moving
+     * @param bricksLeft amount of bricks that are still in the game
+     * @return amount of bricks that are still in the game
+     */
+    private int determineCollider(GObject collider, GOval ball, int bricksLeft) {
+        if (collider == paddle) {
+            // the below if is needed in order to omit "ball is stuck to the paddle" bug
+            if ((ball.getY() + BALL_RADIUS) < paddleY) { // if ball above paddle
+                vy = -vy; // change ball direction
+            }
+        } else { // means ball hits a brick
+            remove(collider); // remove the brick
+            vy = -vy; // change ball direction
+            bricksLeft--;
+        }
+
+        return bricksLeft;
+    }
+
+    /**
+     * The following method initilizes ball shifts per frame and depicts it
+     *
+     * @return depicted ball
+     */
+    private GOval prepareAndDrawBall() {
+        // setup ball shift per frame
+        generateRandomVXForTheBall();
+        vy = 5.0;
+
+        // initial coordinates for the ball to appear in the center
+        double x = (WIDTH / 2.0) - BALL_RADIUS;
+        double y = (HEIGHT / 2.0) - BALL_RADIUS;
+
+        GOval ball = new GOval(x, y, BALL_RADIUS * 2, BALL_RADIUS * 2);
+        ball.setFilled(true);
+
+        add(ball);
+        return ball;
+    }
+
+    /**
+     * The following method generates random horizontal direction for a ball
+     */
+    private void generateRandomVXForTheBall() {
+        RandomGenerator rgen = RandomGenerator.getInstance();
+        vx = rgen.nextDouble(1.0, 3.0);
+        if (rgen.nextBoolean(0.5)) {
+            vx = -vx;
+        }
+    }
+
 
     /**
      * The following method depicts a label
