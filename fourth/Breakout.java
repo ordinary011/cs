@@ -37,12 +37,12 @@ public class Breakout extends WindowProgram {
     /**
      * Number of bricks per row
      */
-    private static final int NBRICKS_PER_ROW = 4;
+    private static final int NBRICKS_PER_ROW = 1;
 
     /**
      * Number of rows of bricks
      */
-    private static final int NBRICK_ROWS = 3;
+    private static final int NBRICK_ROWS = 1;
 
     /**
      * Separation between bricks
@@ -88,20 +88,14 @@ public class Breakout extends WindowProgram {
     private double vx, vy;
 
     /**
-     * attempts specifies the amount of rounds left
-     */
-    private int attempts = NTURNS;
-
-
-    /**
      * This is the starting method of the program
      */
     public void run() {
         WIDTH = getWidth();
         HEIGHT = getHeight();
 
-        drawPaddle();
-        drawBricks();
+        addPaddle();
+        addBricks();
 
         addMouseListeners();
         initGame();
@@ -110,7 +104,7 @@ public class Breakout extends WindowProgram {
     /**
      * The following method adds a paddle to the screen
      */
-    private void drawPaddle() {
+    private void addPaddle() {
         paddleY = getHeight() - PADDLE_Y_OFFSET;
 
         paddle = new GRect(0, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
@@ -122,7 +116,7 @@ public class Breakout extends WindowProgram {
     /**
      * The following method depicts bricks
      */
-    private void drawBricks() {
+    private void addBricks() {
         // bricks should appear in the center
         final double BRICK_OFFSET = BRICK_WIDTH + BRICK_SEP;
         final double BRICK_ROW_WIDTH = (NBRICKS_PER_ROW * BRICK_OFFSET) - BRICK_SEP;
@@ -130,25 +124,22 @@ public class Breakout extends WindowProgram {
         double y = BRICK_Y_OFFSET;
 
         // every second row should have the same color as one before
-        Color[] colors = {Color.RED, Color.RED,
-                Color.ORANGE, Color.ORANGE,
-                Color.YELLOW, Color.YELLOW,
-                Color.GREEN, Color.GREEN,
-                Color.CYAN, Color.CYAN};
-        int colorIndex = 0;
+        Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN};
+        byte colorIndex = 0;
 
         // draw bricks. row by row
-        for (int i = 0; i < NBRICK_ROWS; i++) {
+        for (byte i = 1; i <= NBRICK_ROWS; i++) {
             drawRowOfBricks(X, y, BRICK_OFFSET, colors[colorIndex]);
 
-            // after each row is depicted we shift y offset and increase color index
+            // after each row is depicted we shift y offset
             y += BRICK_HEIGHT;
-            colorIndex++;
 
-            // if we have more than 10 rows we will start over picking colors from the beginning
-            if (colorIndex % 10 == 0) {
-                colorIndex = 0;
+            if (i % 2 == 0) { // increase color index every second iteration
+                colorIndex++;
+                // if we have more than 10 rows we will start over picking colors from the beginning
+                if (i % 10 == 0) colorIndex = 0;
             }
+
         }
     }
 
@@ -189,19 +180,17 @@ public class Breakout extends WindowProgram {
      */
     private void initGame() {
         // initial variables for the game
-        RandomGenerator rgen = RandomGenerator.getInstance(); // used for vy
         int bricksLeft = NBRICK_ROWS * NBRICKS_PER_ROW;
-        vy = 5.0; // shift of the ball
+        vy = 5.0; // ball shift per frame
 
         // start game. Each iteration is a new round
-        while (attempts > 0 && !(bricksLeft < 1)) { // if bricksLeft < 1 true -> we win
-            GOval ball = drawBall();
+        for (int i = NTURNS; i > 0; i--) {
+            if (bricksLeft < 1) break; // if true -> user win
 
-            // generate random vx
-            vx = rgen.nextDouble(1.0, 3.0);
-            if (rgen.nextBoolean(0.5)) {
-                vx = -vx;
-            }
+            GOval ball = addBall();
+
+            // each round generate random vx
+            generateRandomVXForTheBall();
 
             // add start label and wait till user makes a mouse click
             GLabel label = addLabel("Click to start");
@@ -212,11 +201,25 @@ public class Breakout extends WindowProgram {
             bricksLeft = startMovement(ball, bricksLeft);
         }
 
-        addFinishLabel(bricksLeft);
+        // add finish label
+        addLabel(
+                (bricksLeft > 0) ? "Game over" : "You won=)))"
+        );
     }
 
     /**
-     * The following method starts animation
+     * The following method generates random horizontal direction for a ball
+     */
+    private void generateRandomVXForTheBall() {
+        RandomGenerator rgen = RandomGenerator.getInstance();
+        vx = rgen.nextDouble(1.0, 3.0);
+        if (rgen.nextBoolean(0.5)) {
+            vx = -vx;
+        }
+    }
+
+    /**
+     * The following method starts animation. Ball starts to move
      *
      * @param ball       the ball that is moving
      * @param bricksLeft amount of bricks that are still in the game
@@ -254,8 +257,7 @@ public class Breakout extends WindowProgram {
             pause(PAUSE_TIME);
         }
 
-        // when ball below floor -> round ends
-        attempts--;
+        // either we win or lose we remove ball when round stops
         remove(ball);
 
         return bricksLeft;
@@ -288,7 +290,7 @@ public class Breakout extends WindowProgram {
      *
      * @return depicted ball
      */
-    private GOval drawBall() {
+    private GOval addBall() {
         // initial coordinates for the ball to appear in the center
         double x = (WIDTH / 2.0) - BALL_RADIUS;
         double y = (HEIGHT / 2.0) - BALL_RADIUS;
@@ -321,19 +323,6 @@ public class Breakout extends WindowProgram {
     }
 
     /**
-     * The following method lets know the user how game is ended
-     *
-     * @param totalNBricks amount of bricks left in the game area
-     */
-    private void addFinishLabel(int totalNBricks) {
-        if (totalNBricks > 0) {
-            addLabel("Game over");
-        } else {
-            addLabel("You won=)))");
-        }
-    }
-
-    /**
      * The following method depicts a label
      *
      * @param msg message to be depicted
@@ -347,8 +336,7 @@ public class Breakout extends WindowProgram {
 
         // set font and color of the label
         final int fontSize = (int) (WIDTH * 0.05);
-        String font = "Serif-" + fontSize;
-        label.setFont(font);
+        label.setFont("Serif-" + fontSize);
         label.setColor(Color.RED);
 
         add(label);
@@ -373,4 +361,5 @@ public class Breakout extends WindowProgram {
     }
 
 }
+
 
