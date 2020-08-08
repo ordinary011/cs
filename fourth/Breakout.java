@@ -26,7 +26,7 @@ public class Breakout extends WindowProgram {
     /**
      * Dimensions of the paddle
      */
-    private static final int PADDLE_WIDTH = 500;
+    private static final int PADDLE_WIDTH = 900;
     private static final int PADDLE_HEIGHT = 10;
 
     /**
@@ -37,7 +37,7 @@ public class Breakout extends WindowProgram {
     /**
      * Number of bricks per row
      */
-    private static final int NBRICKS_PER_ROW = 1;
+    private static final int NBRICKS_PER_ROW = 8;
 
     /**
      * Number of rows of bricks
@@ -58,7 +58,7 @@ public class Breakout extends WindowProgram {
     /**
      * Height of a brick
      */
-    private static final int BRICK_HEIGHT = 15;
+    private static final int BRICK_HEIGHT = 400;
 
     /**
      * Radius of the ball in pixels
@@ -94,7 +94,7 @@ public class Breakout extends WindowProgram {
         WIDTH = getWidth();
         HEIGHT = getHeight();
 
-        addPaddle();
+        prepareAndAddPaddle();
         addBricks();
 
         addMouseListeners();
@@ -104,7 +104,7 @@ public class Breakout extends WindowProgram {
     /**
      * The following method adds a paddle to the screen
      */
-    private void addPaddle() {
+    private void prepareAndAddPaddle() {
         paddleY = getHeight() - PADDLE_Y_OFFSET;
 
         paddle = new GRect(0, paddleY, PADDLE_WIDTH, PADDLE_HEIGHT);
@@ -361,5 +361,4 @@ public class Breakout extends WindowProgram {
     }
 
 }
-
 
