@@ -2,7 +2,7 @@ package com.shpp.p2p.cs.ldebryniuk.assignment5;
 
 import com.shpp.cs.a.console.TextProgram;
 
-public class SyllableCounting extends TextProgram {
+public class Assignment5Part1 extends TextProgram {
     public void run() {
         runProgram();
 
@@ -32,34 +32,33 @@ public class SyllableCounting extends TextProgram {
         if (word.length() == 0) return 0; // validation for empty strings
 
         word = word.toLowerCase();
-        int vowelsCount = 0;
+        int vowelCount = 0;
         int indexOfLastChar = word.length() - 1;
 
-        // start iterating through every string charater EXCEPT the last one
+        // start iterating through every string character EXCEPT the last one
         for (int i = 0; i < indexOfLastChar; i++) {
             if (isVowel(word.charAt(i))) { // if current character is vowel
                 if (!isPreviousCharVowel(word, i - 1)) { // if previous character is not vowel
-                    vowelsCount++;
+                    vowelCount++;
                 }
             }
         }
 
-        char lastCharInString = word.charAt(indexOfLastChar);
-
         // for the last character we have a bit different logic
+        char lastCharInString = word.charAt(indexOfLastChar);
         if (
                 isVowel(lastCharInString) &&
                         lastCharInString != 'e' &&
                         !isPreviousCharVowel(word, indexOfLastChar - 1)
         ) {
-            vowelsCount++;
+            vowelCount++;
         }
 
-        return vowelsCount == 0 ? 1 : vowelsCount;
+        return vowelCount == 0 ? 1 : vowelCount; // vowels determine amount of syllables here=))
     }
 
     private boolean isPreviousCharVowel(String word, int charIndex) {
-        if (charIndex < 0) return false; // ensures that Indexoutofbounds will not occur
+        if (charIndex < 0) return false; // ensures that Index out of bounds will not occur
 
         return isVowel(word.charAt(charIndex));
     }
@@ -111,4 +110,4 @@ public class SyllableCounting extends TextProgram {
             println("! FAIL: " + testCase);
         }
     }
-} 
+}
