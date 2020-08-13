@@ -16,7 +16,7 @@ public class Assignment5Part1 extends TextProgram {
         while (true) {
             String word = readLine("Enter a single word: ");
             if (word.equals("q")) break;
-            println("  Syllable count: " + syllablesIn(word));
+            System.out.printf("Syllable count: %s. ", syllablesIn(word));
             System.out.println("Please press \"q\" if you would like to stop the program");
         }
     }

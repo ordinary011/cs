@@ -4,22 +4,12 @@ import com.shpp.cs.a.console.TextProgram;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 
 public class Assignment5Part3 extends TextProgram {
     public void run() {
-//        runProgram();
+        runProgram();
 
 //        runTests();
-
-
-        try {
-            go("K");
-//            go("KDD");
-        } catch (IOException e) {
-            println(":-(");
-            e.printStackTrace();
-        }
     }
 
     private void runProgram() {
@@ -27,33 +17,68 @@ public class Assignment5Part3 extends TextProgram {
          * number of syllables in that word.
          */
         while (true) {
-            String word = readLine("Enter three letters: ");
+            String word = readLine("Enter three letters please: ");
             if (word.equals("q")) break;
-//            println("  Syllable count: " + syllablesIn(word));
+            System.out.printf("match for \"%s'\" is: %s. ", word, findMatchForThePattern(word));
             System.out.println("Please press \"q\" if you would like to stop the program");
         }
     }
 
-    private void go(String threeLetters) throws IOException {
-        threeLetters = threeLetters.toLowerCase();
+    private String findMatchForThePattern(String threeLetters) {
         String fileLocation = "src/com/shpp/p2p/cs/ldebryniuk/assignment5/en-dictionary.txt";
-        /* Open the file for reading. */
-        BufferedReader br = new BufferedReader(new FileReader(fileLocation));
+        threeLetters = threeLetters.toLowerCase();
+        String word = null;
 
-        boolean wordFound = false;
-        while (!wordFound) {
-            wordFound = isWordFound(br.readLine(), threeLetters);
+        // open file for reading
+        try (BufferedReader br = new BufferedReader(new FileReader(fileLocation))) {
+            boolean wordFound = false;
+
+            // each iteration is a new word in the dictionary
+            while (!wordFound) {
+                word = br.readLine();
+                if (word == null) break; // if end of file
+
+                wordFound = isWordFound(word, threeLetters);
+            }
+        } catch (Exception e) {
+            println(":-( exception occured");
+            e.printStackTrace();
         }
 
-        System.out.println(
-                br.readLine()
-        );
+        return (word == null) ? "sorry could not find any match" : word;
     }
 
-    private boolean isWordFound(String readLine, String threeLetters) {
-        
+    private boolean isWordFound(String wordInDictionary, String threeLetters) {
+        // each iteration is one of three input letters
+        for (char letter : threeLetters.toCharArray()) {
+            int indexOftLetter = wordInDictionary.indexOf(letter);
+
+            if (indexOftLetter > -1) {
+                wordInDictionary = wordInDictionary.substring(indexOftLetter + 1);
+            } else {
+                return false;
+            }
+        }
 
         return true;
     }
 
+    private void runTests() {
+        check("KDD", "acknowledged");
+        check("NPT", "anapaest");
+        check("FTW", "afterglow");
+        check("NNN", "abandoning");
+        check("QQQ", "sorry could not find any match");
+        check("XCX", "executrix");
+        check("I", "aahing");
+        check("ACNW", "acknowledge");
+    }
+
+    private void check(String testCase, String expectedResult) {
+        if (findMatchForThePattern(testCase).equals(expectedResult)) {
+            println("  Pass: " + testCase);
+        } else {
+            println("! FAIL: " + testCase);
+        }
+    }
 }
