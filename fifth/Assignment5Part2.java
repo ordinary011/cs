@@ -3,16 +3,22 @@ package com.shpp.p2p.cs.ldebryniuk.assignment5;
 import com.shpp.cs.a.console.TextProgram;
 
 /*
-
-used resource: https://docs.oracle.com/javase/tutorial/java/data/converting.html
+ * The following class is able to add really large numbers together
+ *
+ * used resource: https://docs.oracle.com/javase/tutorial/java/data/converting.html
  */
 public class Assignment5Part2 extends TextProgram {
+
+    /* This is the starting method of the program */
     public void run() {
         runProgram();
 
 //        runTests();
     }
 
+    /**
+     * The following method receives input numbers from user and prints out their sum
+     */
     private void runProgram() {
         /* Sit in a loop, reading numbers and adding them. */
         while (true) {
@@ -23,7 +29,7 @@ public class Assignment5Part2 extends TextProgram {
             if (n2.equals("q")) break;
 
             println(n1 + " + " + n2 + " = " + addNumericStrings(n1, n2));
-            println("press \"q\" if you would like to stop ");
+            println("Please press \"q\" if you would like to stop ");
         }
     }
 
@@ -40,6 +46,7 @@ public class Assignment5Part2 extends TextProgram {
         StringBuilder res = new StringBuilder();
         int inMemory = 0;
 
+        // determining smaller number
         if (n1.length() > n2.length()) {
             n2 = addZerosToSmallerNum(n2, (n1.length() - n2.length()));
         } else {
@@ -71,17 +78,20 @@ public class Assignment5Part2 extends TextProgram {
         return res.toString();
     }
 
+    /**
+     * The following method adds zeroes to a smaller number
+     *
+     * @param smallerNum one of two input numbers
+     * @param numOfZerosToAdd difference in length between number strings
+     * @return number with zeroes in front of it
+     */
     private String addZerosToSmallerNum(String smallerNum, int numOfZerosToAdd) {
-        StringBuilder res = new StringBuilder();
-        res.append(smallerNum);
-
-        for (int i = 0; i < numOfZerosToAdd; i++) {
-            res.insert(0, 0);
-        }
-
-        return res.toString();
+        return "0".repeat(numOfZerosToAdd) + smallerNum;
     }
 
+    /**
+     * The following method tests different cases for our app
+     */
     private void runTests() {
         check("7", "7", "14");
         check("77", "77", "154");
@@ -91,17 +101,24 @@ public class Assignment5Part2 extends TextProgram {
         check("123", "123", "246");
         check("80", "80", "160");
         check("800", "800", "1600");
-        check("1234567890", "1234567890", "2469135780");
         check("800", "80", "880");
+        check("1234567890", "1234567890", "2469135780");
         check("6993309969", "43252003274489856000", "43252003281483165969");
     }
 
+    /**
+     * The following prints positive or negative results of test
+     *
+     * @param n1 first input number from a user
+     * @param n2 second input number from a user
+     * @param expectedResult sum of numbers
+     */
     private void check(String n1, String n2, String expectedResult) {
         String result = addNumericStrings(n1, n2);
         if (result.equals(expectedResult)) {
             System.out.printf("  Pass for n1: %s and n2: %s \n", n1, n2);
         } else {
-            System.out.printf("! FAIL for n1: %s and n2: %s; Result: %s", n1, n2, result);
+            System.out.printf("! FAIL for n1: %s and n2: %s; Result: %s \n", n1, n2, result);
         }
     }
 

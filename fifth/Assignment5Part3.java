@@ -5,6 +5,11 @@ import com.shpp.cs.a.console.TextProgram;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+/**
+ * The following class is an inplementation of a road game.
+ * The following program receives three letters from a user
+ * and prints the appropriate word from the dictionary
+ */
 public class Assignment5Part3 extends TextProgram {
     public void run() {
         runProgram();
@@ -12,6 +17,10 @@ public class Assignment5Part3 extends TextProgram {
 //        runTests();
     }
 
+    /**
+     * The following method receives three letters from a user
+     * and prints the appropriate word from the dictionary
+     */
     private void runProgram() {
         /* Repeatedly prompt the user for a word and print out the estimated
          * number of syllables in that word.
@@ -24,6 +33,12 @@ public class Assignment5Part3 extends TextProgram {
         }
     }
 
+    /**
+     * The following method searches for a word that can be composed from three input letters
+     *
+     * @param threeLetters input letters from a user
+     * @return word from the dictionary
+     */
     private String findMatchForThePattern(String threeLetters) {
         String fileLocation = "src/com/shpp/p2p/cs/ldebryniuk/assignment5/en-dictionary.txt";
         threeLetters = threeLetters.toLowerCase();
@@ -41,20 +56,27 @@ public class Assignment5Part3 extends TextProgram {
                 wordFound = isWordFound(word, threeLetters);
             }
         } catch (Exception e) {
-            println(":-( exception occured");
+            println(":-( exception occurred");
             e.printStackTrace();
         }
 
         return (word == null) ? "sorry could not find any match" : word;
     }
 
+    /**
+     * The following method determines if the word from dictionary can be suitable for our input letters
+     *
+     * @param wordInDictionary string that is retreived from a file
+     * @param threeLetters input letters from user
+     * @return does word contain all the letters in it?
+     */
     private boolean isWordFound(String wordInDictionary, String threeLetters) {
         // each iteration is one of three input letters
         for (char letter : threeLetters.toCharArray()) {
-            int indexOftLetter = wordInDictionary.indexOf(letter);
+            int indexOfLetter = wordInDictionary.indexOf(letter);
 
-            if (indexOftLetter > -1) {
-                wordInDictionary = wordInDictionary.substring(indexOftLetter + 1);
+            if (indexOfLetter > -1) {
+                wordInDictionary = wordInDictionary.substring(indexOfLetter + 1);
             } else {
                 return false;
             }
@@ -63,6 +85,9 @@ public class Assignment5Part3 extends TextProgram {
         return true;
     }
 
+    /**
+     * The following method tests different cases for our app
+     */
     private void runTests() {
         check("KDD", "acknowledged");
         check("NPT", "anapaest");
@@ -74,6 +99,12 @@ public class Assignment5Part3 extends TextProgram {
         check("ACNW", "acknowledge");
     }
 
+    /**
+     * The following method prints positive or negative results of test
+     *
+     * @param testCase three letters that we get from the user
+     * @param expectedResult word from the dictionary
+     */
     private void check(String testCase, String expectedResult) {
         if (findMatchForThePattern(testCase).equals(expectedResult)) {
             println("  Pass: " + testCase);
