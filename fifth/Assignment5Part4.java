@@ -8,14 +8,24 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
+ * The following class is a csv parser
+ *
  * used sources: "https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"
  */
 public class Assignment5Part4 extends TextProgram {
 
+    /* This is the starting method of the program */
     public void run() {
         extractColumn("food-origins.csv", 1);
     }
 
+    /**
+     * The following method opens a csv file and extracts values from a certain column
+     *
+     * @param filename name of the file to open
+     * @param columnIndex index of the column in the csv file
+     * @return list with values from extracted column
+     */
     private ArrayList<String> extractColumn(String filename, int columnIndex) {
         String fileLocation = "src/com/shpp/p2p/cs/ldebryniuk/assignment5/" + filename;
         ArrayList<String> res = new ArrayList<>();
@@ -39,6 +49,12 @@ public class Assignment5Part4 extends TextProgram {
         return res;
     }
 
+    /**
+     * The following method seperates line by fields
+     *
+     * @param line string that is a row from the csv file
+     * @return list of fields
+     */
     private ArrayList<String> fieldsIn(String line) {
         ArrayList<String> res = new ArrayList<>();
         StringBuilder field = new StringBuilder();
@@ -68,10 +84,15 @@ public class Assignment5Part4 extends TextProgram {
         return res;
     }
 
-    private void printResults(ArrayList<String> res) {
+    /**
+     * The following method adds quotes for each value of the array list and prints the result
+     *
+     * @param list is a list of values that were extracted from a csv file
+     */
+    private void printResults(ArrayList<String> list) {
         System.out.println(
                 '[' +
-                        res.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")) +
+                        list.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")) +
                         ']'
         );
     }

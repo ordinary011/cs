@@ -11,6 +11,8 @@ import java.io.FileReader;
  * and prints the appropriate word from the dictionary
  */
 public class Assignment5Part3 extends TextProgram {
+
+    /* This is the starting method of the program */
     public void run() {
         runProgram();
 
