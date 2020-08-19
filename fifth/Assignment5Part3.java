@@ -4,19 +4,20 @@ import com.shpp.cs.a.console.TextProgram;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 
 /**
  * The following class is an inplementation of a road game.
  * The following program receives three letters from a user
  * and prints the appropriate word from the dictionary
+ *
+ * used sources: "https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html"
  */
 public class Assignment5Part3 extends TextProgram {
 
     /* This is the starting method of the program */
     public void run() {
         runProgram();
-
-//        runTests();
     }
 
     /**
@@ -30,7 +31,8 @@ public class Assignment5Part3 extends TextProgram {
         while (true) {
             String word = readLine("Enter three letters please: ");
             if (word.equals("q")) break;
-            System.out.printf("match for \"%s'\" is: %s. ", word, findMatchForThePattern(word));
+            System.out.print("Matches for \"" + word + "\" are: ");
+            System.out.println(findMatchForThePattern(word));
             System.out.println("Please press \"q\" if you would like to stop the program");
         }
     }
@@ -41,28 +43,27 @@ public class Assignment5Part3 extends TextProgram {
      * @param threeLetters input letters from a user
      * @return word from the dictionary
      */
-    private String findMatchForThePattern(String threeLetters) {
-        String fileLocation = "src/com/shpp/p2p/cs/ldebryniuk/assignment5/en-dictionary.txt";
-        threeLetters = threeLetters.toLowerCase();
-        String word = null;
+    private ArrayList<String> findMatchForThePattern(String threeLetters) {
+        final String fileLocation = "src/com/shpp/p2p/cs/ldebryniuk/assignment5/en-dictionary.txt";
+        final ArrayList<String> res = new ArrayList<>();
 
         // open file for reading
         try (BufferedReader br = new BufferedReader(new FileReader(fileLocation))) {
-            boolean wordFound = false;
+            threeLetters = threeLetters.toLowerCase();
+            String word;
 
             // each iteration is a new word in the dictionary
-            while (!wordFound) {
-                word = br.readLine();
-                if (word == null) break; // if end of file
-
-                wordFound = isWordFound(word, threeLetters);
+            while ((word = br.readLine()) != null) { // while not end of file
+                if (isWordFound(word, threeLetters)) {
+                    res.add(word);
+                }
             }
         } catch (Exception e) {
             println(":-( exception occurred");
             e.printStackTrace();
         }
 
-        return (word == null) ? "sorry could not find any match" : word;
+        return res;
     }
 
     /**
@@ -73,45 +74,15 @@ public class Assignment5Part3 extends TextProgram {
      * @return does word contain all the letters in it?
      */
     private boolean isWordFound(String wordInDictionary, String threeLetters) {
+        int indexOfLetter = -1;
+
         // each iteration is one of three input letters
         for (char letter : threeLetters.toCharArray()) {
-            int indexOfLetter = wordInDictionary.indexOf(letter);
+            indexOfLetter = wordInDictionary.indexOf(letter, ++indexOfLetter);
 
-            if (indexOfLetter > -1) {
-                wordInDictionary = wordInDictionary.substring(indexOfLetter + 1);
-            } else {
-                return false;
-            }
+            if (indexOfLetter == -1) return false;
         }
 
         return true;
-    }
-
-    /**
-     * The following method tests different cases for our app
-     */
-    private void runTests() {
-        check("KDD", "acknowledged");
-        check("NPT", "anapaest");
-        check("FTW", "afterglow");
-        check("NNN", "abandoning");
-        check("QQQ", "sorry could not find any match");
-        check("XCX", "executrix");
-        check("I", "aahing");
-        check("ACNW", "acknowledge");
-    }
-
-    /**
-     * The following method prints positive or negative results of test
-     *
-     * @param testCase three letters that we get from the user
-     * @param expectedResult word from the dictionary
-     */
-    private void check(String testCase, String expectedResult) {
-        if (findMatchForThePattern(testCase).equals(expectedResult)) {
-            println("  Pass: " + testCase);
-        } else {
-            println("! FAIL: " + testCase);
-        }
     }
 }

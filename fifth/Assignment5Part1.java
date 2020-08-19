@@ -40,14 +40,15 @@ public class Assignment5Part1 extends TextProgram {
     private int syllablesIn(String word) {
         if (word.length() == 0) return 0; // validation for empty strings
 
+        final char[] vowels = {'a', 'e', 'i', 'o', 'u', 'y'};
+        final int indexOfLastChar = word.length() - 1;
         word = word.toLowerCase();
         int vowelCount = 0;
-        int indexOfLastChar = word.length() - 1;
 
         // start iterating through every string character EXCEPT the last one
         for (int i = 0; i < indexOfLastChar; i++) {
-            if (isVowel(word.charAt(i))) { // if current character is vowel
-                if (!isPreviousCharVowel(word, i - 1)) { // if previous character is not vowel
+            if (isVowel(word.charAt(i), vowels)) { // if current character is vowel
+                if (!isPreviousCharVowel(word, i - 1, vowels)) { // if previous character is not vowel
                     vowelCount++;
                 }
             }
@@ -56,9 +57,9 @@ public class Assignment5Part1 extends TextProgram {
         // for the last character we have slightly different logic
         char lastCharInString = word.charAt(indexOfLastChar);
         if (
-                isVowel(lastCharInString) &&
+                isVowel(lastCharInString, vowels) &&
                         lastCharInString != 'e' &&
-                        !isPreviousCharVowel(word, indexOfLastChar - 1)
+                        !isPreviousCharVowel(word, indexOfLastChar - 1, vowels)
         ) {
             vowelCount++;
         }
@@ -72,9 +73,7 @@ public class Assignment5Part1 extends TextProgram {
      * @param ch single character of input word
      * @return vowel or not
      */
-    private boolean isVowel(char ch) {
-        char[] vowels = {'a', 'e', 'i', 'o', 'u', 'y'};
-
+    private boolean isVowel(char ch, char[] vowels) {
         for (char vowel : vowels) {
             if (ch == vowel) return true;
         }
@@ -89,10 +88,10 @@ public class Assignment5Part1 extends TextProgram {
      * @param charIndex index of the previous char in the word
      * @return vowel or not
      */
-    private boolean isPreviousCharVowel(String word, int charIndex) {
+    private boolean isPreviousCharVowel(String word, int charIndex, char[] vowels) {
         if (charIndex < 0) return false; // ensures that Index out of bounds will not occur
 
-        return isVowel(word.charAt(charIndex));
+        return isVowel(word.charAt(charIndex), vowels);
     }
 
     /**
