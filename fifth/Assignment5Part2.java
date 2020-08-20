@@ -11,9 +11,11 @@ public class Assignment5Part2 extends TextProgram {
 
     /* This is the starting method of the program */
     public void run() {
-        runProgram();
+//        runProgram();
 
-//        runTests();
+        runTests();
+
+//        addNumericStrings("44", "7");
     }
 
     /**
@@ -42,12 +44,10 @@ public class Assignment5Part2 extends TextProgram {
      * @return A String representation of n1 + n2
      */
     private String addNumericStrings(String n1, String n2) {
-        final int ASCII_CODE_FOR_ZERO = 48;
         StringBuilder res = new StringBuilder();
-        int inMemory = 0;
+        int remainderOfPreviousNum = 0;
 
-        // determining smaller number
-        if (n1.length() > n2.length()) {
+        if (n1.length() > n2.length()) { // determining smaller number
             n2 = addZerosToSmallerNum(n2, (n1.length() - n2.length()));
         } else {
             n1 = addZerosToSmallerNum(n1, (n2.length() - n1.length()));
@@ -56,24 +56,16 @@ public class Assignment5Part2 extends TextProgram {
         // start iterating the string from the end to start
         for (int i = n1.length() - 1; i > -1; i--) {
             // converting from chars to integers
-            int firstNum = n1.charAt(i) - ASCII_CODE_FOR_ZERO;
-            int secondNum = n2.charAt(i) - ASCII_CODE_FOR_ZERO;
-            int sum = firstNum + secondNum;
+            int firstNum = n1.charAt(i) - '0';
+            int secondNum = n2.charAt(i) - '0';
+            int sum = firstNum + secondNum + remainderOfPreviousNum;
 
-            if (inMemory == 1) {
-                sum++;
-                inMemory = 0;
-            }
+            remainderOfPreviousNum = sum / 10; // if sum > 10 we'll get 1
 
-            if (sum > 9) {
-                inMemory = 1;
-                sum -= 10;
-            }
-
-            res.insert(0, sum);
+            res.insert(0, sum % 10);
         }
 
-        if (inMemory == 1) res.insert(0, 1);
+        if (remainderOfPreviousNum == 1) res.insert(0, 1);
 
         return res.toString();
     }
