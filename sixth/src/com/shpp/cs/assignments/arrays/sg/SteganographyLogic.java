@@ -71,6 +71,7 @@ public class SteganographyLogic {
                     if (isRedOdd) continue; // if true no change is needed
                     else r++; // make odd
                 } else { // pixel not black means red component should be even
+                    // todo continue should be here as well
                     if (isRedOdd) r--; // if true make even
                 }
 
