@@ -16,20 +16,14 @@ public class SteganographyLogic {
      * @return The hidden message, expressed as a boolean array.
      */
     public static boolean[][] findMessage(GImage source) {
-        // black pixels are odd nums in red component and should be marked as true in res arr
-        int[][] arr = source.getPixelArray();
-        boolean[][] res = new boolean[arr.length][];
+        final int[][] arr = source.getPixelArray();
+        final boolean[][] res = new boolean[arr.length][arr[0].length];
 
-        // each iteration in a new array that contains row of pixels
-        for (int i = 0; i < arr.length; i++) {
-            boolean[] rowOfPixels = new boolean[arr[i].length];
-
-            // each iteration is a new pixel within current row
-            for (int j = 0; j < rowOfPixels.length; j++) {
-                rowOfPixels[j] = (GImage.getRed(arr[i][j]) % 2) != 0; // true if num is odd
+        // black pixels are odd ints in red component and should be marked as true in res arr
+        for (int i = 0; i < arr.length; i++) { // iterate through inner arrays
+            for (int j = 0; j < arr[i].length; j++) { // iterate through elements of inner arr
+                res[i][j] = (GImage.getRed(arr[i][j]) % 2) != 0; // true if num is odd
             }
-
-            res[i] = rowOfPixels;
         }
 
         return res;
@@ -55,46 +49,33 @@ public class SteganographyLogic {
      * @return A GImage whose pixels have the message hidden within it.
      */
     public static GImage hideMessage(boolean[][] message, GImage source) {
-        // black pixels are odd nums in red component and should be defined as true
         int[][] image = source.getPixelArray();
 
-        // each iteration is a horizontal row of pixels
+        // iterate through every row of pixels
         for (int i = 0; i < image.length; i++) {
-
-            // iterate through array of pixels
-            for (int j = 0; j < image[i].length; j++) {
-//                int r = createRedComponent(image[i][j], message[i][j]);
+            // black pixels are odd ints in red component and are defined as true in message
+            for (int j = 0; j < image[i].length; j++) { // iterate through pixels within row
                 int r = GImage.getRed(image[i][j]);
                 boolean isRedOdd = r % 2 != 0;
+                boolean isPixelBlack = message[i][j];
 
-                if (message[i][j]) { // if pixel is black means red component should be odd
-                    if (isRedOdd) continue; // if true no change is needed
+                if (isPixelBlack) { // if pixel is black means red component should be odd
+                    if (isRedOdd) continue; // if odd no change is needed
                     else r++; // make odd
                 } else { // pixel not black means red component should be even
-                    // todo continue should be here as well
-                    if (isRedOdd) r--; // if true make even
+                    if (!isRedOdd) continue; // if even no change is needed
+                    else r--; // make even
                 }
 
                 int g = GImage.getGreen(image[i][j]);
                 int b = GImage.getBlue(image[i][j]);
 
-                // reassign array element to a new pixel
+                // reassign array pixel to a new pixel with changed value of red
                 image[i][j] = GImage.createRGBPixel(r, g, b);
             }
         }
 
         return new GImage(image);
     }
-
-//    private static int createRedComponent(int rgbPixel, boolean isBlackPixel) {
-//        int red = GImage.getRed(rgbPixel);
-//        boolean isRedOdd = red % 2 != 0;
-//
-//        if (isBlackPixel) { // black pixel means red component should be odd
-//            return isRedOdd ? red : ++red;
-//        } else { // pixel not black means red component should be even
-//            return isRedOdd ? --red : red;
-//        }
-//    }
 }
 

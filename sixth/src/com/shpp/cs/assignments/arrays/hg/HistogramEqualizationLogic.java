@@ -36,7 +36,7 @@ public class HistogramEqualizationLogic {
      * @return The cumulative frequency array.
      */
     public static int[] cumulativeSumFor(int[] histogram) {
-        for (int i = 1; i < histogram.length; i++) {
+        for (int i = 1; i < histogram.length; i++) { // start from the second element
             histogram[i] += histogram[i - 1]; // add current histogram value to the sum of all previous values
         }
 
