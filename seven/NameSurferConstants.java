@@ -18,7 +18,7 @@ public interface NameSurferConstants {
     /**
      * The height of the application window
      */
-    public static final int APPLICATION_HEIGHT = 600;
+    public static final int APPLICATION_HEIGHT = 670;
 
     /**
      * The name of the file containing the data

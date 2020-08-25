@@ -52,7 +52,7 @@ public class NameSurferEntry implements NameSurferConstants {
      */
     public int getRank(int decade) {
         try {
-            return decades[decade-1];
+            return decades[decade];
         } catch (ArrayIndexOutOfBoundsException e) {
             e.printStackTrace();
         }

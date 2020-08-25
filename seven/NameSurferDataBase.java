@@ -11,10 +11,15 @@ package com.shpp.p2p.cs.ldebryniuk.assignment7;
  * and "ERIC" are the same names.
  */
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.HashMap;
+
 public class NameSurferDataBase implements NameSurferConstants {
 
-	/* Constructor: NameSurferDataBase(filename) */
+    private HashMap<String, String> db = new HashMap<>();
 
+	/* Constructor: NameSurferDataBase(filename) */
     /**
      * Creates a new NameSurferDataBase and initializes it using the
      * data in the specified file.  The constructor throws an error
@@ -22,7 +27,20 @@ public class NameSurferDataBase implements NameSurferConstants {
      * occurs as the file is being read.
      */
     public NameSurferDataBase(String filename) {
-        // You fill this in //
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+
+            // each iteration is a new word in the dictionary
+            while ((line = br.readLine()) != null) { // while not end of file
+                int inexOfFirstSpace = line.indexOf(' ');
+                String name = line.substring(0, inexOfFirstSpace);
+                String popularityNumbers = line.substring(inexOfFirstSpace);
+
+                db.put(name, popularityNumbers);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 	
 	/* Method: findEntry(name) */
@@ -33,8 +51,17 @@ public class NameSurferDataBase implements NameSurferConstants {
      * method returns null.
      */
     public NameSurferEntry findEntry(String name) {
-        // You need to turn this stub into a real implementation //
-        return null;
+        name = prepareName(name);
+
+        String popularities = db.get(name);
+        if (popularities == null) return null;
+
+        return new NameSurferEntry(name + popularities);
+    }
+
+    private String prepareName(String name) {
+        return Character.toUpperCase(name.charAt(0)) +
+                name.substring(1).toLowerCase();
     }
 }
 

@@ -7,7 +7,6 @@ package com.shpp.p2p.cs.ldebryniuk.assignment7;
  * the baby-name database described in the assignment handout.
  */
 
-import acm.graphics.GCanvas;
 import com.shpp.cs.a.simple.SimpleProgram;
 
 import javax.swing.*;
@@ -15,15 +14,21 @@ import java.awt.event.*;
 
 public class NameSurfer extends SimpleProgram implements NameSurferConstants {
 
-	/* Method: init() */
+    private NameSurferDataBase db;
+    private NameSurferGraph graph;
     private JTextField textField;
 
+    /* Method: init() */
     /**
      * This method has the responsibility for reading in the data base
      * and initializing the interactors at the top of the window.
      */
     public void init() {
-        add(new NameSurferGraph());
+        db = new NameSurferDataBase(NAMES_DATA_FILE);
+
+        graph = new NameSurferGraph();
+        add(graph);
+
         add(new JLabel("Name:"), NORTH);
 
         textField = new JTextField(20);
@@ -42,8 +47,7 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         addActionListeners();
     }
 
-	/* Method: actionPerformed(e) */
-
+    /* Method: actionPerformed(e) */
     /**
      * This class is responsible for detecting when the buttons are
      * clicked, so you will have to define a method to respond to
@@ -52,15 +56,16 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("GraphBtnPressed")) {
-            System.out.println("GraphBtnPressed");
-        } else if (cmd.equals("ClearBtnPressed")) {
-            System.out.println("ClearBtnPressed");
-        } else if (cmd.equals("EnterWasPressed")) {
-            System.out.println("EnterWasPressed");
-            System.out.println(textField.getText());
-        } else {
-            println("something else happened...");
+        switch (cmd) {
+            case "EnterWasPressed" -> addGraph();
+            case "GraphBtnPressed" -> addGraph();
+            case "ClearBtnPressed" -> graph.clear();
+            default -> println("something else happened...");
         }
+    }
+
+    private void addGraph() {
+        NameSurferEntry entry = db.findEntry(textField.getText());
+        if (entry != null) graph.addEntry(entry);
     }
 }
