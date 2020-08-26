@@ -61,39 +61,47 @@ public class NameSurferGraph extends GCanvas
      */
     public void update() {
         removeAll();
-        final Font LABEL_FONT = new Font("Serif", Font.BOLD, 18);
-        final double DECADE_VERTICAL_OFFSET = APPLICATION_HEIGHT * 0.83;
-        final int DISTANCE_BETWEEN_LINES = APPLICATION_WIDTH / NDECADES;
-        final double DISTANCE_BETWEEN_GRAPH_EDGES = 500;
-        final double GRAPH_UPPER_EDGE = APPLICATION_HEIGHT * 0.04;
-        final double GRAPH_LOWER_EDGE = GRAPH_UPPER_EDGE + DISTANCE_BETWEEN_GRAPH_EDGES;
-//        final double GRAPH_LOWER_EDGE = APPLICATION_HEIGHT * 0.78;
+
+        final double WIDTH = getWidth();
+        final double HEIGHT = getHeight();
+
+        final int fontSIze = (int) (((WIDTH + HEIGHT) / 2) * 0.03);
+        final Font LABEL_FONT = new Font("Serif", Font.BOLD, fontSIze);
+
+        final double DISTANCE_BETWEEN_VERTICAL_LINES = WIDTH / NDECADES;
+        final double GRAPH_UPPER_EDGE = HEIGHT * 0.05;
+        final double GRAPH_LOWER_EDGE = HEIGHT - GRAPH_UPPER_EDGE;
+        final double DISTANCE_BETWEEN_GRAPH_EDGES = GRAPH_LOWER_EDGE - GRAPH_UPPER_EDGE;
+
         int decade = START_DECADE;
         double x = 2.0; // pixels
 
-        // add two edges for the graphs
-        add(new GLine(0, GRAPH_UPPER_EDGE, APPLICATION_WIDTH, GRAPH_UPPER_EDGE));
-        add(new GLine(0, GRAPH_LOWER_EDGE, APPLICATION_WIDTH, GRAPH_LOWER_EDGE));
+        // add two horizontal lines (edges) for the graphs
+        add(new GLine(0, GRAPH_UPPER_EDGE, WIDTH, GRAPH_UPPER_EDGE));
+        add(new GLine(0, GRAPH_LOWER_EDGE, WIDTH, GRAPH_LOWER_EDGE));
 
         for (int i = 0; i < NDECADES; i++) {
-            add(new GLine(x, 0, x, APPLICATION_HEIGHT));
+            add(new GLine(x, 0, x, HEIGHT));
 
-            GLabel decadeLabel = new GLabel(String.valueOf(decade), x, DECADE_VERTICAL_OFFSET);
+            GLabel decadeLabel = new GLabel(String.valueOf(decade), x, HEIGHT);
             decadeLabel.setFont(LABEL_FONT);
             add(decadeLabel);
 
-            x += DISTANCE_BETWEEN_LINES;
+            x += DISTANCE_BETWEEN_VERTICAL_LINES;
             decade += 10;
         }
 
         // add graphs
         int colorIndex = 0;
+        final int fontSIze2 = (int) (DISTANCE_BETWEEN_VERTICAL_LINES * 0.15);
+        final Font LABEL_FONT2 = new Font("Serif", Font.PLAIN, fontSIze2);
+
         for (int i = 0; i < graphs.size(); i++) {
             double x2 = 2.0; // pixels
             NameSurferEntry entry = graphs.get(i);
 
             for (int j = 0; j < NDECADES - 1; j++) { // draw a graph
-                double currentRank = entry.getRank(j);
+                int currentRank = entry.getRank(j);
                 double currentRankPercent = currentRank * DISTANCE_BETWEEN_GRAPH_EDGES / MAX_RANK;
                 double nextRankPercent = entry.getRank(j + 1) * DISTANCE_BETWEEN_GRAPH_EDGES / MAX_RANK;
 
@@ -104,14 +112,18 @@ public class NameSurferGraph extends GCanvas
 
                 String rankName = entry.getName() + " " + (currentRank == 0 ? "*" : currentRank);
                 GLabel rankLabel = new GLabel(rankName, x2, y);
+                rankLabel.setFont(LABEL_FONT2);
                 rankLabel.setColor(colors[colorIndex]);
                 add(rankLabel);
 
-                GLine line = new GLine(x2, y, x2 + DISTANCE_BETWEEN_LINES, GRAPH_UPPER_EDGE + nextRankPercent);
+                GLine line = new GLine(x2, y,
+                        x2 + DISTANCE_BETWEEN_VERTICAL_LINES,
+                        GRAPH_UPPER_EDGE + nextRankPercent
+                );
                 line.setColor(colors[colorIndex]);
                 add(line);
 
-                x2 += DISTANCE_BETWEEN_LINES;
+                x2 += DISTANCE_BETWEEN_VERTICAL_LINES;
             }
 
             colorIndex++;

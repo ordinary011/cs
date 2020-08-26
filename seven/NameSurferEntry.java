@@ -10,9 +10,12 @@ package com.shpp.p2p.cs.ldebryniuk.assignment7;
 
 public class NameSurferEntry implements NameSurferConstants {
 
-	/* Constructor: NameSurferEntry(line) */
+    // input name that we will build graph for
     private final String name;
+    // contains info about name popularity at decades from 1900 to 2010 inclusive
     private final int[] decades = new int[12];
+
+    /* Constructor: NameSurferEntry(line) */
 
     /**
      * Creates a new NameSurferEntry from a data line as it appears
@@ -21,27 +24,29 @@ public class NameSurferEntry implements NameSurferConstants {
      * decade.
      */
     public NameSurferEntry(String line) {
-        String[] strArr = line.split(" ");
+        String[] nameAndDecades = line.split(" ");
 
-        this.name = strArr[0];
+        this.name = nameAndDecades[0]; // first el is input name
 
         try {
-            for (int i = 1; i < strArr.length; i++) {
-                decades[i-1] = Integer.parseInt(strArr[i]);
+            for (int i = 0; i < decades.length; i++) {
+                decades[i] = Integer.parseInt(nameAndDecades[i + 1]);
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             e.printStackTrace();
         }
     }
 
-	/* Method: getName() */
+    /* Method: getName() */
 
     /**
      * Returns the name associated with this entry.
      */
-    public String getName() { return this.name; }
+    public String getName() {
+        return this.name;
+    }
 
-	/* Method: getRank(decade) */
+    /* Method: getRank(decade) */
 
     /**
      * Returns the rank associated with an entry for a particular
@@ -59,7 +64,7 @@ public class NameSurferEntry implements NameSurferConstants {
         return 0;
     }
 
-	/* Method: toString() */
+    /* Method: toString() */
 
     /**
      * Returns a string that makes it easy to see the value of a

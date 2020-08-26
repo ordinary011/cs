@@ -14,40 +14,54 @@ import java.awt.event.*;
 
 public class NameSurfer extends SimpleProgram implements NameSurferConstants {
 
-    private NameSurferDataBase db;
-    private NameSurferGraph graph;
-    private JTextField textField;
+    // contains info about all of the names
+    private final NameSurferDataBase db = new NameSurferDataBase(NAMES_DATA_FILE);;
+    // manages adding and removing of the graphs to the pop up window
+    private final NameSurferGraph graphManager = new NameSurferGraph();
+    // contains name entered by the user
+    private final JTextField textField = new JTextField(20);
 
     /* Method: init() */
+
     /**
      * This method has the responsibility for reading in the data base
      * and initializing the interactors at the top of the window.
      */
     public void init() {
-        db = new NameSurferDataBase(NAMES_DATA_FILE);
+        add(graphManager);
 
-        graph = new NameSurferGraph();
-        add(graph);
+        addInteractors();
+    }
 
+    /**
+     * The following method adds a label, text field and two buttons to the pop up screen
+     */
+    private void addInteractors() {
         add(new JLabel("Name:"), NORTH);
 
-        textField = new JTextField(20);
         textField.setActionCommand("EnterWasPressed");
         textField.addActionListener(this);
         add(textField, NORTH);
 
-        JButton graphBtn = new JButton("Graph");
-        graphBtn.setActionCommand("GraphBtnPressed");
-        add(graphBtn, NORTH);
+        createButton("Graph", "AddGraphBtnPressed");
+        createButton("Clear", "ClearBtnPressed");
+        addActionListeners(); // listeners for buttons
+    }
 
-        JButton clearBtn = new JButton("Clear");
-        clearBtn.setActionCommand("ClearBtnPressed");
-        add(clearBtn, NORTH);
-
-        addActionListeners();
+    /**
+     * The following method adds a button to the pop up screen
+     *
+     * @param label     name that will be put on the button
+     * @param actionCmd string that is needed for distinguishing button press events
+     */
+    private void createButton(String label, String actionCmd) {
+        JButton btn = new JButton(label);
+        btn.setActionCommand(actionCmd);
+        add(btn, NORTH);
     }
 
     /* Method: actionPerformed(e) */
+
     /**
      * This class is responsible for detecting when the buttons are
      * clicked, so you will have to define a method to respond to
@@ -57,15 +71,17 @@ public class NameSurfer extends SimpleProgram implements NameSurferConstants {
         String cmd = e.getActionCommand();
 
         switch (cmd) {
-            case "EnterWasPressed" -> addGraph();
-            case "GraphBtnPressed" -> addGraph();
-            case "ClearBtnPressed" -> graph.clear();
+            case "EnterWasPressed", "AddGraphBtnPressed" -> addGraphEntry();
+            case "ClearBtnPressed" -> graphManager.clear();
             default -> println("something else happened...");
         }
     }
 
-    private void addGraph() {
+    /**
+     * The following method searches and adds a graph that contains information about the name
+     */
+    private void addGraphEntry() {
         NameSurferEntry entry = db.findEntry(textField.getText());
-        if (entry != null) graph.addEntry(entry);
+        if (entry != null) graphManager.addEntry(entry);
     }
 }

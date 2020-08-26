@@ -17,9 +17,11 @@ import java.util.HashMap;
 
 public class NameSurferDataBase implements NameSurferConstants {
 
-    private HashMap<String, String> db = new HashMap<>();
+    // contains <input name, name popularity in specific decade>
+    private final HashMap<String, String> db = new HashMap<>();
 
-	/* Constructor: NameSurferDataBase(filename) */
+    /* Constructor: NameSurferDataBase(filename) */
+
     /**
      * Creates a new NameSurferDataBase and initializes it using the
      * data in the specified file.  The constructor throws an error
@@ -27,23 +29,24 @@ public class NameSurferDataBase implements NameSurferConstants {
      * occurs as the file is being read.
      */
     public NameSurferDataBase(String filename) {
+        // copy all entries from file to db
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
 
             // each iteration is a new word in the dictionary
             while ((line = br.readLine()) != null) { // while not end of file
-                int inexOfFirstSpace = line.indexOf(' ');
-                String name = line.substring(0, inexOfFirstSpace);
-                String popularityNumbers = line.substring(inexOfFirstSpace);
+                int indexOfFirstSpaceSymbol = line.indexOf(' ');
+                String name = line.substring(0, indexOfFirstSpaceSymbol);
+                String namePopularityWithinDecades = line.substring(indexOfFirstSpaceSymbol);
 
-                db.put(name, popularityNumbers);
+                db.put(name, namePopularityWithinDecades);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-	
-	/* Method: findEntry(name) */
+
+    /* Method: findEntry(name) */
 
     /**
      * Returns the NameSurferEntry associated with this name, if one
@@ -51,15 +54,22 @@ public class NameSurferDataBase implements NameSurferConstants {
      * method returns null.
      */
     public NameSurferEntry findEntry(String name) {
-        name = prepareName(name);
+        name = prepareForSearch(name);
 
-        String popularities = db.get(name);
-        if (popularities == null) return null;
+        String namePopularityWithinDecades = db.get(name);
+        if (namePopularityWithinDecades == null) return null;
 
-        return new NameSurferEntry(name + popularities);
+        return new NameSurferEntry(name + namePopularityWithinDecades);
     }
 
-    private String prepareName(String name) {
+    /**
+     * The following method makes sure that the first letter is an upper case letter
+     * and the rest are in lower case
+     *
+     * @param name input name that can not correspond to the search pattern
+     * @return formatted name that is ready for search
+     */
+    private String prepareForSearch(String name) {
         return Character.toUpperCase(name.charAt(0)) +
                 name.substring(1).toLowerCase();
     }
