@@ -111,30 +111,37 @@ public class NameSurferGraph extends GCanvas
 
             for (int j = 0; j < NDECADES - 1; j++) { // draw a graph
                 int currentRank = entry.getRank(j);
-                double currentRankPercent = currentRank * DISTANCE_BETWEEN_GRAPH_EDGES / MAX_RANK;
-                double nextRankPercent = entry.getRank(j + 1) * DISTANCE_BETWEEN_GRAPH_EDGES / MAX_RANK;
 
-                if (currentRankPercent == 0) currentRankPercent = DISTANCE_BETWEEN_GRAPH_EDGES;
-                if (nextRankPercent == 0) nextRankPercent = DISTANCE_BETWEEN_GRAPH_EDGES;
+                double y = GRAPH_UPPER_EDGE + getRankOffset(currentRank, DISTANCE_BETWEEN_GRAPH_EDGES);
 
-                double y = GRAPH_UPPER_EDGE + currentRankPercent;
-
-                // add rank label
                 String rankName = name + (currentRank == 0 ? "*" : currentRank);
                 addLabel(rankName, x, y, FONT, colors[colorIndex]);
 
+                double nextRankOffset = getRankOffset(entry.getRank(j + 1), DISTANCE_BETWEEN_GRAPH_EDGES);
                 GLine line = new GLine(x, y,
-                        x + DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE + nextRankPercent);
+                        x + DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE + nextRankOffset);
                 line.setColor(colors[colorIndex]);
                 add(line);
 
                 x += DISTANCE_BETWEEN_VERTICAL_LINES; // increase for the next iteration
             }
 
+            // add last rank label
+            int lastRank = entry.getRank(NDECADES - 1);
+            double y = GRAPH_UPPER_EDGE + getRankOffset(lastRank, DISTANCE_BETWEEN_GRAPH_EDGES);;
+            String rankName = name + (lastRank == 0 ? "*" : lastRank);
+            addLabel(rankName, x, y, FONT, colors[colorIndex]);
+
             colorIndex++;
             if (colorIndex == 4) colorIndex = 0;
             x = 2.0;
         }
+    }
+
+    private double getRankOffset(int rank, double DISTANCE_BETWEEN_GRAPH_EDGES) {
+        if (rank == 0) return DISTANCE_BETWEEN_GRAPH_EDGES;
+
+        return rank * DISTANCE_BETWEEN_GRAPH_EDGES / MAX_RANK; // percent in relation to graph size
     }
 
     private void addLabel(String name, double x, double y, Font font, Color color) {
