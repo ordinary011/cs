@@ -68,15 +68,16 @@ public class NameSurferGraph extends GCanvas
         final double GRAPH_UPPER_EDGE = HEIGHT * 0.05;
         final double GRAPH_LOWER_EDGE = HEIGHT - GRAPH_UPPER_EDGE;
 
-        double initialX = 2.0; // pixels
+        final double INITIAL_X = 2.0; // pixels
 
-        drawBackground(initialX, DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE, GRAPH_LOWER_EDGE, WIDTH, HEIGHT);
+        drawBackgroundMesh(INITIAL_X, DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE,
+                GRAPH_LOWER_EDGE, WIDTH, HEIGHT);
 
-        drawGraphs(initialX, DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE, GRAPH_LOWER_EDGE);
+        drawGraphs(INITIAL_X, DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE, GRAPH_LOWER_EDGE);
     }
 
-    private void drawBackground(double x, double DISTANCE_BETWEEN_VERTICAL_LINES, double GRAPH_UPPER_EDGE,
-                                double GRAPH_LOWER_EDGE, double WIDTH, double HEIGHT) {
+    private void drawBackgroundMesh(double x, double DISTANCE_BETWEEN_VERTICAL_LINES, double GRAPH_UPPER_EDGE,
+                                    double GRAPH_LOWER_EDGE, double WIDTH, double HEIGHT) {
         // determine font for decade labels
         final int fontSIze = (int) (((WIDTH + HEIGHT) / 2) * 0.03);
         final Font FONT = new Font("Serif", Font.BOLD, fontSIze);
@@ -101,41 +102,53 @@ public class NameSurferGraph extends GCanvas
 
     private void drawGraphs(double x, double DISTANCE_BETWEEN_VERTICAL_LINES,
                             double GRAPH_UPPER_EDGE, double GRAPH_LOWER_EDGE) {
-        int colorIndex = 0;
-        final int fontSIze = (int) (DISTANCE_BETWEEN_VERTICAL_LINES * 0.15);
-        final Font FONT = new Font("Serif", Font.PLAIN, fontSIze);
+        final int FONT_SIZE = (int) (DISTANCE_BETWEEN_VERTICAL_LINES * 0.15);
+        final Font FONT = new Font("Serif", Font.PLAIN, FONT_SIZE);
         final double DISTANCE_BETWEEN_GRAPH_EDGES = GRAPH_LOWER_EDGE - GRAPH_UPPER_EDGE;
+        final double X_OF_LAST_DECADE = x + (DISTANCE_BETWEEN_VERTICAL_LINES * (NDECADES - 1));
+        int colorIndex = 0;
 
+        // each iteration draws a new graph
         for (NameSurferEntry entry : graphs) {
             String name = entry.getName() + " ";
 
-            for (int j = 0; j < NDECADES - 1; j++) { // draw a graph
-                int currentRank = entry.getRank(j);
+            drawGraph(x, entry, name, GRAPH_UPPER_EDGE, colorIndex, DISTANCE_BETWEEN_GRAPH_EDGES,
+                    FONT, DISTANCE_BETWEEN_VERTICAL_LINES);
 
-                double y = GRAPH_UPPER_EDGE + getRankOffset(currentRank, DISTANCE_BETWEEN_GRAPH_EDGES);
+            // add rank label for the last decade of current graph
+            addRankLabel(X_OF_LAST_DECADE, entry.getRank(NDECADES - 1), name, GRAPH_UPPER_EDGE,
+                    DISTANCE_BETWEEN_GRAPH_EDGES, FONT, colors[colorIndex]);
 
-                String rankName = name + (currentRank == 0 ? "*" : currentRank);
-                addLabel(rankName, x, y, FONT, colors[colorIndex]);
-
-                double nextRankOffset = getRankOffset(entry.getRank(j + 1), DISTANCE_BETWEEN_GRAPH_EDGES);
-                GLine line = new GLine(x, y,
-                        x + DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE + nextRankOffset);
-                line.setColor(colors[colorIndex]);
-                add(line);
-
-                x += DISTANCE_BETWEEN_VERTICAL_LINES; // increase for the next iteration
-            }
-
-            // add last rank label
-            int lastRank = entry.getRank(NDECADES - 1);
-            double y = GRAPH_UPPER_EDGE + getRankOffset(lastRank, DISTANCE_BETWEEN_GRAPH_EDGES);;
-            String rankName = name + (lastRank == 0 ? "*" : lastRank);
-            addLabel(rankName, x, y, FONT, colors[colorIndex]);
-
+            // prepare for the next iteration (graph)
             colorIndex++;
             if (colorIndex == 4) colorIndex = 0;
-            x = 2.0;
         }
+    }
+
+    private void drawGraph(double x, NameSurferEntry entry, String name, double GRAPH_UPPER_EDGE, int colorIndex,
+                           double DISTANCE_BETWEEN_GRAPH_EDGES, Font FONT, double DISTANCE_BETWEEN_VERTICAL_LINES) {
+        for (int j = 0; j < NDECADES - 1; j++) {
+            double y = addRankLabel(x, entry.getRank(j), name, GRAPH_UPPER_EDGE,
+                    DISTANCE_BETWEEN_GRAPH_EDGES, FONT, colors[colorIndex]);
+
+            // draw rank line
+            double nextRankOffset = getRankOffset(entry.getRank(j + 1), DISTANCE_BETWEEN_GRAPH_EDGES);
+            GLine line = new GLine(x, y,
+                    x + DISTANCE_BETWEEN_VERTICAL_LINES, GRAPH_UPPER_EDGE + nextRankOffset);
+            line.setColor(colors[colorIndex]);
+            add(line);
+
+            x += DISTANCE_BETWEEN_VERTICAL_LINES; // increase for the next iteration (rank)
+        }
+    }
+
+    private double addRankLabel(double x, int currentRank, String name, double GRAPH_UPPER_EDGE,
+                                double DISTANCE_BETWEEN_GRAPH_EDGES, Font font, Color color) {
+        double y = GRAPH_UPPER_EDGE + getRankOffset(currentRank, DISTANCE_BETWEEN_GRAPH_EDGES);
+        String rankName = name + (currentRank == 0 ? "*" : currentRank);
+        addLabel(rankName, x, y, font, color);
+
+        return y;
     }
 
     private double getRankOffset(int rank, double DISTANCE_BETWEEN_GRAPH_EDGES) {
