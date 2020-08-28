@@ -69,8 +69,9 @@ public class HistogramEqualizationLogic {
 
         for (int i = 0; i < luminances.length; i++) {
             for (int j = 0; j < luminances[i].length; j++) {
-                int L = luminances[i][j];
-                luminances[i][j] = MAX_LUMINANCE * cumulativeHistogram[L] / totalPixels;
+                int pixIntensity = luminances[i][j];
+                double pixIntensityPercent = cumulativeHistogram[pixIntensity] / (double) totalPixels;
+                luminances[i][j] = (int) (MAX_LUMINANCE * pixIntensityPercent);
             }
         }
 
