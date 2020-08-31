@@ -70,9 +70,10 @@ public class NameSurferDataBase implements NameSurferConstants {
      * @return formatted name that is ready for search
      */
     private String prepareForSearch(String name) {
-        name = name.trim(); // remove possible spaces
-        return Character.toUpperCase(name.charAt(0)) +
-                name.substring(1).toLowerCase();
+        name = name.trim(); // remove redundant spaces in the beginning and at the end
+        if (name.length() > 0) {
+            return Character.toUpperCase(name.charAt(0)) + name.substring(1).toLowerCase();
+        } else return "";
     }
 }
 

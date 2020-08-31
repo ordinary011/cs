@@ -15,7 +15,7 @@ import java.awt.event.*;
 public class NameSurfer extends SimpleProgram implements NameSurferConstants {
 
     // contains info about all of the names
-    private final NameSurferDataBase db = new NameSurferDataBase(NAMES_DATA_FILE);;
+    private final NameSurferDataBase db = new NameSurferDataBase(NAMES_DATA_FILE);
     // manages adding and removing of the graphs to the pop up window
     private final NameSurferGraph graphManager = new NameSurferGraph();
     // contains name entered by the user
