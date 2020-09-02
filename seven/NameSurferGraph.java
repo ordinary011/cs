@@ -56,6 +56,12 @@ public class NameSurferGraph extends GCanvas
      * simply stores the entry; the graph is drawn by calling update.
      */
     public void addEntry(NameSurferEntry entry) {
+        String name = entry.getName();
+
+        for (NameSurferEntry graph : graphs) {
+            if (graph.getName().equals(name)) return; // if graph with current name is already depicted
+        }
+
         graphs.add(entry);
         update();
     }
