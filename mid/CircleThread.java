@@ -60,23 +60,19 @@ public class CircleThread implements Runnable {
             circle.move(dx, dy);
 
             if ((circle.getX() + DIAMETER) > WIDTH) { // if circle beyond right edge
-                dx = -dx;
-                circle.move(dx, dy); // prevents circle from being stuck in the wall
+                reverseDirection(true);
             }
 
             if (circle.getX() < 0) { // if circle beyond left edge
-                dx = -dx;
-                circle.move(dx, dy); // prevents circle from being stuck in the wall
+                reverseDirection(true);
             }
 
             if (circle.getY() < 0) { // if circle above ceiling
-                dy = -dy;
-                circle.move(dx, dy); // prevents circle from being stuck in the wall
+                reverseDirection(false);
             }
 
             if ((circle.getY() + DIAMETER) > HEIGHT) { // if circle below floor
-                dy = -dy;
-                circle.move(dx, dy); // prevents circle from being stuck in the wall
+                reverseDirection(false);
             }
 
             Thread.sleep(10);
@@ -84,7 +80,18 @@ public class CircleThread implements Runnable {
     }
 
     /**
-     * Changes circle direction from horizontal to vertical and vice versa
+     * The following method reverses (turns by 180 degrees) circle direction
+     * @param changeDx flag that specifies which delta direction to change
+     */
+    private void reverseDirection(boolean changeDx) {
+        if (changeDx) dx = -dx;
+        else dy = -dy;
+
+        circle.move(dx, dy); // prevents circle from being stuck in the wall
+    }
+
+    /**
+     * Changes circle direction (by 90 degrees) from horizontal to vertical and vice versa
      */
     public void changeDirection() {
         if (dx != 0) { // if circle is moving horizontally
