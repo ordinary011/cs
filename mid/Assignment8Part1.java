@@ -70,7 +70,7 @@ public class Assignment8Part1 extends WindowProgram {
      *
      * @param e mouse event object
      */
-    public void mouseClicked(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {
         GObject circle = getElementAt(e.getX(), e.getY());
 
         if (circle != null) {
