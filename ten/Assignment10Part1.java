@@ -13,7 +13,6 @@ public class Assignment10Part1 {
     private static final String[] prioritizedOperations = {"^", "*", "/", "+", "-"};
 
     public static void main(String[] args) {
-//        if (args.length > 0) System.out.println(Arrays.toString(args));
         if (args.length > 0) calculate(args);
         else System.out.println("sorry no arguments found");
     }
@@ -26,20 +25,13 @@ public class Assignment10Part1 {
 
     private static void calculate(String[] args) {
         removeAllSpaces(args);
+        System.out.println("start " + args[0]);
 
         StringBuilder formula = new StringBuilder(args[0]);
-        System.out.println("start " + formula);
 
-//        // get rid of pARANTHESIS
-//        int indexOfParanthesis;
-//        while ((indexOfParanthesis = formula.indexOf("(")) > -1) {
-//            int indexOfParanthesis2 = formula.indexOf(")");
-//            String expression = formula.substring(indexOfParanthesis + 1, indexOfParanthesis2);
-//            StringBuilder res = perform(new StringBuilder(expression));
-//
-//            formula.replace(indexOfParanthesis, indexOfParanthesis2 + 1, res.toString());
-//            System.out.println(formula);
-//        }
+        substituteVariables(formula, args);
+
+        System.out.println("replaced vars " + formula);
 
         powerUp(formula);
 
@@ -48,6 +40,23 @@ public class Assignment10Part1 {
         addOrSubstract(formula);
 
         System.out.println("finish: " + formula);
+    }
+
+    private static void substituteVariables(StringBuilder formula, String[] args) {
+        if (args.length > 1) { // if there is at least one variable
+            for (int i = 1; i < args.length; i++) {
+                String var = args[i];
+                int equalInd = var.indexOf('=');
+                String varName = var.substring(0, equalInd);
+                String varValue = var.substring(equalInd + 1);
+
+                int varIndInFormula;
+                while ((varIndInFormula = formula.indexOf(varName)) > -1) { // while there is a variable with this name
+                    int endOfVar = varIndInFormula + varName.length();
+                    formula.replace(varIndInFormula, endOfVar, varValue);
+                }
+            }
+        }
     }
 
     private static void powerUp(StringBuilder formula) {
@@ -119,6 +128,8 @@ public class Assignment10Part1 {
                 (indOfSecondOperation = formula.indexOf(secondOperation)) > -1) {
             if (indOfSecondOperation == 0) { // first number is negative
                 indOfSecondOperation = formula.indexOf(secondOperation, 1);
+                if (indOfSecondOperation == -1 && indOfFirstOperation == -1) break; // if we have "-7" no more actions needed
+
                 String operation;
                 int operationInd;
 
@@ -136,9 +147,9 @@ public class Assignment10Part1 {
                     }
                 }
 
-                int indOperationBefore = findOperationIndex(formula.toString(), operationInd - 1, false);
+//                int indOperationBefore = findOperationIndex(formula.toString(), operationInd - 1, false);
                 int nextOperationInd = findOperationIndex(formula.toString(), operationInd + 1, true);
-                int indOfDigitBeforeCurrentOperation = indOperationBefore + 1;
+                int indOfDigitBeforeCurrentOperation = 0;
 
                 // if this is the last operation in the formula
                 if (nextOperationInd == -1) nextOperationInd = formula.length();
@@ -147,6 +158,7 @@ public class Assignment10Part1 {
                 double result = doNegArithmetic(expression, operation);
 
                 formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
+                System.out.println(formula);
             } else { // first number is positive
                 String operation;
                 int operationInd;
@@ -247,5 +259,23 @@ public class Assignment10Part1 {
 // "(1 + 3) ^ 2"
 // "1 + 3 * 2"
 // "1 + a * 2"
-// "5-10 + 3^2" fails
+// "5-10 + 3^2"
 // "-10 + 3"
+// "5-10 + a^2 - b^c" "a = 5" "b = 5" "c = 5"
+// "5-10 + a^2 - b^c" "c = 5" "a = 5" "b = 5"
+// "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
+
+
+
+
+
+//        // get rid of pARANTHESIS
+//        int indexOfParanthesis;
+//        while ((indexOfParanthesis = formula.indexOf("(")) > -1) {
+//            int indexOfParanthesis2 = formula.indexOf(")");
+//            String expression = formula.substring(indexOfParanthesis + 1, indexOfParanthesis2);
+//            StringBuilder res = perform(new StringBuilder(expression));
+//
+//            formula.replace(indexOfParanthesis, indexOfParanthesis2 + 1, res.toString());
+//            System.out.println(formula);
+//        }
