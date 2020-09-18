@@ -1,9 +1,9 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
 
 /**
+ *
  * ysed resources:
  * https://stackoverflow.com/questions/4194310/can-java-string-indexof-handle-a-regular-expression-as-a-parameter
  * https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html
@@ -14,6 +14,7 @@ public class Assignment10Part1 {
 
     public static void main(String[] args) {
         if (args.length > 0) calculate(args);
+//        if (args.length > 0) System.out.println(Arrays.toString(args));
         else System.out.println("sorry no arguments found");
     }
 
@@ -27,26 +28,43 @@ public class Assignment10Part1 {
         removeAllSpaces(args);
 
         StringBuilder formula = new StringBuilder(args[0]);
-        System.out.println(formula);
+        System.out.println("start " + formula);
 
+//        "2+ (3 + 5) + (1 + 3) ^ 2 "
+        int indexOfParanthesis;
+        while ((indexOfParanthesis = formula.indexOf("(")) > -1) {
+            int indexOfParanthesis2 = formula.indexOf(")");
+            String expression = formula.substring(indexOfParanthesis + 1, indexOfParanthesis2);
+            StringBuilder res = perform(new StringBuilder(expression));
+
+            formula.replace(indexOfParanthesis, indexOfParanthesis2 + 1, res.toString());
+            System.out.println(formula);
+        }
+
+        perform(formula);
+        System.out.println("finish: " + formula);
+    }
+
+    private static StringBuilder perform(StringBuilder formula) {
         for (int i = 0; i < prioritizedOperations.length; i += 2) {
             String firstOperation = prioritizedOperations[i];
             String secondOperation = prioritizedOperations[i + 1];
 
-            go(formula, firstOperation, secondOperation);
+            doOperations(formula, firstOperation, secondOperation);
         }
+
+        return formula;
     }
 
-    private static void go(StringBuilder formula, String firstOperation, String secondOperation) {
+    private static void doOperations(StringBuilder formula, String firstOperation, String secondOperation) {
         int indOfFirstOperation;
-        int indOfSecondOperation = -1;
-
-        String operation;
-        int operationInd;
+        int indOfSecondOperation;
 
         // while first or second operation still exists
         while ((indOfFirstOperation = formula.indexOf(firstOperation)) > -1 |
                 (indOfSecondOperation = formula.indexOf(secondOperation)) > -1) {
+            String operation;
+            int operationInd;
 
             // determine which operation goes first
             if (indOfFirstOperation > -1 && indOfSecondOperation > -1) { // if both operations are present
@@ -73,7 +91,6 @@ public class Assignment10Part1 {
             double result = doArithmetic(expression, operation);
 
             formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
-            System.out.println(formula);
         }
     }
 
@@ -119,6 +136,9 @@ public class Assignment10Part1 {
 // "1 + 3 ^ 2"
 // "1 + 3^2 + 2^3"
 // "11-3 ^ 2+3^3"
+// "2+ (3 + 5) + (1 + 3) ^ 2"
+// "24+(1 + 3) ^ 2"
+// "(1 + 3) * 2"
 // "(1 + 3) ^ 2"
 // "1 + 3 * 2"
 // "1 + a * 2"
