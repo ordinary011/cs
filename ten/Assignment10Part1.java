@@ -1,21 +1,48 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 
+
 /**
- *
  * ysed resources:
  * https://stackoverflow.com/questions/4194310/can-java-string-indexof-handle-a-regular-expression-as-a-parameter
  * https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html
  * https://stackoverflow.com/questions/7162889/android-java-regex-match-plus-sign
+ * https://stackoverflow.com/questions/26854591/java-how-do-i-convert-double-to-string-directly
  */
 public class Assignment10Part1 {
+
     private static final String[] prioritizedOperations = {"^", "*", "/", "+", "-"};
 
+    // https://www.java67.com/2014/06/how-to-format-float-or-double-number-java-example.html
+    private static final DecimalFormat df = new DecimalFormat("#.#########"); // formats output of operations
+
+
     public static void main(String[] args) {
-        if (args.length > 0) calculate(args);
-        else System.out.println("sorry no arguments found");
+//        runProgram(args);
+//        runTests();
+
+        String[] go = {"5^5"};
+        System.out.println(
+                runProgram(go)
+        );
     }
+
+
+// 3 - -3
+// 3 * -3
+// "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
+// "1.0 / 0"
+// "a + 1 * a"
+
+//String[] go = {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"};
+//String[] go = {"d-10", "d=33"};
+//String[] go = {"3- -2^-3"};
+
+// do some crashes
+
 
     private static void removeAllSpaces(String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -23,23 +50,25 @@ public class Assignment10Part1 {
         }
     }
 
-    private static void calculate(String[] args) {
+    private static String runProgram(String[] args) {
+        if (args.length == 0) {
+            System.out.println("sorry no arguments found");
+            System.exit(0);
+        }
+
         removeAllSpaces(args);
-        System.out.println("start " + args[0]);
 
         StringBuilder formula = new StringBuilder(args[0]);
 
         substituteVariables(formula, args);
 
-        System.out.println("replaced vars " + formula);
-
         powerUp(formula);
 
-        multiOrDivide(formula);
+//        multiOrDivide(formula);
+//
+//        addOrSubstract(formula);
 
-        addOrSubstract(formula);
-
-        System.out.println("finish: " + formula);
+        return formula.toString();
     }
 
     private static void substituteVariables(StringBuilder formula, String[] args) {
@@ -50,10 +79,10 @@ public class Assignment10Part1 {
                 String varName = var.substring(0, equalInd);
                 String varValue = var.substring(equalInd + 1);
 
-                int varIndInFormula;
-                while ((varIndInFormula = formula.indexOf(varName)) > -1) { // while there is a variable with this name
-                    int endOfVar = varIndInFormula + varName.length();
-                    formula.replace(varIndInFormula, endOfVar, varValue);
+                int startIndOfVar;
+                while ((startIndOfVar = formula.indexOf(varName)) > -1) { // while there is a variable with this name
+                    int endIndOfVar = startIndOfVar + varName.length();
+                    formula.replace(startIndOfVar, endIndOfVar, varValue);
                 }
             }
         }
@@ -61,19 +90,29 @@ public class Assignment10Part1 {
 
     private static void powerUp(StringBuilder formula) {
         int indOfPower;
-        while ((indOfPower = formula.indexOf("^")) > -1) {
+        while ((indOfPower = formula.indexOf("^")) > -1) { // while there is at least 1 power operation
             int indOperationBefore = findOperationIndex(formula.toString(), indOfPower - 1, false);
-            int nextOperationInd = findOperationIndex(formula.toString(), indOfPower + 1, true);
-            int indOfDigitBeforePower = indOperationBefore + 1;
+            // find start index of digit before power sign
+            int startIndOfDigitBeforePower = -1;
+            if (indOperationBefore == -1) startIndOfDigitBeforePower = 0;
+            else if (formula.charAt(indOperationBefore) == '-') startIndOfDigitBeforePower = indOperationBefore;
+            else if (indOperationBefore > -1) startIndOfDigitBeforePower = indOperationBefore + 1;
 
-            // if this is the last operation in the formula
+
+            int nextOperationInd = findOperationIndex(formula.toString(), indOfPower + 1, true);
+            if (nextOperationInd > -1) {
+                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+                    nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
+                } // if next operation is not minus then we are good and nextOperationInd is already correct
+            }
+            // if there are no more operations after current
             if (nextOperationInd == -1) nextOperationInd = formula.length();
 
-            String expression = formula.substring(indOfDigitBeforePower, nextOperationInd);
-            double result = doArithmetic(expression, "^");
+            String firstN = formula.substring(startIndOfDigitBeforePower, indOfPower);
+            String secondN = formula.substring(indOfPower + 1, nextOperationInd);
 
-            formula.replace(indOfDigitBeforePower, nextOperationInd, String.valueOf(result));
-            System.out.println(formula);
+            String result = doArithmetic(firstN, secondN, "^");
+            formula.replace(startIndOfDigitBeforePower, nextOperationInd, result);
         }
     }
 
@@ -111,9 +150,9 @@ public class Assignment10Part1 {
             if (nextOperationInd == -1) nextOperationInd = formula.length();
 
             String expression = formula.substring(indOfDigitBeforeCurrentOperation, nextOperationInd);
-            double result = doArithmetic(expression, operation);
-
-            formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
+//            String result = doArithmetic(firstN, expression, operation);
+//
+//            formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, result);
         }
     }
 
@@ -128,7 +167,8 @@ public class Assignment10Part1 {
                 (indOfSecondOperation = formula.indexOf(secondOperation)) > -1) {
             if (indOfSecondOperation == 0) { // first number is negative
                 indOfSecondOperation = formula.indexOf(secondOperation, 1);
-                if (indOfSecondOperation == -1 && indOfFirstOperation == -1) break; // if we have "-7" no more actions needed
+                if (indOfSecondOperation == -1 && indOfFirstOperation == -1)
+                    break; // if we have "-7" no more actions needed
 
                 String operation;
                 int operationInd;
@@ -155,10 +195,9 @@ public class Assignment10Part1 {
                 if (nextOperationInd == -1) nextOperationInd = formula.length();
 
                 String expression = formula.substring(indOfDigitBeforeCurrentOperation, nextOperationInd);
-                double result = doNegArithmetic(expression, operation);
+//                double result = doNegArithmetic(expression, operation);
 
-                formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
-                System.out.println(formula);
+//                formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
             } else { // first number is positive
                 String operation;
                 int operationInd;
@@ -185,19 +224,18 @@ public class Assignment10Part1 {
                 if (nextOperationInd == -1) nextOperationInd = formula.length();
 
                 String expression = formula.substring(indOfDigitBeforeCurrentOperation, nextOperationInd);
-                double result = doArithmetic(expression, operation);
-
-                formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, String.valueOf(result));
+//                String result = doArithmetic(firstN, expression, operation);
+//
+//                formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, result);
             }
         }
     }
 
-    private static double doArithmetic(String formula, String operation) {
-        int operationIndex = formula.indexOf(operation);
+    private static String doArithmetic(String firstN, String secondN, String operation) {
         double res = -1;
 
-        double firstNum = Double.parseDouble(formula.substring(0, operationIndex));
-        double secondNum = Double.parseDouble(formula.substring(operationIndex + 1));
+        double firstNum = Double.parseDouble(firstN);
+        double secondNum = Double.parseDouble(secondN);
 
         switch (operation) {
             case "+" -> res = firstNum + secondNum;
@@ -208,26 +246,7 @@ public class Assignment10Part1 {
             default -> System.out.println("unknown operation");
         }
 
-        return res;
-    }
-
-    private static double doNegArithmetic(String formula, String operation) {
-        int operationIndex = formula.indexOf(operation, 1);
-        double res = -1;
-
-        double firstNum = Double.parseDouble(formula.substring(0, operationIndex));
-        double secondNum = Double.parseDouble(formula.substring(operationIndex + 1));
-
-        switch (operation) {
-            case "+" -> res = firstNum + secondNum;
-            case "-" -> res = firstNum - secondNum;
-            case "*" -> res = firstNum * secondNum;
-            case "/" -> res = firstNum / secondNum;
-            case "^" -> res = Math.pow(firstNum, secondNum);
-            default -> System.out.println("unknown operation");
-        }
-
-        return res;
+        return df.format(res);
     }
 
     private static int findOperationIndex(String formula, int startInd, boolean searchToTheRight) {
@@ -247,35 +266,40 @@ public class Assignment10Part1 {
             return -1;
         }
     }
+
+    private static void runTests() {
+        String[][] tests = {
+                {"-5^-5"}, {"-0.00032"},
+                {"5^-5"}, {"0.00032"},
+                {"5^5"}, {"3125"},
+                {"-5^5"}, {"-3125"},
+//                {"1.0 + 2"}, {"3.0"},
+//                {"1 + 3 ^ 2"}, {"10.0"},
+//                {"1 + 3^2 + 2^3"}, {"18.0"},
+//                {"11-3 ^ 2+3^3"}, {"29.0"},
+//                {"1 + 3 * 2"}, {"7.0"},
+//                {"5-10 + 3^2"}, {"4.0"},
+//                {"-10 + 3"}, {"-7.0"},
+//                {"1 + a * 2", "a = 2"}, {"5.0"},
+//                {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105.0"},
+//                {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}
+        };
+
+        for (int i = 0; i < tests.length; i += 2) {
+            String res = runProgram(tests[i]);
+            if (res.equals(tests[i + 1][0])) {
+                System.out.println("  Pass: " + tests[i][0] + " Result: " + res);
+            } else {
+                System.out.println("! FAIL: " + tests[i][0] + " Expected " + tests[i + 1][0] + " Got: " + res);
+            }
+        }
+    }
 }
 
-// "1.0 + 2"
-// "1 + 3 ^ 2"
-// "1 + 3^2 + 2^3"
-// "11-3 ^ 2+3^3"
+// other test cases
+
 // "2+ (3 + 5) + (1 + 3) ^ 2"
 // "24+(1 + 3) ^ 2"
 // "(1 + 3) * 2"
 // "(1 + 3) ^ 2"
-// "1 + 3 * 2"
-// "1 + a * 2"
-// "5-10 + 3^2"
-// "-10 + 3"
-// "5-10 + a^2 - b^c" "a = 5" "b = 5" "c = 5"
-// "5-10 + a^2 - b^c" "c = 5" "a = 5" "b = 5"
-// "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
 
-
-
-
-
-//        // get rid of pARANTHESIS
-//        int indexOfParanthesis;
-//        while ((indexOfParanthesis = formula.indexOf("(")) > -1) {
-//            int indexOfParanthesis2 = formula.indexOf(")");
-//            String expression = formula.substring(indexOfParanthesis + 1, indexOfParanthesis2);
-//            StringBuilder res = perform(new StringBuilder(expression));
-//
-//            formula.replace(indexOfParanthesis, indexOfParanthesis2 + 1, res.toString());
-//            System.out.println(formula);
-//        }
