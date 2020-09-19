@@ -24,8 +24,8 @@ public class Assignment10Part1 {
 //        runProgram(args);
 //        runTests();
 
+        String[] go = {"2-a", "a = -2"};
 
-        String[] go = {"3*4"};
         System.out.println(
                 runProgram(go)
         );
@@ -37,9 +37,9 @@ public class Assignment10Part1 {
 // "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
 // "1.0 / 0"
 // "a + 1 * a"
-// todo   String[] go = {"5^-a", "a = -4"}; // 5^--4
+// -a+5, a=-2
 
-//String[] go = {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"};
+//String[] go = {"d-10 + a^2 - b^c + a", "c = -5", "a = 5", "b = -5", "d=33"};
 //String[] go = {"d-10", "d=33"};
 //String[] go = {"3- -2^-3"};
 
@@ -66,8 +66,8 @@ public class Assignment10Part1 {
 
         powerUp(formula);
 
-//        multiOrDivide(formula);
-//
+        multiOrDivide(formula);
+
 //        addOrSubstract(formula);
 
         return formula.toString();
@@ -84,6 +84,15 @@ public class Assignment10Part1 {
                 int startIndOfVar;
                 while ((startIndOfVar = formula.indexOf(varName)) > -1) { // while there is a variable with this name
                     int endIndOfVar = startIndOfVar + varName.length();
+
+                    // if var is negative in formula? e. g. -a+5
+                    if (startIndOfVar > 0 && (formula.charAt(startIndOfVar - 1) == '-')) {
+                        if (varValue.charAt(0) == '-') { // if value of args var is negive
+                            startIndOfVar--;
+                            varValue = varValue.substring(1);
+                        } // before -a+5, a=-2 => after 2 + 5
+                    }
+
                     formula.replace(startIndOfVar, endIndOfVar, varValue);
                 }
             }
@@ -99,7 +108,6 @@ public class Assignment10Part1 {
             if (indOperationBefore == -1) startIndOfDigitBeforePower = 0;
             else if (formula.charAt(indOperationBefore) == '-') startIndOfDigitBeforePower = indOperationBefore;
             else if (indOperationBefore > -1) startIndOfDigitBeforePower = indOperationBefore + 1;
-
 
             int nextOperationInd = findOperationIndex(formula.toString(), indOfPower + 1, true);
             if (nextOperationInd > -1) {
@@ -145,16 +153,26 @@ public class Assignment10Part1 {
             }
 
             int indOperationBefore = findOperationIndex(formula.toString(), operationInd - 1, false);
-            int nextOperationInd = findOperationIndex(formula.toString(), operationInd + 1, true);
-            int indOfDigitBeforeCurrentOperation = indOperationBefore + 1;
+            // find start index of digit before power sign
+            int indDigitBeforeOperation = -1;
+            if (indOperationBefore == -1) indDigitBeforeOperation = 0;
+            else if (formula.charAt(indOperationBefore) == '-') indDigitBeforeOperation = indOperationBefore;
+            else if (indOperationBefore > -1) indDigitBeforeOperation = indOperationBefore + 1;
 
-            // if this is the last operation in the formula
+            int nextOperationInd = findOperationIndex(formula.toString(), operationInd + 1, true);
+            if (nextOperationInd > -1) {
+                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+                    nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
+                } // if next operation is not minus then nextOperationInd is already correct
+            }
+            // if there are no more operations after current
             if (nextOperationInd == -1) nextOperationInd = formula.length();
 
-            String expression = formula.substring(indOfDigitBeforeCurrentOperation, nextOperationInd);
-//            String result = doArithmetic(firstN, expression, operation);
-//
-//            formula.replace(indOfDigitBeforeCurrentOperation, nextOperationInd, result);
+            String firstN = formula.substring(indDigitBeforeOperation, operationInd);
+            String secondN = formula.substring(operationInd + 1, nextOperationInd);
+
+            String result = doArithmetic(firstN, secondN, operation);
+            formula.replace(indDigitBeforeOperation, nextOperationInd, result);
         }
     }
 
@@ -277,6 +295,16 @@ public class Assignment10Part1 {
                 {"-5^5"}, {"-3125"},
                 {"5^a", "a = 4"}, {"625"},
                 {"5^-a", "a = 4"}, {"0.0016"},
+                {"3*4"}, {"12"},
+                {"3/4"}, {"0.75"},
+                {"3/4^-2"}, {"48"},
+                {"-3/-4^-2"}, {"-48"},
+                {"-3*a^2", "a = 2"}, {"-12"},
+                {"-3*a^2", "a = -2"}, {"-12"},
+                {"2*a", "a = -2"}, {"-4"},
+                {"5^-a", "a = -4"}, {"625"},
+                {"-a*2", "a = -2"}, {"4"},
+                {"-a*2*4", "a = -2"}, {"16"},
 //                {"1.0 + 2"}, {"3.0"},
 //                {"1 + 3 ^ 2"}, {"10.0"},
 //                {"1 + 3^2 + 2^3"}, {"18.0"},
