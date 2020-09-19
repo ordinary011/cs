@@ -24,7 +24,8 @@ public class Assignment10Part1 {
 //        runProgram(args);
 //        runTests();
 
-        String[] go = {"5^5"};
+
+        String[] go = {"3*4"};
         System.out.println(
                 runProgram(go)
         );
@@ -36,6 +37,7 @@ public class Assignment10Part1 {
 // "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
 // "1.0 / 0"
 // "a + 1 * a"
+// todo   String[] go = {"5^-a", "a = -4"}; // 5^--4
 
 //String[] go = {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"};
 //String[] go = {"d-10", "d=33"};
@@ -273,6 +275,8 @@ public class Assignment10Part1 {
                 {"5^-5"}, {"0.00032"},
                 {"5^5"}, {"3125"},
                 {"-5^5"}, {"-3125"},
+                {"5^a", "a = 4"}, {"625"},
+                {"5^-a", "a = 4"}, {"0.0016"},
 //                {"1.0 + 2"}, {"3.0"},
 //                {"1 + 3 ^ 2"}, {"10.0"},
 //                {"1 + 3^2 + 2^3"}, {"18.0"},
