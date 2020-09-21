@@ -1,6 +1,7 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 
 /**
@@ -22,10 +23,11 @@ public class Assignment10Part1 {
 //        runProgram(args);
 //        runTests();
 
-        String[] go = {"2-a*a", "a = -2"};
-        System.out.println(
-                runProgram(go)
-        );
+//        String[] go = {"5-a*a", "a = -2"}; // should be 1
+        String[] go = {"-a*2", "a = -2"}; // should be 1
+//        System.out.println(
+//                runProgram(go)
+//        );
     }
 
 
@@ -39,6 +41,7 @@ public class Assignment10Part1 {
 //String[] go = {"3- -2^-3"};
 
 // do some crashes
+// use try catch
 
 
     private static void removeAllSpaces(String[] args) {
@@ -57,19 +60,13 @@ public class Assignment10Part1 {
 
         StringBuilder formula = new StringBuilder(args[0]);
 
-        try {
-            substituteVariables(formula, args);
+        substituteVariables(formula, args);
 
-            powerUp(formula);
+        powerUp(formula);
 
-            multiplyOrDivide(formula);
+        multiplyOrDivide(formula);
 
-            addOrSubtract(formula);
-        } catch (Exception e) {
-            System.out.println("something went wrong read down below to find out what");
-            e.printStackTrace();
-            return "";
-        }
+        addOrSubtract(formula);
 
         return formula.toString();
     }
@@ -82,23 +79,24 @@ public class Assignment10Part1 {
                 String varName = var.substring(0, equalInd);
                 String varValue = var.substring(equalInd + 1);
 
-                int startIndOfVar;
-                while ((startIndOfVar = formula.indexOf(varName)) > -1) { // while there is a variable with this name
-                    int endIndOfVar = startIndOfVar + varName.length();
+                int startIndOfVarInFormula;
+                // while there is a variable with this name in the formula
+                while ((startIndOfVarInFormula = formula.indexOf(varName)) > -1) {
+                    int endIndOfVar = startIndOfVarInFormula + varName.length();
 
-                    // if var is in formula and is negative? e. g. -a+5 OR 5-a
-                    if (startIndOfVar > 0 && (formula.charAt(startIndOfVar - 1) == '-')) {
-                        if (varValue.charAt(0) == '-') { // if args var is negive? e. g. a=-6
-                            startIndOfVar--;
-                            if (formula.charAt(startIndOfVar - 1) == '-') { // todo comments here
-                                varValue = "+" + varValue.substring(1); // todo comments here
-                            } else {
-                                varValue = varValue.substring(1); // change {-a+5, a=-5} to {5+5}
+                    // if var in formula is negative? e. g. -a+5 OR 5-a
+                    if (formula.charAt(startIndOfVarInFormula - 1) == '-') {
+                        if (varValue.charAt(0) == '-') { // if args var is negative? e. g. a=-6
+                            if (formula.charAt(startIndOfVarInFormula - 1) == '-') { // if negative var is in the beginning of the formula
+                                varValue = varValue.substring(1); // from {-a*4, a=-3} to {3*4}
+                            } else { // if negative var anywhere else but not in the beginning of the formula
+                                varValue = "+" + varValue.substring(1); // from {7-a, a=-7} to {7+7}
+                                startIndOfVarInFormula--; // decrement is needed because we substitute not only var name but also the sign before it
                             }
-                        } // before {-a+5, a=-2} => after {2 + 5}
+                        }
                     }
 
-                    formula.replace(startIndOfVar, endIndOfVar, varValue);
+                    formula.replace(startIndOfVarInFormula, endIndOfVar, varValue);
                 }
             }
         }
@@ -288,8 +286,8 @@ public class Assignment10Part1 {
                 {"-3/-4^-2"}, {"-48"},
                 {"-3*a^2", "a = 2"}, {"-12"},
                 {"-3*a^2", "a = -2"}, {"-12"},
-                {"2*a", "a = -2"}, {"-4"},
-                {"-a*2", "a = -2"}, {"4"},
+                {"2,0*a", "a = -2"}, {"-4"},
+                {"-a*2.0", "a = -2"}, {"4"},
                 {"-a*2*4", "a = -2"}, {"16"},
                 {"5-3"}, {"2"},
                 {"2-3"}, {"-1"},
@@ -299,10 +297,12 @@ public class Assignment10Part1 {
                 {"3 * a", "a = -2"}, {"-6"},
                 {"3 + a", "a = -3"}, {"0"},
                 {"3 - a", "a = -3"}, {"6"},
-                {" 2-a* 5", "a = -2"}, {"12"},
+                {" 2-a* 5", "a = -2"}, {"12,0"},
                 {"a*a", "a = 2"}, {"4"},
                 {"2-a*a", "a = 2"}, {"-2"},
                 {"5^-a", "a = -4"}, {"625"},
+                {"a*a", "a = 4"}, {"16"},
+
 //                {"1.0 + 2"}, {"3.0"},
 //                {"1 + 3 ^ 2"}, {"10.0"},
 //                {"1 + 3^2 + 2^3"}, {"18.0"},
@@ -318,15 +318,15 @@ public class Assignment10Part1 {
         for (int i = 0; i < tests.length; i += 2) {
             String res = runProgram(tests[i]);
             if (res.equals(tests[i + 1][0])) {
-                System.out.println("  Pass: " + tests[i][0] + " Result: " + res);
+                System.out.println("  Pass: " + Arrays.toString(tests[i]) + " Result: " + res);
             } else {
-                System.out.println("! FAIL: " + tests[i][0] + " Expected " + tests[i + 1][0] + " Got: " + res);
+                System.out.println("! FAIL: " + Arrays.toString(tests[i]) + " Expected " + tests[i + 1][0] + " Got: " + res);
             }
         }
     }
 }
 
-// other test cases for future
+// other tests cases for future
 
 // "(1 + 3) * 2"
 // "(1 + 3) ^ 2"
