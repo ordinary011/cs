@@ -3,13 +3,13 @@ package com.shpp.p2p.cs.ldebryniuk.assignment10;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 
-
 /**
- * ysed resources:
+ * used resources:
  * https://stackoverflow.com/questions/4194310/can-java-string-indexof-handle-a-regular-expression-as-a-parameter
  * https://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html
  * https://stackoverflow.com/questions/7162889/android-java-regex-match-plus-sign
  * https://stackoverflow.com/questions/26854591/java-how-do-i-convert-double-to-string-directly
+ * https://stackoverflow.com/questions/40246231/java-util-regex-patternsyntaxexception-dangling-meta-character-near-index-0
  */
 public class Assignment10Part1 {
 
@@ -18,35 +18,26 @@ public class Assignment10Part1 {
     // https://www.java67.com/2014/06/how-to-format-float-or-double-number-java-example.html
     private static final DecimalFormat df = new DecimalFormat("#.#########"); // formats output of operations
 
-
     public static void main(String[] args) {
-//        runProgram(args);
+//        try {
+//            runProgram(args);
+//        } catch (Exception e) {
+//            System.out.println("Please check your formula and variables there is a mistake somewhere");
+//            e.printStackTrace();
+//        }
+
 //        runTests();
 
-//        String[] go = {"5-a*a", "a = -2"}; // should be 1
-        String[] go = {"-a*2", "a = -2"}; // should be 1
-//        System.out.println(
-//                runProgram(go)
-//        );
+        //        -5-10 + 25 - 25 + 10000.44
+        String[] go = {"-5-10 + a^2 - b^codi + 10000.44", "codi = 5", "a = 5", "b = 5"}; // should be 9995.44
+        System.out.println(runProgram(go));
     }
 
 
-// "1.0 / 0"
-// "a + 55 * a"
-// -a+5.0, a=-2.00
-// "-5-10 + a^2 - b^c + 10000.44" "c = 5" "a = 5" "b = 5"
-
-//String[] go = {"d-10 + a^2 - b^c + a", "c = -5", "a = 5", "b = -5", "d=33"};
-//String[] go = {"d-10*3", "d=33"};
-//String[] go = {"3- -2^-3"};
-
-// do some crashes
-// use try catch
-
-
-    private static void removeAllSpaces(String[] args) {
+    private static void prepareArgs(String[] args) {
         for (int i = 0; i < args.length; i++) {
             args[i] = args[i].replaceAll(" ", "");
+            args[i] = args[i].replaceAll(",", ".");
         }
     }
 
@@ -56,7 +47,7 @@ public class Assignment10Part1 {
             return "";
         }
 
-        removeAllSpaces(args);
+        prepareArgs(args);
 
         StringBuilder formula = new StringBuilder(args[0]);
 
@@ -64,6 +55,7 @@ public class Assignment10Part1 {
 
         powerUp(formula);
 
+        //        -5-10 + 25 - 25 + 10000.44
         multiplyOrDivide(formula);
 
         addOrSubtract(formula);
@@ -71,6 +63,11 @@ public class Assignment10Part1 {
         return formula.toString();
     }
 
+    // a+5    // -2+5
+    // 5-a    // 5--2
+    // 5^-a    // 5^--2
+    // -a+5    // --4+5
+    // -a*a    // --4*-4
     private static void substituteVariables(StringBuilder formula, String[] args) {
         if (args.length > 1) { // if there is at least one variable
             for (int i = 1; i < args.length; i++) {
@@ -79,24 +76,29 @@ public class Assignment10Part1 {
                 String varName = var.substring(0, equalInd);
                 String varValue = var.substring(equalInd + 1);
 
+                // substitute vars
                 int startIndOfVarInFormula;
                 // while there is a variable with this name in the formula
                 while ((startIndOfVarInFormula = formula.indexOf(varName)) > -1) {
                     int endIndOfVar = startIndOfVarInFormula + varName.length();
 
-                    // if var in formula is negative? e. g. -a+5 OR 5-a
-                    if (formula.charAt(startIndOfVarInFormula - 1) == '-') {
-                        if (varValue.charAt(0) == '-') { // if args var is negative? e. g. a=-6
-                            if (formula.charAt(startIndOfVarInFormula - 1) == '-') { // if negative var is in the beginning of the formula
-                                varValue = varValue.substring(1); // from {-a*4, a=-3} to {3*4}
-                            } else { // if negative var anywhere else but not in the beginning of the formula
-                                varValue = "+" + varValue.substring(1); // from {7-a, a=-7} to {7+7}
-                                startIndOfVarInFormula--; // decrement is needed because we substitute not only var name but also the sign before it
-                            }
-                        }
-                    }
-
                     formula.replace(startIndOfVarInFormula, endIndOfVar, varValue);
+                }
+            }
+
+            // replace "--" with "+"
+            for (int i = 0; i < formula.length(); i++) {
+                if (formula.charAt(i) == '-' && i > 0 && formula.charAt(i-1) == '-') {
+                    // e.g. 5--2 -> 5+2 || --2+5 -> +2+5 || 5^--2 -> 5^+2 || --4*-4 -> +4*-4
+                    formula.replace(i-1, i+1, "+");
+                }
+            }
+
+            // delete redundant "+" signs
+            if (formula.charAt(0) == '+') formula.deleteCharAt(0); // e.g. +2+5 -> 2+5
+            for (int i = 1; i < formula.length(); i++) {
+                if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i-1)).matches("[\\^*/]")) {
+                    formula.deleteCharAt(i); // e. g. 5^+2 -> 5^2
                 }
             }
         }
@@ -114,7 +116,8 @@ public class Assignment10Part1 {
 
             int nextOperationInd = findOperationIndex(formula.toString(), indOfPower + 1, true);
             if (nextOperationInd > -1) {
-                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+//                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+                if (nextOperationInd == (indOfPower + 1)) { // e.g. ^-2 and nextOperationInd points to "-" of the "2"
                     nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
                 } // if next operation is not minus then we are good and nextOperationInd is already correct
             }
@@ -125,7 +128,16 @@ public class Assignment10Part1 {
             String secondN = formula.substring(indOfPower + 1, nextOperationInd);
 
             String result = doArithmetic(firstN, secondN, "^");
+            if (formula.charAt(startIndOfDigitBeforePower) == '-') result = "+" + result;
             formula.replace(startIndOfDigitBeforePower, nextOperationInd, result);
+        }
+
+        // delete redundant "+" signs
+        if (formula.charAt(0) == '+') formula.deleteCharAt(0); // e.g. +2+5 -> 2+5
+        for (int i = 1; i < formula.length(); i++) {
+            if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i-1)).matches("[\\^*/]")) {
+                formula.deleteCharAt(i); // e. g. 5^+2 -> 5^2
+            }
         }
     }
 
@@ -257,23 +269,33 @@ public class Assignment10Part1 {
     private static int findOperationIndex(String formula, int startInd, boolean searchToTheRight) {
         if (searchToTheRight) {
             for (int i = startInd; i < formula.length(); i++) {
-                for (String operaion : prioritizedOperations) {
-                    if (formula.charAt(i) == operaion.charAt(0)) return i; // index of operation
+                for (String operation : prioritizedOperations) {
+                    if (formula.charAt(i) == operation.charAt(0)) return i; // index of operation
                 }
             }
-            return -1;
         } else {
             for (int i = startInd; i >= 0; i--) {
-                for (String operaion : prioritizedOperations) {
-                    if (formula.charAt(i) == operaion.charAt(0)) return i; // index of operation
+                for (String operation : prioritizedOperations) {
+                    if (formula.charAt(i) == operation.charAt(0)) return i; // index of operation
                 }
             }
-            return -1;
         }
+
+        return -1;
     }
 
     private static void runTests() {
         String[][] tests = {
+                {"1.0 + 2"}, {"3"},
+                {"1 + 3 ^ 2"}, {"10"},
+                {"1 + 3^2 + 2^3"}, {"18"},
+                {"1 + 3 * 2"}, {"7"},
+                {"5-10 + 3^2"}, {"4"},
+                {"-10 + 3"}, {"-7"},
+                {"3+2,0"}, {"5"},
+                {"11-3 ^ 2+3^3"}, {"47"},
+                {"10*-3"}, {"-30"},
+                {"10*-3^3"}, {"-270"},
                 {"-5^-5"}, {"-0.00032"},
                 {"5^-5"}, {"0.00032"},
                 {"5^5"}, {"3125"},
@@ -281,6 +303,8 @@ public class Assignment10Part1 {
                 {"5^a", "a = 4"}, {"625"},
                 {"5^-a", "a = 4"}, {"0.0016"},
                 {"3*4"}, {"12"},
+                {"3*4*10"}, {"120"},
+                {"3*4*10/10"}, {"12"},
                 {"3/4"}, {"0.75"},
                 {"3/4^-2"}, {"48"},
                 {"-3/-4^-2"}, {"-48"},
@@ -297,22 +321,29 @@ public class Assignment10Part1 {
                 {"3 * a", "a = -2"}, {"-6"},
                 {"3 + a", "a = -3"}, {"0"},
                 {"3 - a", "a = -3"}, {"6"},
-                {" 2-a* 5", "a = -2"}, {"12,0"},
+                {" 2-a* 5", "a = -2"}, {"12"},
                 {"a*a", "a = 2"}, {"4"},
                 {"2-a*a", "a = 2"}, {"-2"},
                 {"5^-a", "a = -4"}, {"625"},
                 {"a*a", "a = 4"}, {"16"},
-
-//                {"1.0 + 2"}, {"3.0"},
-//                {"1 + 3 ^ 2"}, {"10.0"},
-//                {"1 + 3^2 + 2^3"}, {"18.0"},
-//                {"11-3 ^ 2+3^3"}, {"29.0"},
-//                {"1 + 3 * 2"}, {"7.0"},
-//                {"5-10 + 3^2"}, {"4.0"},
-//                {"-10 + 3"}, {"-7.0"},
-//                {"1 + a * 2", "a = 2"}, {"5.0"},
-//                {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105.0"},
-//                {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}
+                {"a*a", "a = -4"}, {"16"},
+                {"-a*a", "a = -4"}, {"-16"},
+                {"-a*a", "a = 4"}, {"-16"},
+                {"a+5", "a = -4"}, {"1"},
+                {"5-a", "a = -4"}, {"9"},
+                {"-a+5", "a =-4"}, {"9"},
+                {"-a*a", "a = -4"}, {"-16"},
+                {"5-a*a", "a = -2"}, {"1"},
+                {"a + 55 * a", "a = 10"}, {"560"},
+                {"1 + a * 2", "a = 2"}, {"5"},
+                {"1 + a * 2 / 2", "a = 2"}, {"3"},
+                {"1 + a * 2 / 2 - 1", "a = 2"}, {"2"}, // here
+                {"-a+5.0", "a=-2.000"}, {"7"},
+                {"dodo-10*3", "dodo=33"}, {"3"},
+                {"d-10 + a^2 - b^c + a", "c = -5", "a = 5", "b = -5", "d=33"}, {"53.00032"},
+//                {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105"},
+//                {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}, {""}
+//                {"1.0 / 0"}, {"0"},
         };
 
         for (int i = 0; i < tests.length; i += 2) {
@@ -320,14 +351,16 @@ public class Assignment10Part1 {
             if (res.equals(tests[i + 1][0])) {
                 System.out.println("  Pass: " + Arrays.toString(tests[i]) + " Result: " + res);
             } else {
-                System.out.println("! FAIL: " + Arrays.toString(tests[i]) + " Expected " + tests[i + 1][0] + " Got: " + res);
+                System.out.println("! FAIL: " + Arrays.toString(tests[i]) +
+                        " Expected " + tests[i + 1][0] + " Got: " + res);
             }
         }
     }
 }
 
-// other tests cases for future
+// other test cases for future
 
+// String[] go = {"3- -2^-3"};
 // "(1 + 3) * 2"
 // "(1 + 3) ^ 2"
 // "24+(1 + 3) ^ 2"
