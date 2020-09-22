@@ -26,11 +26,10 @@ public class Assignment10Part1 {
 //            e.printStackTrace();
 //        }
 
-//        runTests();
+        runTests();
 
-        //        -5-10 + 25 - 25 + 10000.44
-        String[] go = {"-5-10 + a^2 - b^codi + 10000.44", "codi = 5", "a = 5", "b = 5"}; // should be 9995.44
-        System.out.println(runProgram(go));
+//        String[] go = {"1 + a * 2 / 2 - 1", "a = 2"}; // {"2"},
+//        System.out.println(runProgram(go));
     }
 
 
@@ -55,7 +54,6 @@ public class Assignment10Part1 {
 
         powerUp(formula);
 
-        //        -5-10 + 25 - 25 + 10000.44
         multiplyOrDivide(formula);
 
         addOrSubtract(formula);
@@ -63,11 +61,7 @@ public class Assignment10Part1 {
         return formula.toString();
     }
 
-    // a+5    // -2+5
-    // 5-a    // 5--2
-    // 5^-a    // 5^--2
-    // -a+5    // --4+5
-    // -a*a    // --4*-4
+
     private static void substituteVariables(StringBuilder formula, String[] args) {
         if (args.length > 1) { // if there is at least one variable
             for (int i = 1; i < args.length; i++) {
@@ -116,7 +110,6 @@ public class Assignment10Part1 {
 
             int nextOperationInd = findOperationIndex(formula.toString(), indOfPower + 1, true);
             if (nextOperationInd > -1) {
-//                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
                 if (nextOperationInd == (indOfPower + 1)) { // e.g. ^-2 and nextOperationInd points to "-" of the "2"
                     nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
                 } // if next operation is not minus then we are good and nextOperationInd is already correct
@@ -127,9 +120,14 @@ public class Assignment10Part1 {
             String firstN = formula.substring(startIndOfDigitBeforePower, indOfPower);
             String secondN = formula.substring(indOfPower + 1, nextOperationInd);
 
-            String result = doArithmetic(firstN, secondN, "^");
-            if (formula.charAt(startIndOfDigitBeforePower) == '-') result = "+" + result;
-            formula.replace(startIndOfDigitBeforePower, nextOperationInd, result);
+            String res = doArithmetic(firstN, secondN, "^");
+            // edge cases: 11-3^2 || 11+3^2 || 5^-5
+            if (res.charAt(0) != '-' &&
+                    startIndOfDigitBeforePower > 0 &&
+                    formula.charAt(startIndOfDigitBeforePower - 1) != '+') {
+                res = "+" + res; // e.g. 11-3^2 -> 11+9
+            }
+            formula.replace(startIndOfDigitBeforePower, nextOperationInd, res);
         }
 
         // delete redundant "+" signs
@@ -175,10 +173,11 @@ public class Assignment10Part1 {
             else if (indOperationBefore > -1) indDigitBeforeOperation = indOperationBefore + 1;
 
             int nextOperationInd = findOperationIndex(formula.toString(), operationInd + 1, true);
+            // edge cases: 4/2-1 || 4/-2-1
             if (nextOperationInd > -1) {
-                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+                if (nextOperationInd == operationInd + 1) { // e.g. 4/-2-1
                     nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
-                } // if next operation is not minus then nextOperationInd is already correct
+                }
             }
             // if there are no more operations after current
             if (nextOperationInd == -1) nextOperationInd = formula.length();
@@ -232,10 +231,11 @@ public class Assignment10Part1 {
             else if (indOperationBefore > -1) indDigitBeforeOperation = indOperationBefore + 1;
 
             int nextOperationInd = findOperationIndex(formula.toString(), operationInd + 1, true);
+            // edge cases 3+-3 || 3+-3+5 || 1+2-1
             if (nextOperationInd > -1) {
-                if (formula.charAt(nextOperationInd) == '-') { // if next operation is minus we will search for next again
+                if (nextOperationInd == operationInd + 1) { // e.g. 3+-3+5
                     nextOperationInd = findOperationIndex(formula.toString(), nextOperationInd + 1, true);
-                } // if next operation is not minus then nextOperationInd is already correct
+                }
             }
             // if there are no more operations after current
             if (nextOperationInd == -1) nextOperationInd = formula.length();
@@ -337,12 +337,14 @@ public class Assignment10Part1 {
                 {"a + 55 * a", "a = 10"}, {"560"},
                 {"1 + a * 2", "a = 2"}, {"5"},
                 {"1 + a * 2 / 2", "a = 2"}, {"3"},
-                {"1 + a * 2 / 2 - 1", "a = 2"}, {"2"}, // here
+                {"1 + a * 2 / 2 - 1", "a = 2"}, {"2"},
                 {"-a+5.0", "a=-2.000"}, {"7"},
                 {"dodo-10*3", "dodo=33"}, {"3"},
                 {"d-10 + a^2 - b^c + a", "c = -5", "a = 5", "b = -5", "d=33"}, {"53.00032"},
-//                {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105"},
-//                {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}, {""}
+                {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}, {"48.00032"},
+                {"-5-10 + a^2 - b^codi + 10000.44", "codi = 5", "a = 5", "b = 5"}, {"6885.44"},
+                {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105"},
+//                {"a2+b/2-c"}, {""}
 //                {"1.0 / 0"}, {"0"},
         };
 
@@ -358,8 +360,16 @@ public class Assignment10Part1 {
     }
 }
 
-// other test cases for future
 
+// edge cases for substitution
+// a+5    // -2+5
+// 5-a    // 5--2
+// 5^-a    // 5^--2
+// -a+5    // --4+5
+// -a*a    // --4*-4
+
+
+// other test cases for future
 // String[] go = {"3- -2^-3"};
 // "(1 + 3) * 2"
 // "(1 + 3) ^ 2"
