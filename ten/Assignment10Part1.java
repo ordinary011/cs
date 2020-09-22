@@ -28,12 +28,12 @@ public class Assignment10Part1 {
 
         runTests();
 
-//        String[] go = {"1 + a * 2 / 2 - 1", "a = 2"}; // {"2"},
+//        String[] go = {"1.0 / 0"}; // {"10"}
 //        System.out.println(runProgram(go));
     }
 
 
-    private static void prepareArgs(String[] args) {
+    private static void formatArgs(String[] args) {
         for (int i = 0; i < args.length; i++) {
             args[i] = args[i].replaceAll(" ", "");
             args[i] = args[i].replaceAll(",", ".");
@@ -46,17 +46,19 @@ public class Assignment10Part1 {
             return "";
         }
 
-        prepareArgs(args);
-
+        formatArgs(args);
         StringBuilder formula = new StringBuilder(args[0]);
 
-        substituteVariables(formula, args);
-
-        powerUp(formula);
-
-        multiplyOrDivide(formula);
-
-        addOrSubtract(formula);
+        try {
+            substituteVariables(formula, args);
+            powerUp(formula);
+            multiplyOrDivide(formula);
+            addOrSubtract(formula);
+        } catch (Exception e) {
+            System.out.println("input mistake please check your formula and variables");
+            e.printStackTrace();
+            return null;
+        }
 
         return formula.toString();
     }
@@ -76,23 +78,38 @@ public class Assignment10Part1 {
                 while ((startIndOfVarInFormula = formula.indexOf(varName)) > -1) {
                     int endIndOfVar = startIndOfVarInFormula + varName.length();
 
+//                    // cases: -a+2 || 2-a || 2+a || a+a || 2a
+//                    if (formula.charAt(startIndOfVarInFormula - 1) == '-') { // e.g. -a+2 || 2-a
+//                        startIndOfVarInFormula--;
+//                    }
+
+                    if (startIndOfVarInFormula == 0 &&
+                            String.valueOf(formula.charAt(startIndOfVarInFormula + 1)).matches("\\d"))  //e.g. a2
+                    {
+                        varValue = varValue + "*";
+                    } else if (startIndOfVarInFormula > 0 &&
+                            String.valueOf(formula.charAt(startIndOfVarInFormula - 1)).matches("\\d"))  //e.g. a2
+                    {
+                        varValue = "*" + varValue;
+                    }
+
                     formula.replace(startIndOfVarInFormula, endIndOfVar, varValue);
                 }
             }
 
             // replace "--" with "+"
             for (int i = 0; i < formula.length(); i++) {
-                if (formula.charAt(i) == '-' && i > 0 && formula.charAt(i-1) == '-') {
+                if (formula.charAt(i) == '-' && i > 0 && formula.charAt(i - 1) == '-') {
                     // e.g. 5--2 -> 5+2 || --2+5 -> +2+5 || 5^--2 -> 5^+2 || --4*-4 -> +4*-4
-                    formula.replace(i-1, i+1, "+");
+                    formula.replace(i - 1, i + 1, "+");
                 }
             }
 
             // delete redundant "+" signs
             if (formula.charAt(0) == '+') formula.deleteCharAt(0); // e.g. +2+5 -> 2+5
-            for (int i = 1; i < formula.length(); i++) {
-                if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i-1)).matches("[\\^*/]")) {
-                    formula.deleteCharAt(i); // e. g. 5^+2 -> 5^2
+            for (int i = 1; i < formula.length(); i++) { // e. g. 5^+2 -> 5^2
+                if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i - 1)).matches("[\\^*/]")) {
+                    formula.deleteCharAt(i);
                 }
             }
         }
@@ -133,7 +150,7 @@ public class Assignment10Part1 {
         // delete redundant "+" signs
         if (formula.charAt(0) == '+') formula.deleteCharAt(0); // e.g. +2+5 -> 2+5
         for (int i = 1; i < formula.length(); i++) {
-            if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i-1)).matches("[\\^*/]")) {
+            if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i - 1)).matches("[\\^*/]")) {
                 formula.deleteCharAt(i); // e. g. 5^+2 -> 5^2
             }
         }
@@ -344,8 +361,10 @@ public class Assignment10Part1 {
                 {"d-10 + a^2 - b^c", "c = -5", "a = 5", "b = -5", "d=33"}, {"48.00032"},
                 {"-5-10 + a^2 - b^codi + 10000.44", "codi = 5", "a = 5", "b = 5"}, {"6885.44"},
                 {"5-10 + a^2 - b^c", "a = 5", "b = 5", "c = 5"}, {"-3105"},
-//                {"a2+b/2-c"}, {""}
-//                {"1.0 / 0"}, {"0"},
+                {"a2", "a = 5"}, {"10"},
+                {"a2+b/2-c", "a = 5", "b = 6", "c = 3"}, {"10"},
+                {"1.0 / 0"}, {"∞"},
+                {"5 / 0"}, {"∞"},
         };
 
         for (int i = 0; i < tests.length; i += 2) {
