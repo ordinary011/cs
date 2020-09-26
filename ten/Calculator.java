@@ -2,9 +2,12 @@ package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
 import java.util.Arrays;
 
+/**
+ * The following class is the main class of the calculator app. It comprises all the necessary logic
+ */
 public class Calculator {
     private final Replacer replacer = new Replacer();
-    private final Operator op = new Operator();
+    private final OperationManager op = new OperationManager();
 
     /**
      * The following method is the starting point of the calculator. Operations are performed in the prioritized order
@@ -27,7 +30,9 @@ public class Calculator {
         return formula.toString();
     }
 
-    // cases: 11*-3^2 || 10-3^3 || 10+3^3 || -3^3 || 3^2
+    /**
+     * Tests for different cases of input
+     */
     public void runTests() {
         String[][] tests = {
                 {"5/0"}, {"∞"},
@@ -95,8 +100,10 @@ public class Calculator {
                 {"33+2a", "a=5"}, {"43"},
                 {"1+a*2", "a=2"}, {"5"},
                 {"1+a*2/2", "a=2"}, {"3"},
+                {"1*1-a^2", "a=2"}, {"-3"},
                 {"1+a*2/2-1", "a=2"}, {"2"},
                 {"11*a^3", "a=-2"}, {"-88"},
+                {"1-2*a+3", "a=-5"}, {"14"},
                 {"-a+5.0", "a=-2.000"}, {"7"},
                 {"dodo-10*3", "dodo=33"}, {"3"},
                 {"a2+b/2-c", "a=5", "b=6", "c=3"}, {"10"},
