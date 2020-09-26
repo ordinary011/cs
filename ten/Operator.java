@@ -2,9 +2,7 @@ package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
 import java.text.DecimalFormat;
 
-public class Operator {
-    private final Aux aux = Aux.getInstance();
-
+public class Operator implements IsDigit {
     // https://www.java67.com/2014/06/how-to-format-float-or-double-number-java-example.html
     private final DecimalFormat df = new DecimalFormat("#.#########"); // formats output of operations
 
@@ -33,7 +31,7 @@ public class Operator {
             int operationInd = findFirstOperation(operation, indOfFirstOperation, indOfSecondOperation,
                     firstOperation, secondOperation);
 
-            splitAndDoOperation2(formula, operationInd, operation.toString());
+            splitAndDoOperation(formula, operationInd, operation.toString());
         }
     }
 
@@ -49,42 +47,18 @@ public class Operator {
         String secondN = formula.substring(operationInd + 1, nextOperationInd);
 
         String res = doOperation(firstN, secondN, operation);
-        res = addPlusForPositiveNumsIfNeeded(res, indOfNumBeforeOperation, formula);
+        res = addPlusSign(res, indOfNumBeforeOperation, formula);
         formula.replace(indOfNumBeforeOperation, nextOperationInd, res);
-    }
-
-    private void splitAndDoOperation2(StringBuilder formula, int operationInd, String operation) {
-        int indOfNumBeforeOperation = findIndOfDigitBefore2(formula, operationInd);
-        int nextOperationInd = findNextOperationIndex(formula, operationInd);
-
-        String firstN = formula.substring(indOfNumBeforeOperation, operationInd);
-        String secondN = formula.substring(operationInd + 1, nextOperationInd);
-
-        String res = doOperation(firstN, secondN, operation);
-        res = addPlusForPositiveNumsIfNeeded(res, indOfNumBeforeOperation, formula);
-        formula.replace(indOfNumBeforeOperation, nextOperationInd, res);
-    }
-
-    private int findIndOfDigitBefore2(StringBuilder formula, int indOfOperation) {
-        int indOperationBefore = findOperationIndex(formula.toString(), indOfOperation - 1, false);
-
-        // find start index of digit before operation sign
-        int indOfDigitBeforeOperation = -1;
-        if (indOperationBefore == -1) indOfDigitBeforeOperation = 0; // if there is no operation before
-        else if (formula.charAt(indOperationBefore) == '-') indOfDigitBeforeOperation = indOperationBefore;
-        else if (indOperationBefore > -1) indOfDigitBeforeOperation = indOperationBefore + 1;
-
-        return indOfDigitBeforeOperation;
     }
 
     /**
-     * Add plus sign if needed. cases for consideration: 11-3^2 || 11-10/-2 || 11+3^2 || 5^-5
+     * Add plus sign if needed. cases for consideration: 11-10/-2 xxx 5^-5 || 11-3^2 || 11+3^2
      */
-    private String addPlusForPositiveNumsIfNeeded(String res, int indOfNumBeforeOperation, StringBuilder formula) {
+    private String addPlusSign(String res, int indOfNumBeforeOperation, StringBuilder formula) {
         if (res.charAt(0) != '-' && // if res negative no more actions needed
                 indOfNumBeforeOperation > 0 && // if indOfDigitBeforeOperation == 0 -> "+" is not needed
-                formula.charAt(indOfNumBeforeOperation - 1) != '+') { // if there was no plus before e.g. 11-3^2->11+9
-            return "+" + res; // e.g. 11-3^2 -> 11+9
+                formula.charAt(indOfNumBeforeOperation - 1) != '+') {// if there was no plus before: 11-10/-2 -> 11+5
+            return "+" + res; // e.g. 11-10/-2 -> 11+5
         }
 
         return res;
@@ -116,27 +90,23 @@ public class Operator {
     }
 
     /**
-     * The following method searches the start index of the digit before current operation
+     * The following method searches for the index of the digit before current operation
+     * e.g. operaion == '^' in -33^2 || 33^2 -> digitIndBeforeOperation == 0
      */
     private int findIndOfDigitBefore(StringBuilder formula, int indOfOperation) {
-        int indOfPreviousOperation = findOperationIndex(formula.toString(), indOfOperation - 1, false);
+        int indOfPrevOperation = findOperationIndex(formula.toString(), indOfOperation - 1, false);
 
-        // cases: 11*-3^2 || 10-3^3 || 10+3^3 || -3^3 || 3^2
-        // find start index of digit before current operation sign
-        int indOfDigitBeforeCurrentOperation;
-        if (indOfPreviousOperation == -1) { // if no operation before e.g. 3^2
-            indOfDigitBeforeCurrentOperation = 0;
-        } else if (indOfPreviousOperation == 0) { // if num is negative e.g. -3^2 only "-" can be at index of 0.
-            indOfDigitBeforeCurrentOperation = indOfPreviousOperation;
-        } else { // all other cases like 10-3^3 || 10+3^3 || 11*-3^2
-            if (!aux.isDigit(formula.charAt(indOfPreviousOperation - 1))) { // e.g. 11*-3^2
-                indOfDigitBeforeCurrentOperation = indOfPreviousOperation;
-            } else { // e.g. 10-3^3 || 10+3^3
-                indOfDigitBeforeCurrentOperation = indOfPreviousOperation + 1;
-            }
+        // find index of digit before current operation sign
+        int digitIndBeforeOperation;
+        if (indOfPrevOperation < 1) { // e.g. 33^2 || -33^2
+            digitIndBeforeOperation = 0;
+        } else if (!isDigit(formula.charAt(indOfPrevOperation - 1))) { // e.g. 11*-3^2; indOfPrevOperation points to "-"
+            digitIndBeforeOperation = indOfPrevOperation;
+        } else { // all other cases e.g. 10-3^3 || 10+3^3 || 10*-3 || 10-3*2
+            digitIndBeforeOperation = indOfPrevOperation + 1;
         }
 
-        return indOfDigitBeforeCurrentOperation;
+        return digitIndBeforeOperation;
     }
 
     /**

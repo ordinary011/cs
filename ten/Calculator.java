@@ -14,7 +14,7 @@ public class Calculator {
         StringBuilder formula = new StringBuilder(args[0]);
 
         try {
-            replacer.substituteVariables(formula, args);
+            replacer.replaceVars(formula, args);
 
             op.powerUp(formula);
             op.doOneOfFourOperations(formula, "*", "/");
@@ -58,7 +58,7 @@ public class Calculator {
                 {"2-3"}, {"-1"},
                 {"-2-3"}, {"-5"},
                 {"11-10/-2"}, {"16"},
-                {"2.33*2"}, {"4.66"}, // fails
+                {"2.33*2"}, {"4.66"},
                 {"11-10/-a", "a=5"}, {"13"}, // with args
                 {"11-10/-a", "a=-5"}, {"9"},
                 {"11+10/-a", "a=-5"}, {"13"},
@@ -86,14 +86,17 @@ public class Calculator {
                 {"-a*a", "a=-4"}, {"-16"},
                 {"-a*a", "a=4"}, {"-16"},
                 {"a+5", "a=-4"}, {"1"},
+                {"32+a2", "a=4"}, {"40"},
                 {"5-a", "a=-4"}, {"9"},
                 {"-a+5", "a=-4"}, {"9"},
                 {"-a*a", "a=-4"}, {"-16"},
                 {"5-a*a", "a=-2"}, {"1"},
                 {"a+55*a", "a=10"}, {"560"},
+                {"33+2a", "a=5"}, {"43"},
                 {"1+a*2", "a=2"}, {"5"},
                 {"1+a*2/2", "a=2"}, {"3"},
                 {"1+a*2/2-1", "a=2"}, {"2"},
+                {"11*a^3", "a=-2"}, {"-88"},
                 {"-a+5.0", "a=-2.000"}, {"7"},
                 {"dodo-10*3", "dodo=33"}, {"3"},
                 {"a2+b/2-c", "a=5", "b=6", "c=3"}, {"10"},

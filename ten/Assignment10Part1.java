@@ -10,13 +10,9 @@ public class Assignment10Part1 {
 
         Calculator calc = new Calculator();
 
-
-        // all other cases like 10-3^3 || 11*-3^2
-
-//        String[] go = {"11-3^2+3^3"}; // 29
-//        String[] go = {"-3/-4^-2"}; // -48
+//        String[] go = {"2-a", "a=-2"}; // {"4"}
+//        String[] go = {"-a*a", "a=-4"};// {"-16"}
 //        System.out.println(calc.runCalc(go));
-
 
         calc.runTests();
     }

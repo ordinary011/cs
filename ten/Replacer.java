@@ -1,11 +1,10 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
-public class Replacer {
-    private final Aux aux = Aux.getInstance();
+public class Replacer implements IsDigit {
 
     /**
-     * The following method prepares args for further actions.
-     * Removes redundant spaces and replaces comas with dots
+     * The following method prepares formula and variables for further actions.
+     * It removes redundant spaces and replaces comas with dots
      */
     public void formatArgs(String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -17,92 +16,58 @@ public class Replacer {
     /**
      * The following method substitutes variables with their corresponding values e.g. a+5, a=4 -> 4+5
      */
-    public void substituteVariables(StringBuilder formula, String[] args) {
+    public void replaceVars(StringBuilder formula, String[] args) {
         if (args.length > 1) { // if there is at least one variable
             for (int i = 1; i < args.length; i++) {
-                String var = args[i];
+                String var = args[i]; // example of var -> "a = 5"
                 int equalInd = var.indexOf('=');
                 String varName = var.substring(0, equalInd);
                 String varValue = var.substring(equalInd + 1);
 
-                substituteVarsWithCurrentName(formula, varName, varValue);
+                replaceVar(formula, varName, varValue);
             }
-
-            replaceDoubleMinuses(formula);
-            deleteRedundantPluses(formula);
         }
     }
 
     /**
      * The following method substitutes variable with current name
      */
-    private void substituteVarsWithCurrentName(StringBuilder formula, String varName, String varValue) {
+    private void replaceVar(StringBuilder formula, String varName, String varValue) {
         // cases for a -2:
-        // 5-a    // 5+2
         // a+5    // -2+5
-        // 5^-a    // 5^--2
-        // -a+5    // --4+5
-        // -a*a    // --4*-4
-        // a+a    // -4
-        // 2a    //
-        int startIndOfVarInFormula;
-        // while there is a variable with this name in the formula
-        while ((startIndOfVarInFormula = formula.indexOf(varName)) > -1) {
-            int endIndOfVar = startIndOfVarInFormula + varName.length();
+        // a+a    // -2-2
+        // 5-a    // 5+2
+        // 5^-a    // 5^2
+        // -a+5    // 2+5
+        // -a*a    // 2*-2
+        // 2a    // 2*-2
+        int varIndInFormula;
+        // while there is a variable with such name in the formula e.g. "a+a+a"
+        while ((varIndInFormula = formula.indexOf(varName)) > -1) {
+            int endIndOfVar = varIndInFormula + varName.length();
+            String replacement = varValue;
 
-//            // if var in formula is negative
-//            if (startIndOfVarInFormula > 0 && formula.charAt(startIndOfVarInFormula - 1) == '-') {
-//                startIndOfVarInFormula--;
-//                if (varValue.charAt(0) == '-') { // if args var is negative   // 5-a || 5^-a
-//
-//                }
-//            }
-            varValue = addMultiplicationSignIfNeeded(formula, startIndOfVarInFormula, varValue);
+            // prepare for replacement
+            if (varIndInFormula > 0 && // if not at index 0 and if digit before var e.g. 2a
+                    isDigit(formula.charAt(varIndInFormula - 1))) replacement = "*" + varValue;
+            else if (varIndInFormula != (formula.length() - 1) && // if var is not at the end of string
+                    isDigit(formula.charAt(varIndInFormula + 1)))
+                replacement = varValue + "*"; // if digit is after var e.g. a2 || 33+a2
+            else if (varValue.charAt(0) == '-') { // if args var is negative e.g. a=-2
+                // a+a || a+5 || 5+a
+                // if var in formula is negative 5-a || 5^-a || -a+5 || -a*a
+                if (varIndInFormula > 0 && formula.charAt(varIndInFormula - 1) == '-') {
+                    varIndInFormula--;
+                    replacement = varValue.substring(1); // var: -2 -> 2
 
-            formula.replace(startIndOfVarInFormula, endIndOfVar, varValue);
-        }
-    }
-
-    /**
-     * The following method adds multiplication sings if they are needed. e.g. [a2, a=2] => 2*2
-     */
-    private String addMultiplicationSignIfNeeded(StringBuilder formula, int startIndOfVarInFormula, String varValue) {
-        if (startIndOfVarInFormula == 0 &&
-                String.valueOf(formula.charAt(startIndOfVarInFormula + 1)).matches("\\d"))  //e.g. a2
-        {
-            return varValue + "*";
-        }
-
-        if (startIndOfVarInFormula > 0 &&
-                String.valueOf(formula.charAt(startIndOfVarInFormula - 1)).matches("\\d"))  //e.g. 2a
-        {
-            return "*" + varValue;
-        }
-
-        return varValue;
-    }
-
-    /**
-     * The following method replaces "--" with "+"
-     */
-    private void replaceDoubleMinuses(StringBuilder formula) {
-        for (int i = 0; i < formula.length(); i++) {
-            if (formula.charAt(i) == '-' && i > 0 && formula.charAt(i - 1) == '-') {
-                // e.g. 5--2 -> 5+2 || --2+5 -> +2+5 || 5^--2 -> 5^+2 || --4*-4 -> +4*-4
-                formula.replace(i - 1, i + 1, "+");
+                    if (varIndInFormula > 0 && isDigit(formula.charAt(varIndInFormula - 1))) { // 5-a
+                        replacement = "+" + replacement;
+                    }
+                }
             }
+
+            formula.replace(varIndInFormula, endIndOfVar, replacement);
         }
     }
 
-    /**
-     * The following method deletes redundant "+" signs
-     */
-    private void deleteRedundantPluses(StringBuilder formula) {
-        if (formula.charAt(0) == '+') formula.deleteCharAt(0); // e.g. +2+5 -> 2+5
-        for (int i = 1; i < formula.length(); i++) {
-            if (formula.charAt(i) == '+' && String.valueOf(formula.charAt(i - 1)).matches("[\\^*/]")) {
-                formula.deleteCharAt(i); // e. g. 5^+2 -> 5^2
-            }
-        }
-    }
 }
