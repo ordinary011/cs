@@ -2,6 +2,9 @@ package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
 import java.text.DecimalFormat;
 
+/**
+ * The following class comprises all the logic about operations implementation
+ */
 public class OperationManager implements IsDigit {
     // https://www.java67.com/2014/06/how-to-format-float-or-double-number-java-example.html
     private final DecimalFormat df = new DecimalFormat("#.#########"); // formats output of operations
@@ -78,7 +81,7 @@ public class OperationManager implements IsDigit {
 
     /**
      * The following method searches for the index of the digit before current operation
-     * e.g. operaion == '^' in -33^2 || 33^2 -> digitIndBeforeOperation == 0
+     * e.g. operation == '^' in -33^2 || 33^2 -> digitIndBeforeOperation == 0
      */
     private int findIndOfDigitBefore(StringBuilder formula, int indOfOperation) {
         int indOfPrevOperation = findOperationInd(formula.toString(), indOfOperation - 1, false);
@@ -139,12 +142,23 @@ public class OperationManager implements IsDigit {
         double secondNum = Double.parseDouble(secondN);
 
         switch (operation) {
-            case "+" -> res = firstNum + secondNum;
-            case "-" -> res = firstNum - secondNum;
-            case "*" -> res = firstNum * secondNum;
-            case "/" -> res = firstNum / secondNum;
-            case "^" -> res = Math.pow(firstNum, secondNum);
-            default -> System.out.println("unknown operation check your formula");
+            case "+":
+                res = firstNum + secondNum;
+                break;
+            case "-":
+                res = firstNum - secondNum;
+                break;
+            case "*":
+                res = firstNum * secondNum;
+                break;
+            case "/":
+                res = firstNum / secondNum;
+                break;
+            case "^":
+                res = Math.pow(firstNum, secondNum);
+                break;
+            default:
+                System.out.println("unknown operation check your formula");
         }
 
         return df.format(res);

@@ -8,6 +8,7 @@ import java.util.Arrays;
 public class Calculator {
     private final Replacer replacer = new Replacer();
     private final OperationManager op = new OperationManager();
+    private final FunctionManager func = new FunctionManager();
 
     /**
      * The following method is the starting point of the calculator. Operations are performed in the prioritized order
@@ -18,6 +19,10 @@ public class Calculator {
 
         try {
             replacer.replaceVars(formula, args);
+
+//            func.goFunctions(formula);
+
+            replacer.calcInBraces(formula);
 
             op.powerUp(formula);
             op.doOneOfFourOperations(formula, "*", "/");
@@ -111,6 +116,7 @@ public class Calculator {
                 {"d-10+a^2-b^c", "c=-5", "a= 5", "b= -5", "d=33"}, {"48.00032"},
                 {"d-10+a^2-b^c+a", "c=-5", "a= 5", "b= -5", "d=33"}, {"53.00032"},
                 {"-5-10+a^2-b^codi +10000.44", "codi =5", "a=5", "b=5"}, {"6885.44"},
+                {"sin(3)"}, {"0.1411200080598672"},
         };
 
         for (int i = 0; i < tests.length; i += 2) {

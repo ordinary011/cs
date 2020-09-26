@@ -1,5 +1,9 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment10;
 
+/**
+ * The following class contains logic for replacing variables in the formula.
+ * It also contains one formatting method that removes redundant symbols
+ */
 public class Replacer implements IsDigit {
 
     /**
@@ -64,6 +68,11 @@ public class Replacer implements IsDigit {
         }
     }
 
+    public void calcInBraces(StringBuilder formula) {
+        if (formula.indexOf("(") != -1) {
+
+        }
+    }
 }
 
 // cases for replacement when a=-2:
