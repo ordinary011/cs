@@ -104,8 +104,14 @@ public class Tester {
                 {"3-(8-(2+2))+33"}, {"32"},
                 {"3-(8-(2+2)^2)+33"}, {"44"},
                 {"3-(8-(2+2+(3^2))^2)+33"}, {"197"},
+                {"3-(8-(2+2+(3^2))^2)+(33+53)"}, {"250"},
+                {"2(5+5)"}, {"20"},
+                {"(5+5)2"}, {"20"},
+                {"2(5+5)2"}, {"40"},
+                {"(3+4)(2+2)"}, {"28"},
                 {"3-(8-a^2)+33", "a=(2+2)"}, {"44"}, // parentheses + args
                 {"3-a+33", "a=(8-(2+2)^2)"}, {"44"},
+                {"3-a^2", "a=(8-(2+2)^2)"}, {"-61"},
                 {"sin(3)"}, {"0.1411200080598672"}, // functions
                 {"sin(3+3)"}, {"-0.27941549819892586"},
                 {"sin(3+3) + cos(4^2)"}, {"-1.237074979"},
@@ -118,7 +124,7 @@ public class Tester {
 
         for (int i = 0; i < tests.length; i += 2) {
             String res = calc.runCalc(tests[i]);
-            if (res != null && res.equals(tests[i + 1][0])) {
+            if (res.equals(tests[i + 1][0])) {
                 System.out.println("  Pass: " + Arrays.toString(tests[i]) + " Result: " + res);
             } else {
                 System.out.println("! FAIL: " + Arrays.toString(tests[i]) +

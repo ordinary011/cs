@@ -67,6 +67,29 @@ public class Replacer implements Aux {
             formula.replace(varIndInFormula, endIndOfVar, replacement);
         }
     }
+
+    public void addMultiplicationSign(StringBuilder formula) {
+        for (int i = 1; i < formula.length() - 1; i++) {
+            if (formula.charAt(i) == '(' && // if char is "("
+                    (isDigit(formula.charAt(i - 1)) || // e.g. 2(5+5)
+                            formula.charAt(i - 1) == ')') // e.g. (3+4)(2+2)
+            ) {
+                formula.insert(i, '*');
+                continue;
+            }
+
+            if (formula.charAt(i) == ')' && // if char is ")"
+                    (isDigit(formula.charAt(i + 1)) || // e.g. (5+5)2
+                            formula.charAt(i + 1) == '(') // e.g. (3+4)(2+2)
+            ) {
+                formula.insert(i + 1, '*');
+            }
+        }
+//        {"2(5+5)"}, {"20"},
+//        {"(5+5)2"}, {"20"},
+//        {"2(5+5)2"}, {"40"},
+//        {"(3+4)(2+2)"}, {"11"},
+    }
 }
 
 // cases for replacement when a=-2:

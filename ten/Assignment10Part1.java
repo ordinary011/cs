@@ -9,7 +9,7 @@ public class Assignment10Part1 {
 //        }
 
 //        Calculator calc = new Calculator();
-//        String[] go = {"sin(3+3) + cos(4^2)"};
+//        String[] go = {"3-a^2", "a=(8-(2+2)^2)"}; // {"-61"}, // 3-(-8)^2
 //        System.out.println(calc.runCalc(go));
 
 

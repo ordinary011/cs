@@ -46,7 +46,7 @@ public class OperationManager implements Aux {
         int operationInd;
         String operation;
 
-        if (indOfFirstOperation > -1) { // if first is present
+        if (indOfFirstOperation > -1) { // if first operation is present
             if (indOfSecondOperation > -1) { // true if both operation are present
                 operation = indOfFirstOperation < indOfSecondOperation ? firstOperation : secondOperation;
                 operationInd = Math.min(indOfFirstOperation, indOfSecondOperation);

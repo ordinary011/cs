@@ -6,7 +6,7 @@ package com.shpp.p2p.cs.ldebryniuk.assignment10;
 public class Calculator {
 
     private final Replacer replacer = new Replacer();
-    private final Go go = new Go();
+    private final Kernel kernel = new Kernel();
 
     /**
      * The following method is the starting point of the calculator. Operations are performed in the prioritized order
@@ -17,8 +17,9 @@ public class Calculator {
 
         try {
             replacer.replaceVars(formula, args);
+            replacer.addMultiplicationSign(formula);
 
-            go.goo(formula);
+            kernel.calculate(formula);
         } catch (Exception e) {
             System.out.println("Input mistake. Please check your formula and variables");
         }
