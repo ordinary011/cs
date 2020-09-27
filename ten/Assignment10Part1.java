@@ -8,14 +8,12 @@ public class Assignment10Part1 {
 //            return;
 //        }
 
-        Calculator calc = new Calculator();
-//        System.out.println(calc.runCalc(args));
-
-        String[] go = {"(3+3)"}; // {"6"}
-        System.out.println(calc.runCalc(go));
+//        Calculator calc = new Calculator();
+//        String[] go = {"sin(3+3) + cos(4^2)"};
+//        System.out.println(calc.runCalc(go));
 
 
-//        calc.runTests(); todo uncomment for tests
+        new Tester().runTests(); // todo uncomment for tests
     }
 }
 

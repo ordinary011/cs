@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 /**
  * The following class comprises all the logic about operations implementation
  */
-public class OperationManager implements IsDigit {
+public class OperationManager implements Aux {
     // https://www.java67.com/2014/06/how-to-format-float-or-double-number-java-example.html
     private final DecimalFormat df = new DecimalFormat("#.#########"); // formats output of operations
 
