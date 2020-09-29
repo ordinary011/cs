@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment10;
+package com.shpp.p2p.cs.ldebryniuk.assignment11;
 
 import java.util.Arrays;
 
@@ -117,14 +117,12 @@ public class Tester {
                 {"sin(3+3) + cos(4^2)"}, {"-1.237074979"},
                 {"sin(3+3) + sin(4^2)"}, {"-0.567318815"},
                 {"1+(2+3*(4+5-sin(45*cos(a))))/7", "a=55"}, {"4.783224812"},
+//                {"1-2*a+3", "a=a=-5"}, {"1-2*a+3"} // uncomment to check for crashes=))
         };
-
-        // (3+4)(2+2)
-        // 2(5+5)
 
         for (int i = 0; i < tests.length; i += 2) {
             String res = calc.runCalc(tests[i]);
-            if (res.equals(tests[i + 1][0])) {
+            if (res != null && res.equals(tests[i + 1][0])) {
                 System.out.println("  Pass: " + Arrays.toString(tests[i]) + " Result: " + res);
             } else {
                 System.out.println("! FAIL: " + Arrays.toString(tests[i]) +

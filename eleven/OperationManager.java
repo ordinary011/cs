@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment10;
+package com.shpp.p2p.cs.ldebryniuk.assignment11;
 
 import java.text.DecimalFormat;
 
@@ -15,14 +15,14 @@ public class OperationManager implements IsDigit {
     public void powerUp(StringBuilder formula) {
         int indOfPower;
         while ((indOfPower = formula.indexOf("^")) > -1) { // while there is at least one power operation
-            splitAndDoOperation(formula, indOfPower, "^");
+            splitAndCalcOperation(formula, indOfPower, "^");
         }
     }
 
     /**
      * The following method performs one of the following operations: "*", "/", "+", "-",
      */
-    public void doOneOfFourOperations(StringBuilder formula, String firstOperation, String secondOperation) {
+    public void calcOneOfFourOperations(StringBuilder formula, String firstOperation, String secondOperation) {
         int indOfFirstOperation;
         int indOfSecondOperation;
 
@@ -34,7 +34,7 @@ public class OperationManager implements IsDigit {
             int operationInd = findFirstOperation(operation, indOfFirstOperation, indOfSecondOperation,
                     firstOperation, secondOperation);
 
-            splitAndDoOperation(formula, operationInd, operation.toString());
+            splitAndCalcOperation(formula, operationInd, operation.toString());
         }
     }
 
@@ -46,7 +46,7 @@ public class OperationManager implements IsDigit {
         int operationInd;
         String operation;
 
-        if (indOfFirstOperation > -1) { // if first is present
+        if (indOfFirstOperation > -1) { // if first operation is present
             if (indOfSecondOperation > -1) { // true if both operation are present
                 operation = indOfFirstOperation < indOfSecondOperation ? firstOperation : secondOperation;
                 operationInd = Math.min(indOfFirstOperation, indOfSecondOperation);
@@ -67,14 +67,14 @@ public class OperationManager implements IsDigit {
      * The following method indicates first and second number in the formula. Then performs operation on them.
      * And replaces result in the formula e.g. 3+5^2 -> 3+25
      */
-    private void splitAndDoOperation(StringBuilder formula, int operationInd, String operation) {
+    private void splitAndCalcOperation(StringBuilder formula, int operationInd, String operation) {
         int indOfNumBeforeOperation = findIndOfDigitBefore(formula, operationInd);
         int nextOperationInd = findNextOperationIndex(formula, operationInd);
 
         String firstN = formula.substring(indOfNumBeforeOperation, operationInd);
         String secondN = formula.substring(operationInd + 1, nextOperationInd);
 
-        String res = doOperation(firstN, secondN, operation);
+        String res = calcOperation(firstN, secondN, operation);
         res = addPlusSign(res, indOfNumBeforeOperation, formula);
         formula.replace(indOfNumBeforeOperation, nextOperationInd, res);
     }
@@ -135,7 +135,7 @@ public class OperationManager implements IsDigit {
     /**
      * The following method performs operation
      */
-    private String doOperation(String firstN, String secondN, String operation) {
+    private String calcOperation(String firstN, String secondN, String operation) {
         double res = -1;
 
         double firstNum = Double.parseDouble(firstN);
@@ -177,4 +177,3 @@ public class OperationManager implements IsDigit {
         return res;
     }
 }
-

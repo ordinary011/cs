@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment10;
+package com.shpp.p2p.cs.ldebryniuk.assignment11;
 
 /**
  * The following class contains logic for replacing variables in the formula.
@@ -20,13 +20,18 @@ public class Replacer implements IsDigit {
     /**
      * The following method substitutes variables with their corresponding values e.g. a+5, a=4 -> 4+5
      */
-    public void replaceVars(StringBuilder formula, String[] args) {
+    public void replaceVars(StringBuilder formula, String[] args) throws Exception {
         if (args.length > 1) { // if there is at least one variable
             for (int i = 1; i < args.length; i++) {
                 String var = args[i]; // example of var -> "a=5"
                 int equalInd = var.indexOf('=');
                 String varName = var.substring(0, equalInd);
                 String varValue = var.substring(equalInd + 1);
+
+                if (varValue.contains(varName)) { // if there was a mistake in input var e.g. {"1-2*a+3", "a=a=-5"}
+                    System.out.println("your variable can't contain itself: " + var);
+                    throw new Exception();
+                }
 
                 replaceVar(formula, varName, varValue);
             }
@@ -68,6 +73,27 @@ public class Replacer implements IsDigit {
         }
     }
 
+    /**
+     * The following method adds multiplication sign if it's needed. e.g. 2(5+5) -> 2*(5+5) || (3+4)(2+2) -> (3+4)*(2+2)
+     */
+    public void addMultiplicationSign(StringBuilder formula) {
+        for (int i = 1; i < formula.length() - 1; i++) {
+            if (formula.charAt(i) == '(' && // if char is "("
+                    (isDigit(formula.charAt(i - 1)) || // e.g. 2(5+5)
+                            formula.charAt(i - 1) == ')') // e.g. (3+4)(2+2)
+            ) {
+                formula.insert(i, '*');
+                continue;
+            }
+
+            if (formula.charAt(i) == ')' && // if char is ")"
+                    (isDigit(formula.charAt(i + 1)) || // e.g. (5+5)2
+                            formula.charAt(i + 1) == '(') // e.g. (3+4)(2+2)
+            ) {
+                formula.insert(i + 1, '*');
+            }
+        }
+    }
 }
 
 // cases for replacement when a=-2:
