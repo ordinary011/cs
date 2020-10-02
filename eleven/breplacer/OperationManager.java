@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment11;
+package com.shpp.p2p.cs.ldebryniuk.assignment11.breplacer;
 
 import java.text.DecimalFormat;
 

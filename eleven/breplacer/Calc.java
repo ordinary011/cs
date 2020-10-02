@@ -1,9 +1,9 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment11;
+package com.shpp.p2p.cs.ldebryniuk.assignment11.breplacer;
 
 /**
  * The following class is the main class of the calculator app. It comprises all the necessary logic
  */
-public class Calculator {
+public class Calc {
 
     private final Replacer replacer = new Replacer();
     private final Kernel kernel = new Kernel();

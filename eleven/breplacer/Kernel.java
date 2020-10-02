@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment11;
+package com.shpp.p2p.cs.ldebryniuk.assignment11.breplacer;
 
 /**
  * The following class comprises all the logic for calculating functions and other operations
@@ -76,7 +76,7 @@ public class Kernel {
     /**
      * The following method searches for the amount of characters from opening to the closing parentheses
      */
-    private int findChNumTillClosing(String parentheses) {
+    private int findChNumTillClosing(String parentheses) { // cos(2+3+cos(2+3)*2) -> (2+3+cos(2+3)*2)
         int needToClose = 0;
 
         for (int i = 0; i < parentheses.length(); i++) {

@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment11;
+package com.shpp.p2p.cs.ldebryniuk.assignment11.breplacer;
 
 /**
  * The following class contains logic for replacing variables in the formula.
