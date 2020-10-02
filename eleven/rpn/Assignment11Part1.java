@@ -8,18 +8,15 @@ public class Assignment11Part1 {
 //            return;
 //        }
 
-        args = new String[]{"11-10/-a", "a=5"}; // {"13.00000"},
-        System.out.println(new Calculator().runCalc(args));
+
+//        args = new String[]{"(1+3)*2"}; // {"8.00000"},
+//        args = new String[]{"3+3+(-3)"}; // {"3.00000"},
+//        System.out.println(new Calculator().runCalc(args));
 
 
-//        new Tester().runTests(); // todo uncomment for tests
+        new Tester().runTests(); // todo uncomment for tests
     }
 }
-
-
-// 5^-3 = 1 ÷ 5 ÷ 5 ÷ 5 = 0.008
-
-// -5^-0.5 = 1 /
 
 
 

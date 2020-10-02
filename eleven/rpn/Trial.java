@@ -4,10 +4,10 @@ import java.util.Stack;
 
 public class Trial {
     public static void main(String[] args) {
-//        Stack<String> nums = new Stack<>();
-//        nums.push("33");
-//        nums.pop();
-//
-//        System.out.println(nums.peek());
+//        System.out.println("a".matches(".?[a-zA-Z]+"));
+//        System.out.println("-a".matches(".?[a-zA-Z]+"));
+//        System.out.println("-abro".matches(".?[a-zA-Z]+"));
+        System.out.println("(".matches("[()]"));
+        System.out.println(")".matches("[()]"));
     }
 }

@@ -55,13 +55,16 @@ public class Calculator {
     }
 
     private void parseFormula(String formula) {
+        char ch;
         int numInd = 0;
-        // iterate through string
-        for (int i = 1; i < formula.length(); i++) { // "11-10/-a"
-            if (isOp(formula.charAt(i))) {
-                if (isOp(formula.charAt(i - 1))) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
 
-                pushNumToStack(formula, numInd, i);
+        for (int i = 0; i < formula.length(); i++) {
+            ch = formula.charAt(i);
+            if (isOp(formula.charAt(i))) {
+                if ((i > 0 && isOp(formula.charAt(i - 1))) ||
+                        i == 0) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
+
+                pushToNumsStack(formula, numInd, i);
 
                 String formulaOp = formula.substring(i, i + 1);
                 if (!operators.empty()) {
@@ -86,43 +89,71 @@ public class Calculator {
                 operators.push(formulaOp);
 
                 numInd = i + 1; // i points to the сurrent operator e.g. "*". next num will have an index of i + 1;
+            } else if (formula.charAt(i) == '(') {
+                operators.push("(");
+
+                numInd = i + 1; // i points to the "(". next num will have an index of i + 1;
+                i++; // skip ch after "(" because numInd will point to that number anyway
+            } else if (formula.charAt(i) == ')') {
+                pushToNumsStack(formula, numInd, i);
+
+                String operation = operators.pop();
+                String res = "";
+                while (!operation.equals("(")) {
+                    String n2 = nums.pop();
+                    String n1 = nums.pop();
+
+                    res = calcOperation(n1, n2, operation);
+                    nums.push(res);
+
+                    operation = operators.pop();
+                }
+                numInd = i + 1; // i points to the ")". next num will have an index of i + 1;
             }
         }
 
-        // push the last num to the stack
-        pushNumToStack(formula, numInd, formula.length());
+        // push the last num to the stack if it exists
+        pushToNumsStack(formula, numInd, formula.length());
     }
 
-    private void pushNumToStack(String formula, int numInd, int endIndOfNum) { // num can be: 6 || -6 || a || -a
-        String num = formula.substring(numInd, endIndOfNum);
 
-        if (isVar(num)) {
-            String varName = num;
-            if (num.charAt(0) == '-') varName = num.substring(1);
 
-            String varValue = vars.get(varName);
+    private void pushToNumsStack(String formula, int numInd, int endIndOfNum) { // num can be: 6 || -6 || a || -a
+        if (numInd != endIndOfNum) {
+            String num = formula.substring(numInd, endIndOfNum);
 
-            // cases for replacement when a=-2:
-            // a+a    // -2-2
-            // 5-a    // 5+2
-            // 5^-a    // 5^2
-            // -a+5    // 2+5
-            // -a*a    // 2*-2
-            // 2a    // 2*-2
-            if (varValue != null) {
-                if (varValue.charAt(0) == '-' && // if args var is negative e.g. a=-2
-                        num.charAt(0) == '-' // if var in formula is negative
-                ) // e.g. 5-a || 5^-a || -a+5
-                {
-                    num = varValue.substring(1); // var -2 -> 2
-                } else num = varValue;
-            } else {
-                System.out.println("could not find the variable with the following name: " + varName);
-                System.exit(0);
+            if (isVar(num)) {
+                String varValue = findVar(num);
+
+                if (varValue != null) {
+                    if (varValue.charAt(0) == '-' && // if args var is negative e.g. a=-2
+                            num.charAt(0) == '-' // if var in formula is negative
+                    ) // e.g. 5-a || 5^-a || -a+5
+                    {
+                        num = varValue.substring(1); // var -2 -> 2
+                    } else if (num.charAt(0) == '-') { // 10/-a
+                        num = "-" + varValue;
+                    } else {
+                        num = varValue;
+                    }
+                } else {
+                    System.out.println("could not find the variable with the following name: " + num);
+                    System.exit(0);
+                }
             }
-        }
 
-        nums.push(num);
+            nums.push(num);
+        }
+    }
+
+    private String findVar(String varName) { // a || -a
+        if (varName.charAt(0) == '-') varName = varName.substring(1);
+
+        return vars.get(varName);
+    }
+
+    private boolean isParentheses(char ch) {
+        return String.valueOf(ch).matches("[()]");
     }
 
     private boolean isOp(char ch) {
@@ -130,7 +161,7 @@ public class Calculator {
     }
 
     private boolean isVar(String str) {
-        return str.matches("[a-zA-Z]");
+        return str.matches(".?[a-zA-Z]+");
     }
 
     /**
@@ -138,6 +169,9 @@ public class Calculator {
      */
     private int getPriority(String operation) {
         switch (operation) {
+            case "(":
+//            case ")":
+                return 0;
             case "+":
             case "-":
                 return 1;
