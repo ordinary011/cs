@@ -55,14 +55,18 @@ public class Calculator {
     }
 
     private void parseFormula(String formula) {
-        char ch;
-        int numInd = 0;
+        int numInd = 0; // start index of a number before operation
+        char ch = formula.charAt(0);
+        if (ch == '(') {
+            operators.push("(");
+            numInd++; // i points to the "(". next num will have an index of i + 1;
+        }
 
-        for (int i = 0; i < formula.length(); i++) {
+        for (int i = 1; i < formula.length(); i++) {
             ch = formula.charAt(i);
-            if (isOp(formula.charAt(i))) {
-                if ((i > 0 && isOp(formula.charAt(i - 1))) ||
-                        i == 0) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
+
+            if (isOp(ch)) {
+                if (isOp(formula.charAt(i - 1))) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
 
                 pushToNumsStack(formula, numInd, i);
 
@@ -89,12 +93,12 @@ public class Calculator {
                 operators.push(formulaOp);
 
                 numInd = i + 1; // i points to the сurrent operator e.g. "*". next num will have an index of i + 1;
-            } else if (formula.charAt(i) == '(') {
+            } else if (ch == '(') {
                 operators.push("(");
 
                 numInd = i + 1; // i points to the "(". next num will have an index of i + 1;
                 i++; // skip ch after "(" because numInd will point to that number anyway
-            } else if (formula.charAt(i) == ')') {
+            } else if (ch == ')') {
                 pushToNumsStack(formula, numInd, i);
 
                 String operation = operators.pop();
