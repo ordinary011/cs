@@ -7,7 +7,10 @@ public class Trial {
 //        System.out.println("a".matches(".?[a-zA-Z]+"));
 //        System.out.println("-a".matches(".?[a-zA-Z]+"));
 //        System.out.println("-abro".matches(".?[a-zA-Z]+"));
-        System.out.println("(".matches("[()]"));
-        System.out.println(")".matches("[()]"));
+//        System.out.println("sqrtt".matches("sin|cos|tan|atan|log10|log2|sqrt"));
+        double one = Math.sin(6);
+        double two = Math.cos(16);
+
+        System.out.println(one + two);
     }
 }

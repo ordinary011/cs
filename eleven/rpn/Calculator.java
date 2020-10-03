@@ -24,21 +24,27 @@ public class Calculator {
         formatArgs(args);
         String formula = args[0];
 
-        parseVars(args);
+        try {
+            parseVars(args);
 
-        parseFormula(formula);
+            parseFormula(formula);
 
-        // calculate the rest of the stack
-        String n2 = nums.pop();
-        while (!operators.empty()) {
-            String n1 = nums.pop();
-            String operation = operators.pop();
+            // calculate the rest of the stack
+            String n2 = nums.pop();
+            while (!operators.empty()) {
+                String n1 = nums.pop();
+                String operation = operators.pop();
 
-            n2 = calcOperation(n1, n2, operation);
+                n2 = calcOperation(n1, n2, operation);
+            }
+
+            return String.format("%.5f", Double.parseDouble(n2));
+        } catch (Exception e) {
+            System.out.println("Input mistake. Please check your formula and variables");
+//            e.printStackTrace();
         }
 
-        return String.format("%.5f", Double.parseDouble(n2));
-//        return null;
+        return null;
     }
 
     private void parseVars(String[] args) {
@@ -54,7 +60,7 @@ public class Calculator {
         }
     }
 
-    private void parseFormula(String formula) {
+    private void parseFormula(String formula) throws Exception {
         int numInd = 0; // start index of a number before operation
         char ch = formula.charAt(0);
         if (ch == '(') {
@@ -94,10 +100,23 @@ public class Calculator {
 
                 numInd = i + 1; // i points to the сurrent operator e.g. "*". next num will have an index of i + 1;
             } else if (ch == '(') {
-                operators.push("(");
+                // if func before
+                if (i > 2 && isFunc(formula.substring(numInd, i))) { // parentheses after function e.g. sin(3+3)
+                    int chNumTillClosing = findChNumTillClosing(formula.substring(i));
 
-                numInd = i + 1; // i points to the "(". next num will have an index of i + 1;
-                i++; // skip ch after "(" because numInd will point to that number anyway
+                    parseFormula(formula.substring(i, (i + chNumTillClosing + 1)));
+                    // after parseFormula at the top of the stack will be res of calculations withing brackets
+                    String res = nums.pop();
+                    res = calcFunc(formula.substring(numInd, i), res);
+                    nums.push(res);
+
+                    i += chNumTillClosing;
+                    numInd = i + 1;
+                } else { // regular parentheses
+                    operators.push("(");
+                    numInd = i + 1; // i points to the "(". next num will have an index of i + 1;
+                    i++; // skip ch after "(" because numInd will point to that number anyway
+                }
             } else if (ch == ')') {
                 pushToNumsStack(formula, numInd, i);
 
@@ -116,14 +135,14 @@ public class Calculator {
             }
         }
 
-        // push the last num to the stack if it exists
+        // push the last num to the stack
         pushToNumsStack(formula, numInd, formula.length());
     }
 
 
 
-    private void pushToNumsStack(String formula, int numInd, int endIndOfNum) { // num can be: 6 || -6 || a || -a
-        if (numInd != endIndOfNum) {
+    private void pushToNumsStack(String formula, int numInd, int endIndOfNum) throws Exception { // num can be: 6 || -6 || a || -a
+        if (numInd < endIndOfNum) { // if numInd == endIndOfNum -> numInd points to something else e.g. "*"
             String num = formula.substring(numInd, endIndOfNum);
 
             if (isVar(num)) {
@@ -142,7 +161,7 @@ public class Calculator {
                     }
                 } else {
                     System.out.println("could not find the variable with the following name: " + num);
-                    System.exit(0);
+                    throw new Exception();
                 }
             }
 
@@ -156,8 +175,8 @@ public class Calculator {
         return vars.get(varName);
     }
 
-    private boolean isParentheses(char ch) {
-        return String.valueOf(ch).matches("[()]");
+    private boolean isFunc(String str) {
+        return str.matches("sin|cos|tan|atan|log10|log2|sqrt");
     }
 
     private boolean isOp(char ch) {
@@ -166,6 +185,10 @@ public class Calculator {
 
     private boolean isVar(String str) {
         return str.matches(".?[a-zA-Z]+");
+    }
+
+    private boolean isDigit(char ch) {
+        return Character.isDigit(ch);
     }
 
     /**
@@ -220,5 +243,53 @@ public class Calculator {
         }
 
         return String.valueOf(res);
+    }
+
+    /**
+     * The following method calculates functions like "sin", "cos", "tan", "atan", "log10", "log2", "sqrt"
+     */
+    private String calcFunc(String func, String value) {
+        double val = Double.parseDouble(value);
+
+        switch (func) {
+            case "sin":
+                return String.valueOf(Math.sin(val));
+            case "cos":
+                return String.valueOf(Math.cos(val));
+            case "tan":
+                return String.valueOf(Math.tan(val));
+            case "atan":
+                return String.valueOf(Math.atan(val));
+            case "sqrt":
+                return String.valueOf(Math.sqrt(val));
+            case "log2":
+                return String.valueOf(Math.log(val));
+            case "log10":
+                return String.valueOf(Math.log10(val));
+            default:
+                System.out.println("unknown function please check your formula");
+                return value;
+        }
+    }
+
+    /**
+     * The following method searches for the amount of characters from opening to the closing parentheses
+     */
+    private int findChNumTillClosing(String parentheses) { // cos(2+3+cos(2+3)*2) -> (2+3+cos(2+3)*2)
+        int needToClose = 0;
+
+        for (int i = 0; i < parentheses.length(); i++) {
+            char ch = parentheses.charAt(i);
+            if (ch == '(') needToClose++;
+            else if (ch == ')') needToClose--;
+
+            if (needToClose == 0) return i; // amount of characters from opening to the closing parentheses
+        }
+
+        // if no index was found
+        System.out.println("There is a mistake in the formula. You forgot to close your parentheses");
+        System.exit(0);
+
+        return -1;
     }
 }
