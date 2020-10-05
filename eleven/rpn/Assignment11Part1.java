@@ -8,7 +8,7 @@ public class Assignment11Part1 {
 //            return;
 //        }
 
-//        args = new String[]{"2-a", "a=-2"}; // {"4.00000"},
+//        args = new String[]{"1+(2+3*(4+5-sin(45*cos(a))))/7", "a=55"}; //, {"4.78322"},
 //        System.out.println(new Calculator().runCalc(args));
 
         new Tester().runTests(); // todo uncomment for tests
