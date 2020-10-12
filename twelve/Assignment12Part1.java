@@ -7,25 +7,30 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+/**
+ * The following class is a very simplified implementation of image analize.
+ * It uses deep first-search in order to determine the amount of objects on the image
+ */
 public class Assignment12Part1 {
 
+    // contains visited pixels numbers. e.g. 1, 2, 3, 44, 556678 etc...
     private static final HashSet<Integer> visitedPixs = new HashSet<>();
+    // an image that is represented as an array of RGB values
     private static int[][] pixels;
-    private static int w;
-    private static int h;
+    // width and height of an image
+    private static int W;
+    private static int H;
+    // background color
     private static int BG_COLOR;
 
     public static void main(String[] args) {
-//        if (args.length == 0) go("test.jpg");
-//        else go(args[0]);
-
-//        go("testdrive.jpg");
-        go("skater.jpg");
-//        go("skater.png");
-//        go("testColors_new.png");
-//        go("test41.png");
+        if (args.length == 0) go("test.jpg");
+        else go(args[0]);
     }
 
+    /**
+     * The following method comprises all the necessary logic for implementation of dfs.
+     */
     private static void go(String imgName) {
         try {
             BufferedImage img = ImageIO.read(new File(imgName));
@@ -34,68 +39,63 @@ public class Assignment12Part1 {
 
             findBGColor();
 
-//            countObjects();
-
-
-//            isRelated(124, 122);
-
-//            System.out.println(pixels[125][121]);
-//            System.out.println(w * h + w);
-
-//            // print pixels
-//            for (int i = 0; i < pixels.length; i++) {
-//                for (int j = 0; j < pixels[0].length; j++) {
-////                    System.out.println(w * i + j);
-//                    System.out.println(pixels[40][j] + " ");
-//                }
-//                System.out.println();
-//            }
+            countObjects();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * The following method searches for a background color of an img.
+     */
     private static void findBGColor() {
         // <pixVal, pixCountOfCurrentPixValue>
-        HashMap<Integer, Integer> pixPopularity = new HashMap<>();
+        HashMap<Integer, Integer> pixPopularities = new HashMap<>();
 
         for (int[] pixRow : pixels) {
             for (int pixVal : pixRow) {
-                if (!pixPopularity.containsKey(pixVal)) pixPopularity.put(pixVal, 0);
-                else pixPopularity.compute(pixVal, (k, v) -> v + 1); // increment popularity
+                if (!pixPopularities.containsKey(pixVal)) pixPopularities.put(pixVal, 1);
+                else pixPopularities.compute(pixVal, (k, v) -> v + 1); // increment popularity
             }
         }
 
-        int mostPopularVal = 0;
+        int mostPopularPixVal = 0;
         int biggestPixCount = 0;
-        for (Map.Entry<Integer, Integer> entry : pixPopularity.entrySet()) {
-            int pixCountOfPixVal = entry.getValue();
-            if (pixCountOfPixVal > biggestPixCount) {
-                mostPopularVal = entry.getKey();
-                biggestPixCount = pixCountOfPixVal;
+        for (Map.Entry<Integer, Integer> entry : pixPopularities.entrySet()) {
+            int pixValCount = entry.getValue();
+
+            if (pixValCount > biggestPixCount) {
+                mostPopularPixVal = entry.getKey();
+                biggestPixCount = pixValCount;
             }
         }
 
-        BG_COLOR = mostPopularVal;
+        BG_COLOR = mostPopularPixVal;
     }
 
+    /**
+     * The following method extracts rgb values of image
+     */
     private static void createArrOfPixs(BufferedImage img) {
-        w = img.getWidth();
-        h = img.getHeight();
+        W = img.getWidth();
+        H = img.getHeight();
 
         // create arr of pixels
-        pixels = new int[h][w];
-        for (int i = 0; i < h; i++)
-            for (int j = 0; j < w; j++)
+        pixels = new int[H][W];
+        for (int i = 0; i < H; i++)
+            for (int j = 0; j < W; j++)
                 pixels[i][j] = img.getRGB(j, i);
     }
 
+    /**
+     * The following method counts objects
+     */
     private static void countObjects() {
         int objCount = 0;
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[0].length; j++) {
-                if (pixels[i][j] != BG_COLOR && !visitedPixs.contains(w * i + j)) { // if pix was not visited
+                if (pixels[i][j] != BG_COLOR && !visitedPixs.contains(W * i + j)) { // if not BG and was not visited
                     if (isRelated(i, j)) // if not single pix
                         objCount++;
                 }
@@ -105,63 +105,59 @@ public class Assignment12Part1 {
         System.out.println(objCount);
     }
 
-    private static void check(int i, int j) {
-        if (!visitedPixs.contains(w * i + j)) { // if pix was not visited
+    /**
+     * The following method checks if the pixel has already been visited
+     *
+     * @return specifies that pix is not single and has relations to others pixels
+     */
+    private static boolean check(int i, int j) {
+        if (!visitedPixs.contains(W * i + j)) { // if pix was not visited
             isRelated(i, j);
         }
+
+        return true; // inside this method already means that pix is not single
     }
 
+    /**
+     * The following method determines if pixel is related to other pixels and if pixel is single
+     */
     private static boolean isRelated(int i, int j) {
+        visitedPixs.add(W * i + j);
         boolean isNotSinglePix = false;
-//        System.out.println(w * i + j);
-        visitedPixs.add(w * i + j);
 
-        if (j < w - 1 && pixels[i][j + 1] != BG_COLOR) { // if right pixel is black
-            check(i, j + 1);
-            isNotSinglePix = true;
+        if (j < W - 1 && pixels[i][j + 1] != BG_COLOR) { // if right pixel is black
+            isNotSinglePix = check(i, j + 1);
         }
 
-        if (i < h - 1 && j < w - 1 && pixels[i + 1][j + 1] != BG_COLOR) { // if below right pix is black
-            check(i + 1, j + 1);
-            isNotSinglePix = true;
+        if (i < H - 1 && j < W - 1 && pixels[i + 1][j + 1] != BG_COLOR) { // if below right pix is black
+            isNotSinglePix = check(i + 1, j + 1);
         }
 
-        if (i < h - 1 && pixels[i + 1][j] != BG_COLOR) { // if pix below is black
-            check(i + 1, j);
-            isNotSinglePix = true;
+        if (i < H - 1 && pixels[i + 1][j] != BG_COLOR) { // if pix below is black
+            isNotSinglePix = check(i + 1, j);
         }
 
-        if (i < h - 1 && j > 0 && pixels[i + 1][j - 1] != BG_COLOR) { // if below left pix is black
-            check(i + 1, j - 1);
-            isNotSinglePix = true;
+        if (i < H - 1 && j > 0 && pixels[i + 1][j - 1] != BG_COLOR) { // if below left pix is black
+            isNotSinglePix = check(i + 1, j - 1);
         }
 
         if (j > 0 && pixels[i][j - 1] != BG_COLOR) { // if left pixel is black
-            check(i, j - 1);
-            isNotSinglePix = true;
+            isNotSinglePix = check(i, j - 1);
         }
 
         if (i > 0 && j > 0 && pixels[i - 1][j - 1] != BG_COLOR) { // if above left pix is black
-            check(i - 1, j - 1);
-            isNotSinglePix = true;
+            isNotSinglePix = check(i - 1, j - 1);
         }
 
         if (i > 0 && pixels[i - 1][j] != BG_COLOR) { // if pix above is black
-            check(i - 1, j);
-            isNotSinglePix = true;
+            isNotSinglePix = check(i - 1, j);
         }
 
-        if (i > 0 && j < w - 1 && pixels[i - 1][j + 1] != BG_COLOR) { // if above right pix is black
-            check(i - 1, j + 1);
-            isNotSinglePix = true;
+        if (i > 0 && j < W - 1 && pixels[i - 1][j + 1] != BG_COLOR) { // if above right pix is black
+            isNotSinglePix = check(i - 1, j + 1);
         }
 
         return isNotSinglePix;
     }
 
-
 }
-
-// testColors_new.png:
-// i: 124, j: 122 subNum: 26906
-// pix value = -65540
