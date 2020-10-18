@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment12;
+package com.shpp.p2p.cs.ldebryniuk;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

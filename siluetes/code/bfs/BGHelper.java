@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment12;
+package com.shpp.p2p.cs.ldebryniuk.assignment13;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,14 +6,14 @@ import java.util.Map;
 /**
  * The following class comprises the logic for determining background and its max and min values
  */
-public class BGHandler {
+public class BGHelper {
 
     /**
      * The following method searches for a background color of an img.
      *
      * @return true only if there are no objects
      */
-    public boolean findBGColor(int[][] pixels, int pixCountFilter) {
+    public boolean findBGColor(int[][] pixels, int minPixsInObj) {
         // <pixVal, pixCountOfCurrentPixValue>
         HashMap<Integer, Integer> pixPopularities = new HashMap<>();
 
@@ -33,7 +33,7 @@ public class BGHandler {
                 biggestPixCount = pixValCount;
             }
 
-            if (pixValCount > pixCountFilter) { // bg max and min values
+            if (pixValCount > minPixsInObj) { // bg max and min values
                 int pixVal = entry.getKey();
                 if (pixVal > maxVal) maxVal = pixVal;
                 else if (pixVal < minVal) minVal = pixVal;
@@ -41,7 +41,7 @@ public class BGHandler {
         }
 
         findBGRange(mostPopularPixVal, maxVal, minVal);
-        return false; // false means not only BG is present
+        return false; // false means there is at least one obj
     }
 
     /**
@@ -65,8 +65,8 @@ public class BGHandler {
 
         int BGFilter = (int) (Math.max(diff1, diff2) * 0.001);
 
-        Assignment12Part1.BG_MAX_VAL = BG_COLOR + BGFilter;
-        Assignment12Part1.BG_MIN_VAL = BG_COLOR - BGFilter;
+        Assignment13Part1.BG_MAX_VAL = BG_COLOR + BGFilter;
+        Assignment13Part1.BG_MIN_VAL = BG_COLOR - BGFilter;
     }
 
 
