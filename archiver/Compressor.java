@@ -7,37 +7,42 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Compressor {
-    private final HashMap<Byte, String> tableRel = new HashMap<>();
+//4 байт - розмір таблиці в байтах
+//8 байт - розмір самих даних в бітах (?), ну або розмір незжатих даних в байтах
+//Х байт - таблиця
+//Y байт - самі дані
+public class Compressor extends Archiver {
+
+    private final HashMap<Byte, String> relTable = new HashMap<>();
 
     public void compress(String file, String compressedFile) {
         try {
             ArrayList<Byte> unique = new ArrayList<>();
 
             Path path = Paths.get(file);
-            byte[] fileBytes = Files.readAllBytes(path);
+            byte[] originalFileBytes = Files.readAllBytes(path);
 
-            for (byte b : fileBytes) {
+            for (byte b : originalFileBytes) {
                 if (!unique.contains(b)) unique.add(b);
             }
 
-            ArrayList<Byte> tableInBytes = ralationTable(fileBytes, unique);
+            ArrayList<Byte> tableInBytes = ralationTable(originalFileBytes, unique);
 
             ArrayList<Byte> res = new ArrayList<>();
             addTableSize(res);
-            compress(tableInBytes, fileBytes, res);
+            compress(tableInBytes, originalFileBytes, res);
 
-            byte[] readyForFile = prepareForFile(res);
+            byte[] readyForCompressing = prepareForCompressing(res);
 
             path = Paths.get(compressedFile);
-            Files.write(path, readyForFile);
+            Files.write(path, readyForCompressing);
         } catch (Exception e) {
             System.err.println("jo bro");
             e.printStackTrace();
         }
     }
 
-    private byte[] prepareForFile(ArrayList<Byte> res) {
+    private byte[] prepareForCompressing(ArrayList<Byte> res) {
         byte[] readyForFile = new byte[res.size()];
 
         for (int i = 0; i < res.size(); i++) {
@@ -47,38 +52,41 @@ public class Compressor {
         return readyForFile;
     }
 
-    private void compress(ArrayList<Byte> tableInBytes, byte[] bytesInFile, ArrayList<Byte> res) {
-        StringBuilder compressed = new StringBuilder();
-        for (int i = 0; i < bytesInFile.length; i++) {
-            compressed.append(
-                    tableRel.get(bytesInFile[i])
+    private void compress(ArrayList<Byte> relTableInBytes, byte[] originalFileBytes, ArrayList<Byte> res) {
+        // compress data
+        StringBuilder compressedDataStr = new StringBuilder();
+        for (int i = 0; i < originalFileBytes.length; i++) {
+            compressedDataStr.append(
+                    relTable.get(originalFileBytes[i])
             );
         }
 
-        // add compressed data size
-        byte[] bytesOfInt = ByteBuffer.allocate(8).putLong(compressed.length()).array();
+        // add uncompressed data size
+//        byte[] bytesOfInt = ByteBuffer.allocate(8).putLong(compressed.length()).array();
+        byte[] bytesOfInt = ByteBuffer.allocate(8).putLong(originalFileBytes.length).array();
         for (byte b : bytesOfInt) {
             res.add(b);
         }
 
         // add table of relations
-        res.addAll(tableInBytes);
+        res.addAll(relTableInBytes);
 
+        // add compressed data by slicing compressedDataStr into bytes
         int byteSize = 8;
-        for (int i = 0; i < compressed.length(); i += byteSize) {
+        for (int i = 0; i < compressedDataStr.length(); i += byteSize) {
             String oneByte;
-            if ((i + byteSize) < compressed.length()) {
-                oneByte = compressed.substring(i, i + byteSize);
-            } else { // add zeroes to last byte
-                int zeroesToEnd = compressed.length() - i;
-                oneByte = compressed.substring(i) + "0".repeat(zeroesToEnd);
+            if ((i + byteSize) <= compressedDataStr.length()) { // if string has 8 bits (characters) inside
+                oneByte = compressedDataStr.substring(i, i + byteSize);
+            } else { // add zeroes to the last byte
+                String lessThanByte = compressedDataStr.substring(i);
+                int zeroBitsToEnd = byteSize - lessThanByte.length();
+                oneByte = lessThanByte + "0".repeat(zeroBitsToEnd);
             }
 
             res.add(
                     (byte) Integer.parseInt(oneByte, 2)
             );
         }
-
 
 //        // print bytes in a file
 //        for (Byte b : res) {
@@ -89,8 +97,8 @@ public class Compressor {
     }
 
     private void addTableSize(ArrayList<Byte> res) {
-        int tsize = tableRel.size() * 2;
-        byte[] bytesOfInt = ByteBuffer.allocate(4).putInt(tsize).array();
+        int tablesize = relTable.size() * 2;
+        byte[] bytesOfInt = ByteBuffer.allocate(4).putInt(tablesize).array();
         for (byte b : bytesOfInt) {
             res.add(b);
         }
@@ -110,7 +118,7 @@ public class Compressor {
             String encodedStr =
                     String.format("%8s", Integer.toBinaryString(encodedByte & 0xFF)).replace(' ', '0');
             encodedStr = encodedStr.substring(encodedStr.length() - bitsForEncoding);
-            tableRel.put(uniqueByte, encodedStr);
+            relTable.put(uniqueByte, encodedStr);
 
             encodedByte++;
         }
@@ -128,21 +136,6 @@ public class Compressor {
 //                System.out.println("can't hold 128 or more in one signed byte");
 //            }
 //        }
-    }
-
-    private int findEncodingLen(int size) throws Exception {
-//        int[] powers = {1, 2, 4, 8, 16, 32, 64, 127};
-        int exponent = 0;
-        int byteSize = 8;
-        for (int i = 0; i <= byteSize; i++) {
-            if (size <= Math.pow(2, exponent)) {
-                return exponent;
-            }
-
-            exponent++;
-        }
-
-        return -1;
     }
 
 }
