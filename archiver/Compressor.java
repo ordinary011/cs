@@ -83,9 +83,6 @@ public class Compressor extends Archiver {
         while ((bytesInsideReadBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
             readBuff.rewind(); // set the position inside of the buff to the beginning
             compressedDataStr.setLength(0);
-            if (bytesInsideReadBuffer != writeBuff.capacity()) {
-                writeBuff = ByteBuffer.allocate(bytesInsideReadBuffer);
-            }
 
             for (int i = 0; i < bytesInsideReadBuffer; i++) {
                 byte buffByte = readBuff.get();
@@ -93,6 +90,12 @@ public class Compressor extends Archiver {
                 compressedDataStr.append(
                         relTable.get(buffByte)
                 );
+            }
+            readBuff.rewind(); // set the position inside of the buff to the beginning
+
+            sizeOfCompressedData = (int) Math.ceil(compressedDataStr.length() / 8.0);
+            if (sizeOfCompressedData != writeBuff.capacity()) {
+                writeBuff = ByteBuffer.allocate(sizeOfCompressedData);
             }
 
             writeCompressedToAFile(compressedDataStr, writeFChan, writeBuff);
@@ -103,7 +106,8 @@ public class Compressor extends Archiver {
             throws IOException {
         // add compressed data by slicing compressedDataStr into bytes
         int byteSize = 8;
-        for (int i = 0; i < compressedDataStr.length(); i += byteSize) {
+        int i;
+        for (i = 0; i < compressedDataStr.length(); i += byteSize) {
             String oneByte;
             if ((i + byteSize) <= compressedDataStr.length()) { // if string has 8 chars (bits) inside
                 oneByte = compressedDataStr.substring(i, i + byteSize);
