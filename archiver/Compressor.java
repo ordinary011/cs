@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public class Compressor extends Archiver {
 
         try (FileChannel readFChan = (FileChannel) Files.newByteChannel(Paths.get(originalFile));
              FileChannel writeFChan = (FileChannel) Files.newByteChannel(Paths.get(compressedFile),
-                     StandardOpenOption.WRITE, StandardOpenOption.CREATE)
+                     StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
         ) {
             ArrayList<Byte> uniqueBytes = new ArrayList<>();
 
@@ -42,14 +41,11 @@ public class Compressor extends Archiver {
                     uncompressedFileSize++;
                 }
             }
+            readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
             createRelationTable(uniqueBytes);
 
             compressAndWrite(readFChan, writeFChan);
-        } catch (InvalidPathException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             System.err.println("jo bro mistake down here");
             e.printStackTrace();
@@ -57,12 +53,10 @@ public class Compressor extends Archiver {
     }
 
     private void compressAndWrite(FileChannel readFChan, FileChannel writeFChan) throws IOException {
-        int bufferOffset = 4 + 8 + tableByteArr.length; // in bytes
-        readBuff = ByteBuffer.allocate(kiloByte - bufferOffset);
+//        readBuff = ByteBuffer.allocate(kiloByte - bufferOffset);
         StringBuilder compressedDataStr = new StringBuilder();
+        readFChan.position(0); // read the file from the beginning again
 
-        // read data from a file // compress data
-        readFChan.position(0); // read file from the beginning
         int bytesInsideReadBuffer = readFChan.read(readBuff);
         readBuff.rewind(); // set the position inside the buff to the beginning
         for (int i = 0; i < bytesInsideReadBuffer; i++) {
@@ -72,7 +66,9 @@ public class Compressor extends Archiver {
                     relTable.get(buffByte)
             );
         }
+        readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
+        int bufferOffset = bytesForSavingTableSize + bytesForSavingUncompressedData + tableByteArr.length; // in bytes
         int sizeOfCompressedData = (int) Math.ceil(compressedDataStr.length() / 8.0);
         int writeBufferCapacity = bufferOffset + sizeOfCompressedData;
         ByteBuffer writeBuff = ByteBuffer.allocate(writeBufferCapacity);
@@ -84,13 +80,11 @@ public class Compressor extends Archiver {
         writeCompressedToAFile(compressedDataStr, writeFChan, writeBuff);
 
         // if file is more than a kilobyte read and write by pieces the rest of the file
-        readBuff = ByteBuffer.allocate(kiloByte);
         while ((bytesInsideReadBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
             readBuff.rewind(); // set the position inside of the buff to the beginning
             compressedDataStr.setLength(0);
-            if (bytesInsideReadBuffer != writeBufferCapacity) {
+            if (bytesInsideReadBuffer != writeBuff.capacity()) {
                 writeBuff = ByteBuffer.allocate(bytesInsideReadBuffer);
-                writeBufferCapacity = bytesInsideReadBuffer;
             }
 
             for (int i = 0; i < bytesInsideReadBuffer; i++) {
@@ -127,6 +121,7 @@ public class Compressor extends Archiver {
         // write to a file
         writeBuff.rewind();
         writeFChan.write(writeBuff);
+        writeBuff.rewind();
     }
 
     private void createRelationTable(ArrayList<Byte> unique) {

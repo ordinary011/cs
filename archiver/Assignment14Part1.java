@@ -7,7 +7,7 @@ public class Assignment14Part1 {
 //        args = new String[]{"test.par", "test4.png"};
 
         args = new String[]{"test2.txt", "test.par"};
-//        args = new String[]{"test.par", "test.txt"};
+//        args = new String[]{"test.par", "test3.txt"};
 
 //        if (args.length < 2) {
 //        if (args.length == 0) {
