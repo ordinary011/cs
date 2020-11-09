@@ -17,31 +17,35 @@ public class Compressor extends Archiver {
 
     private final HashMap<Byte, String> relTable = new HashMap<>();
     private final int kiloByte = 1024; // bytes
+    private final int megaByte = 1024 * 1024; // bytes
     private int bitsForEncoding;
-    private long uncompressedFileSize = 0; // bytes
-    private ByteBuffer readBuff = ByteBuffer.allocate(kiloByte);
+    private int bufferCount;
+    private long uncompressedFileSize; // bytes
+    private ByteBuffer readBuff = ByteBuffer.allocate(50);
     private byte[] tableByteArr;
+    StringBuilder compressedDataStr = new StringBuilder();
 
     public void compress(String originalFile, String compressedFile) {
-
         try (FileChannel readFChan = (FileChannel) Files.newByteChannel(Paths.get(originalFile));
              FileChannel writeFChan = (FileChannel) Files.newByteChannel(Paths.get(compressedFile),
                      StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
         ) {
+            uncompressedFileSize = readFChan.size();
+            bufferCount = (int) Math.ceil(uncompressedFileSize / 50.0);
+
             ArrayList<Byte> uniqueBytes = new ArrayList<>();
 
             // find unique bytes
-            int bytesInsideBuffer;
-            while ((bytesInsideBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
+            int bytesInsideReadBuffer;
+            while ((bytesInsideReadBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
                 readBuff.rewind(); // set the position inside the buff to the beginning
 
-                for (int i = 0; i < bytesInsideBuffer; i++) {
+                for (int i = 0; i < bytesInsideReadBuffer; i++) {
                     byte buffByte = readBuff.get();
                     if (!uniqueBytes.contains(buffByte)) uniqueBytes.add(buffByte);
-                    uncompressedFileSize++;
                 }
+                readBuff.rewind(); // set the position inside the buff to the beginning
             }
-            readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
             createRelationTable(uniqueBytes);
 
@@ -53,9 +57,7 @@ public class Compressor extends Archiver {
     }
 
     private void compressAndWrite(FileChannel readFChan, FileChannel writeFChan) throws IOException {
-//        readBuff = ByteBuffer.allocate(kiloByte - bufferOffset);
-        StringBuilder compressedDataStr = new StringBuilder();
-        readFChan.position(0); // read the file from the beginning again
+        readFChan.position(0); // read file from the beginning again
 
         int bytesInsideReadBuffer = readFChan.read(readBuff);
         readBuff.rewind(); // set the position inside the buff to the beginning
@@ -68,21 +70,25 @@ public class Compressor extends Archiver {
         }
         readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
+        int bufferSeuqentionNum = 1; // first buffer
         int bufferOffset = bytesForSavingTableSize + bytesForSavingUncompressedData + tableByteArr.length; // in bytes
-        int sizeOfCompressedData = (int) Math.ceil(compressedDataStr.length() / 8.0);
-        int writeBufferCapacity = bufferOffset + sizeOfCompressedData;
+        int sizeOfCompressedDataChunck =
+                (bufferCount == bufferSeuqentionNum) ? // if this is the last buffer there will be no remainders from prev buffer
+                        (int) Math.ceil(compressedDataStr.length() / 8.0) : compressedDataStr.length() / 8;
+        int writeBufferCapacity = bufferOffset + sizeOfCompressedDataChunck;
         ByteBuffer writeBuff = ByteBuffer.allocate(writeBufferCapacity);
+
 
         // fill the write buffer
         writeBuff.putInt(relTable.size() * 2); // whole table size in bytes
         writeBuff.putLong(uncompressedFileSize); // uncompressed data size in bytes
         writeBuff.put(tableByteArr); // table of relations
-        writeCompressedToAFile(compressedDataStr, writeFChan, writeBuff);
+        writeCompressedToAFile(writeFChan, writeBuff, bufferSeuqentionNum);
+        bufferSeuqentionNum++;
 
         // if file is more than a kilobyte read and write by pieces the rest of the file
         while ((bytesInsideReadBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
             readBuff.rewind(); // set the position inside of the buff to the beginning
-            compressedDataStr.setLength(0);
 
             for (int i = 0; i < bytesInsideReadBuffer; i++) {
                 byte buffByte = readBuff.get();
@@ -93,43 +99,50 @@ public class Compressor extends Archiver {
             }
             readBuff.rewind(); // set the position inside of the buff to the beginning
 
-            sizeOfCompressedData = (int) Math.ceil(compressedDataStr.length() / 8.0);
-            if (sizeOfCompressedData != writeBuff.capacity()) {
-                writeBuff = ByteBuffer.allocate(sizeOfCompressedData);
+            sizeOfCompressedDataChunck =
+                    (bufferCount == bufferSeuqentionNum) ? // if this is the last buffer there will be no remainders from prev buffer
+                            (int) Math.ceil(compressedDataStr.length() / 8.0) : compressedDataStr.length() / 8;
+            if (sizeOfCompressedDataChunck != writeBuff.capacity()) {
+                writeBuff = ByteBuffer.allocate(sizeOfCompressedDataChunck);
             }
 
-            writeCompressedToAFile(compressedDataStr, writeFChan, writeBuff);
+            writeCompressedToAFile(writeFChan, writeBuff, bufferSeuqentionNum);
+            bufferSeuqentionNum++;
         }
     }
 
-    private void writeCompressedToAFile(StringBuilder compressedDataStr, FileChannel writeFChan, ByteBuffer writeBuff)
+    private void writeCompressedToAFile(FileChannel writeFChan, ByteBuffer writeBuff, int bufferSeuqentionNum)
             throws IOException {
-        // add compressed data by slicing compressedDataStr into bytes
+        // add compressed data to the write buff by slicing compressedDataStr into bytes
         int byteSize = 8;
-        int i;
-        for (i = 0; i < compressedDataStr.length(); i += byteSize) {
-            String oneByte;
+        String remainder = "";
+        String oneByte = "";
+        for (int i = 0; i < compressedDataStr.length(); i += byteSize) {
             if ((i + byteSize) <= compressedDataStr.length()) { // if string has 8 chars (bits) inside
                 oneByte = compressedDataStr.substring(i, i + byteSize);
-            } else { // add zeroes to the last byte
+                writeBuff.put((byte) Integer.parseInt(oneByte, 2));
+            } else { // if last encodedByteString is less than a byte
                 String lessThanByte = compressedDataStr.substring(i);
-                int zeroBitsToEnd = byteSize - lessThanByte.length();
-                oneByte = lessThanByte + "0".repeat(zeroBitsToEnd);
+                if (bufferSeuqentionNum == bufferCount) { // if this is the last write buffer
+                    int zeroBitsToEnd = byteSize - lessThanByte.length();
+                    oneByte = lessThanByte + "0".repeat(zeroBitsToEnd);
+                    writeBuff.put((byte) Integer.parseInt(oneByte, 2));
+                } else { // leave remainder for the next buffer
+                    remainder = lessThanByte;
+                }
             }
-
-            writeBuff.put(
-                    (byte) Integer.parseInt(oneByte, 2)
-            );
         }
+        writeBuff.rewind();
+        compressedDataStr.setLength(0);
+        if (remainder.length() > 0) compressedDataStr.append(remainder);
 
         // write to a file
-        writeBuff.rewind();
         writeFChan.write(writeBuff);
         writeBuff.rewind();
     }
 
     private void createRelationTable(ArrayList<Byte> unique) {
-        byte encodedByte = 0;
+        byte encodingForTheByte = 0;
         ArrayList<Byte> tableAsArrayList = new ArrayList<>();
         int bitsForEncoding = findEncodingLen(unique.size());
 
@@ -137,14 +150,14 @@ public class Compressor extends Archiver {
             Byte uniqueByte = unique.get(i);
 
             tableAsArrayList.add(uniqueByte);
-            tableAsArrayList.add(encodedByte);
+            tableAsArrayList.add(encodingForTheByte);
 
-            String encodedStr =
-                    String.format("%8s", Integer.toBinaryString(encodedByte & 0xFF)).replace(' ', '0');
-            encodedStr = encodedStr.substring(encodedStr.length() - bitsForEncoding);
-            relTable.put(uniqueByte, encodedStr);
+            String encodedByteStr = String.format("%8s", Integer.toBinaryString(encodingForTheByte & 0xFF))
+                    .replace(' ', '0');
+            encodedByteStr = encodedByteStr.substring(encodedByteStr.length() - bitsForEncoding); // "00000011" -> "11"
+            relTable.put(uniqueByte, encodedByteStr);
 
-            encodedByte++;
+            encodingForTheByte++;
         }
 
         tableByteArr = new byte[tableAsArrayList.size()];
