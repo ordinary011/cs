@@ -17,11 +17,10 @@ public class Compressor extends Archiver {
 
     private final HashMap<Byte, String> relTable = new HashMap<>();
     private final int kiloByte = 1024; // bytes
-    private final int megaByte = 1024 * 1024; // bytes
     private int bitsForEncoding;
     private int bufferCount;
     private long uncompressedFileSize; // bytes
-    private ByteBuffer readBuff = ByteBuffer.allocate(50);
+    private ByteBuffer readBuff = ByteBuffer.allocate(megaByte);
     private byte[] tableByteArr;
     StringBuilder compressedDataStr = new StringBuilder();
 

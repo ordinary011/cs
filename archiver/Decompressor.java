@@ -11,8 +11,8 @@ import java.util.HashMap;
 public class Decompressor extends Archiver {
 
     private final HashMap<String, Byte> relTable = new HashMap<>();
-    private final int kiloByte = 1024; // bytes
-    private ByteBuffer readBuff = ByteBuffer.allocate(kiloByte);
+    private ByteBuffer readBuff = ByteBuffer.allocate(megaByte);
+    StringBuilder compressedDataStr = new StringBuilder();
 
     public void decompress(String compressedFile, String decompressedFile) {
         try (FileChannel readFChan = (FileChannel) Files.newByteChannel(Paths.get(compressedFile));
@@ -23,7 +23,7 @@ public class Decompressor extends Archiver {
             readBuff.rewind(); // set the position inside the buff to the beginning
 
             int tableSizeInBytes = readBuff.getInt();
-            long uncompressedDataSizeInBytes = readBuff.getLong();
+            long bytesLeftToDecompress = readBuff.getLong();
             int usedBitesForEncoding = findEncodingLen(tableSizeInBytes / 2);
 
             byte[] table = new byte[tableSizeInBytes];
@@ -43,67 +43,75 @@ public class Decompressor extends Archiver {
 
             // recreate string of compressedData from compressed data
             int offsetBeforeCompressedData = table.length + bytesForSavingTableSize + bytesForSavingUncompressedData;
-            StringBuilder compressedDataStr = new StringBuilder();
-
             for (int i = offsetBeforeCompressedData; i < bytesInsideReadBuff; i++) {
                 String encodedByte =
                         String.format("%8s", Integer.toBinaryString(readBuff.get() & 0xFF)).replace(' ', '0');
                 compressedDataStr.append(encodedByte);
             }
+            readBuff.rewind();
 
-            int bytesToBeWritten = (uncompressedDataSizeInBytes > kiloByte) ?
-                    (kiloByte - offsetBeforeCompressedData) : (int) uncompressedDataSizeInBytes;
-            // todo if more than a kilobyte check
-            ByteBuffer writeBuff = ByteBuffer.allocate(bytesToBeWritten);
+            int neededWBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
+            neededWBuffCapacity =
+                    (neededWBuffCapacity > bytesLeftToDecompress) ? // true if there are redundant zeroes at the end
+                    (int) bytesLeftToDecompress : neededWBuffCapacity;
+            ByteBuffer writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
 
+            // fill the write buffer
             int j = 0;
-            for (int i = 0; i < bytesToBeWritten; i++) {
+            for (int i = 0; i < neededWBuffCapacity; i++) {
                 String encodedByte = compressedDataStr.substring(j, j + usedBitesForEncoding);
                 j += usedBitesForEncoding;
 
-                if (relTable.containsKey(encodedByte)) {
-                    byte decompressedByte = relTable.get(encodedByte);
-                    writeBuff.put(decompressedByte);
-                }
+                byte decompressedByte = relTable.get(encodedByte);
+                writeBuff.put(decompressedByte);
             }
+            writeBuff.rewind();
+            String remainder = compressedDataStr.substring(j);
+            compressedDataStr.setLength(0);
+            if (remainder.length() > 0) compressedDataStr.append(remainder);
+            bytesLeftToDecompress -= neededWBuffCapacity;
 
             // write to a file
-            writeBuff.rewind();
             writeFChan.write(writeBuff);
+            writeBuff.rewind();
 
-
-            // continue reading till end of the file
+            // continue reading till end of the compressed file
             int bytesInsideRBuffer;
             while ((bytesInsideRBuffer = readFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
-                compressedDataStr.setLength(0);
-                if (bytesInsideRBuffer != writeBuff.capacity()) {
-                    writeBuff = ByteBuffer.allocate(bytesInsideRBuffer);
-                }
-                writeBuff.rewind();
-
+                readBuff.rewind(); // set the position inside the buff to the beginning
+                // recreate string of compressedData from compressed data
                 for (int i = 0; i < bytesInsideRBuffer; i++) {
                     String encodedByte =
                             String.format("%8s", Integer.toBinaryString(readBuff.get() & 0xFF)).replace(' ', '0');
                     compressedDataStr.append(encodedByte);
                 }
+                readBuff.rewind(); // set the position inside the buff to the beginning
+
+                neededWBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
+                neededWBuffCapacity = (neededWBuffCapacity > bytesLeftToDecompress) ?
+                        (int) bytesLeftToDecompress : neededWBuffCapacity; // if there are zeroes at the end
+                if (writeBuff.capacity() != neededWBuffCapacity) {
+                    writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
+                }
 
                 int j1 = 0;
-                for (int i = 0; i < bytesToBeWritten; i++) {
+                for (int i = 0; i < neededWBuffCapacity; i++) {
                     String encodedByte = compressedDataStr.substring(j1, j1 + usedBitesForEncoding);
                     j1 += usedBitesForEncoding;
 
-                    if (relTable.containsKey(encodedByte)) {
-                        byte decompressedByte = relTable.get(encodedByte);
-                        writeBuff.put(decompressedByte);
-                    }
+                    byte decompressedByte = relTable.get(encodedByte);
+                    writeBuff.put(decompressedByte);
                 }
+                writeBuff.rewind();
+                remainder = compressedDataStr.substring(j1);
+                compressedDataStr.setLength(0);
+                if (remainder.length() > 0) compressedDataStr.append(remainder);
+                bytesLeftToDecompress -= neededWBuffCapacity;
 
                 // write to a file
-                writeBuff.rewind();
                 writeFChan.write(writeBuff);
+                writeBuff.rewind();
             }
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
