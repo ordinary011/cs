@@ -11,6 +11,7 @@ import java.util.HashMap;
 public class Decompressor extends Common {
 
     private final HashMap<String, Byte> relTable = new HashMap<>();
+    private ByteBuffer writeBuff;
     private long bytesLeftToDecompress;
     private int usedBitesForEncoding;
 
@@ -32,7 +33,7 @@ public class Decompressor extends Common {
             usedBitesForEncoding = findEncodingLen(tableSizeInBytes / 2);
             createRelationTable(tableSizeInBytes);
 
-            decompress(bytesInsideReadBuff, inputFChan, outputFChan);
+            decompress(readBuff.remaining(), inputFChan, outputFChan);
 
             long endTime = System.currentTimeMillis();
             long duration = (endTime - startTime);
@@ -47,27 +48,70 @@ public class Decompressor extends Common {
         }
     }
 
+    private void createRelationTable(int tableSizeInBytes) {
+        table = new byte[tableSizeInBytes];
+        readBuff.get(table, 0, tableSizeInBytes); // get table from a read buff
+
+        // create relation table todo later A
+        int offsetBeforeEncodedByte = byteSize - usedBitesForEncoding;
+        for (int i = 0; i < table.length; i += 2) {
+            byte encodingForTheByte = table[i + 1];
+            String encodedByteStr = String.format("%8s", Integer.toBinaryString(encodingForTheByte & 0xFF))
+                    .replace(' ', '0');
+
+            encodedByteStr = encodedByteStr.substring(offsetBeforeEncodedByte);
+            relTable.put(encodedByteStr, table[i]);
+        }
+    }
+
     private void decompress(int bytesInsideReadBuff, FileChannel inputFChan, FileChannel outputFChan) throws IOException {
-        // recreate compressedDataChunk string from bytes of compressed data
-        int offsetBeforeCompressedData = table.length +
-                usedBytesForSavingTableSize + usedBytesForSavingUncompressedData;
-        for (int i = offsetBeforeCompressedData; i < bytesInsideReadBuff; i++) {
-            String encodedByte =
-                    String.format("%8s", Integer.toBinaryString(readBuff.get() & 0xFF))
-                            .replace(' ', '0');
+        int neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideReadBuff);
+
+        writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
+
+        fillWBuffAndWrite(outputFChan, neededWBuffCapacity);
+
+        // continue reading till end of the compressed file
+        int bytesInsideRBuffer;
+        while ((bytesInsideRBuffer = inputFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
+            readBuff.rewind(); // set the position inside the buff to the beginning
+
+            neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideRBuffer);
+
+            if (writeBuff.capacity() != neededWBuffCapacity) {
+                writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
+            }
+
+            fillWBuffAndWrite(outputFChan, neededWBuffCapacity);
+        }
+    }
+
+    /**
+     * Recreates compressedDataChunkString from bytes of compressed data
+     */
+    private int recreateCompressedDataChunkStr(int bytesInsideReadBuff) {
+        // append compressed bytes as string to compressedDataStr
+        for (int i = 0; i < bytesInsideReadBuff; i++) {
+            String encodedByte = String.format("%8s", Integer.toBinaryString(readBuff.get() & 0xFF))
+                    .replace(' ', '0');
             compressedDataStr.append(encodedByte);
         }
-        readBuff.rewind();
+        readBuff.rewind(); // set the position inside the buff to the beginning
 
-        int neededWBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
-        neededWBuffCapacity =
-                (neededWBuffCapacity > bytesLeftToDecompress) ? // true if there are redundant zeroes at the end
-                        (int) bytesLeftToDecompress : neededWBuffCapacity;
-        ByteBuffer writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
+        int WBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
+        if (WBuffCapacity > bytesLeftToDecompress) { // if there are redundant zeroes at the end of compressedDataStr
+            WBuffCapacity = (int) bytesLeftToDecompress;
+        }
 
-        // fill the write buffer
+        return WBuffCapacity;
+    }
+
+    /**
+     * fill write buffer and write to a file
+     */
+    private void fillWBuffAndWrite(FileChannel outputFChan, int WBuffCapacity) throws IOException {
         int j = 0;
-        for (int i = 0; i < neededWBuffCapacity; i++) {
+        for (int i = 0; i < WBuffCapacity; i++) {
             String encodedByte = compressedDataStr.substring(j, j + usedBitesForEncoding);
             j += usedBitesForEncoding;
 
@@ -75,67 +119,14 @@ public class Decompressor extends Common {
             writeBuff.put(decompressedByte);
         }
         writeBuff.rewind();
-        String remainder = compressedDataStr.substring(j);
+
+        String remainderForNextBuffer = compressedDataStr.substring(j);
         compressedDataStr.setLength(0);
-        if (remainder.length() > 0) compressedDataStr.append(remainder);
-        bytesLeftToDecompress -= neededWBuffCapacity;
+        if (remainderForNextBuffer.length() > 0) compressedDataStr.append(remainderForNextBuffer);
+        bytesLeftToDecompress -= WBuffCapacity;
 
         // write to a file
         outputFChan.write(writeBuff);
         writeBuff.rewind();
-
-        // continue reading till end of the compressed file
-        int bytesInsideRBuffer;
-        while ((bytesInsideRBuffer = inputFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
-            readBuff.rewind(); // set the position inside the buff to the beginning
-            // recreate string of compressedData from compressed data
-            for (int i = 0; i < bytesInsideRBuffer; i++) {
-                String encodedByte =
-                        String.format("%8s", Integer.toBinaryString(readBuff.get() & 0xFF)).replace(' ', '0');
-                compressedDataStr.append(encodedByte);
-            }
-            readBuff.rewind(); // set the position inside the buff to the beginning
-
-            neededWBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
-            neededWBuffCapacity = (neededWBuffCapacity > bytesLeftToDecompress) ?
-                    (int) bytesLeftToDecompress : neededWBuffCapacity; // if there are zeroes at the end
-            if (writeBuff.capacity() != neededWBuffCapacity) {
-                writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
-            }
-
-            int j1 = 0;
-            for (int i = 0; i < neededWBuffCapacity; i++) {
-                String encodedByte = compressedDataStr.substring(j1, j1 + usedBitesForEncoding);
-                j1 += usedBitesForEncoding;
-
-                byte decompressedByte = relTable.get(encodedByte);
-                writeBuff.put(decompressedByte);
-            }
-            writeBuff.rewind();
-            remainder = compressedDataStr.substring(j1);
-            compressedDataStr.setLength(0);
-            if (remainder.length() > 0) compressedDataStr.append(remainder);
-            bytesLeftToDecompress -= neededWBuffCapacity;
-
-            // write to a file
-            outputFChan.write(writeBuff);
-            writeBuff.rewind();
-        }
-    }
-
-    private void createRelationTable(int tableSizeInBytes) {
-        table = new byte[tableSizeInBytes];
-        readBuff.get(table, 0, tableSizeInBytes); // get table from a read buff
-
-        // create relation table todo efficiency
-        for (int i = 0; i < table.length; i += 2) {
-            byte encodingForTheByte = table[i + 1];
-            String encodedByteStr = String.format("%8s", Integer.toBinaryString(encodingForTheByte & 0xFF))
-                    .replace(' ', '0');
-
-            int offsetBeforeEncoding = byteSize - usedBitesForEncoding;
-            encodedByteStr = encodedByteStr.substring(offsetBeforeEncoding);
-            relTable.put(encodedByteStr, table[i]);
-        }
     }
 }

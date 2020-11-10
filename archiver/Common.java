@@ -6,8 +6,6 @@ public class Common {
 
     protected final int byteSize = 8;; // bytes
     protected final int megaByte = 1024 * 1024; // bytes
-    protected final int usedBytesForSavingTableSize = 4;
-    protected final int usedBytesForSavingUncompressedData = 8;
 
     protected final StringBuilder compressedDataStr = new StringBuilder();
     protected final ByteBuffer readBuff = ByteBuffer.allocate(megaByte);

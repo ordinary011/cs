@@ -12,6 +12,8 @@ import java.util.HashSet;
 public class Compressor extends Common {
 
     private final HashMap<Byte, String> relTable = new HashMap<>();
+    private final int usedBytesForSavingUncompressedData = 8;
+    private final int usedBytesForSavingTableSize = 4;
     private int bufferSequentialNum = 1; // first buffer
     private long uncompressedFileSize; // bytes
     private int bufferCount;
@@ -119,8 +121,8 @@ public class Compressor extends Common {
         }
         readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
-        // if this is not the last buffer, there will be remainder bits for the next buffer. So we don't Math.ceil
-        return (bufferCount == bufferSequentialNum) ? // true if buff is the last
+        // if this is not the last buffer, there might be remained bits for the next buffer. So we don't Math.ceil
+        return (bufferCount == bufferSequentialNum) ? // true if buff is the last one
                         (int) Math.ceil(compressedDataStr.length() / byteSize) : compressedDataStr.length() / byteSize;
     }
 
