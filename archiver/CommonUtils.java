@@ -2,9 +2,14 @@ package com.shpp.p2p.cs.ldebryniuk.assignment14;
 
 import java.nio.ByteBuffer;
 
-public class Common {
+/**
+ * The following class contains class fields and methods
+ * that are used both in compression and decompression
+ */
+public class CommonUtils {
 
-    protected final int byteSize = 8;; // bytes
+    protected final int byteSize = 8;
+    ; // bytes
     protected final int megaByte = 1024 * 1024; // bytes
 
     protected final StringBuilder compressedDataStr = new StringBuilder();

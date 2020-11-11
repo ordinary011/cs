@@ -3,48 +3,24 @@ package com.shpp.p2p.cs.ldebryniuk.assignment14;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Compressor extends Common {
+public class Compressor extends CommonUtils {
 
     private final HashMap<Byte, String> relTable = new HashMap<>();
     private final int usedBytesForSavingUncompressedData = 8;
     private final int usedBytesForSavingTableSize = 4;
     private int bufferSequentialNum = 1; // first buffer
-    private long uncompressedFileSize; // bytes
     private int bufferCount;
 
-    public void compressFile(String originalFile, String compressedFile) {
-        try (FileChannel inputFChan = (FileChannel) Files.newByteChannel(Paths.get(originalFile));
-             FileChannel outputFChan = (FileChannel) Files.newByteChannel(Paths.get(compressedFile),
-                     StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-        ) {
-            long startTime = System.currentTimeMillis();
-            uncompressedFileSize = inputFChan.size();
+    public void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
+        bufferCount = (int) Math.ceil(inputFileSize / (double) megaByte);
+        HashSet<Byte> uniqueBytes = findUniqueBytes(inputFChan);
 
-            bufferCount = (int) Math.ceil(uncompressedFileSize / (double) megaByte);
-            HashSet<Byte> uniqueBytes = findUniqueBytes(inputFChan);
+        createRelationTable(uniqueBytes);
 
-            createRelationTable(uniqueBytes);
-
-            compressAndWrite(inputFChan, outputFChan);
-
-            long endTime = System.currentTimeMillis();
-            long duration = (endTime - startTime);
-            long outFSize = outputFChan.size();
-            long efficiency = uncompressedFileSize - outFSize;
-            System.out.printf("efficiency of compression: %d (bytes)\n", efficiency);
-            System.out.printf("time of compression: %d (milliseconds)\n", duration);
-            System.out.printf("original file size: %d (bytes)\n", uncompressedFileSize);
-            System.out.printf("compressed file size: %d (bytes)\n", outFSize);
-        } catch (Exception e) {
-            System.err.println("jo bro mistake down here");
-            e.printStackTrace();
-        }
+        compressAndWrite(inputFChan, outputFChan, inputFileSize);
     }
 
     private HashSet<Byte> findUniqueBytes(FileChannel inputFChan) throws IOException {
@@ -82,7 +58,7 @@ public class Compressor extends Common {
         }
     }
 
-    private void compressAndWrite(FileChannel readFChan, FileChannel writeFChan) throws IOException {
+    private void compressAndWrite(FileChannel readFChan, FileChannel writeFChan, long inputFSize) throws IOException {
         readFChan.position(0); // we will read file from the beginning again
         int offsetBeforeCompressedData = usedBytesForSavingTableSize +
                 usedBytesForSavingUncompressedData + table.length; // in bytes
@@ -97,7 +73,7 @@ public class Compressor extends Common {
 
         // fill the write buffer
         writeBuff.putInt(relTable.size() * 2); // whole table size in bytes
-        writeBuff.putLong(uncompressedFileSize); // uncompressed data size in bytes
+        writeBuff.putLong(inputFSize); // uncompressed data size in bytes
         writeBuff.put(table); // table of relations
         writeCompressedDataToAFile(writeFChan, writeBuff);
 
@@ -123,7 +99,7 @@ public class Compressor extends Common {
 
         // if this is not the last buffer, there might be remained bits for the next buffer. So we don't Math.ceil
         return (bufferCount == bufferSequentialNum) ? // true if buff is the last one
-                        (int) Math.ceil(compressedDataStr.length() / byteSize) : compressedDataStr.length() / byteSize;
+                (int) Math.ceil(compressedDataStr.length() / (double) byteSize) : compressedDataStr.length() / byteSize;
     }
 
     /**
@@ -136,7 +112,7 @@ public class Compressor extends Common {
             if ((i + byteSize) <= compressedDataStr.length()) { // if string has 8 chars (bits) inside
                 oneByte = compressedDataStr.substring(i, i + byteSize);
                 writeBuff.put((byte) Integer.parseInt(oneByte, 2));
-            } else { // if last encodedByteString is less than a byte
+            } else { // if string is less than a byte
                 String lessThanByte = compressedDataStr.substring(i);
                 if (bufferSequentialNum == bufferCount) { // if this is the last write buffer
                     int zeroBitsToEnd = byteSize - lessThanByte.length();
@@ -157,7 +133,6 @@ public class Compressor extends Common {
 
         bufferSequentialNum++;
     }
-
 
 
 }

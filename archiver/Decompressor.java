@@ -3,28 +3,18 @@ package com.shpp.p2p.cs.ldebryniuk.assignment14;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 
-public class Decompressor extends Common {
+public class Decompressor extends CommonUtils {
 
     private final HashMap<String, Byte> relTable = new HashMap<>();
     private ByteBuffer writeBuff;
     private long bytesLeftToDecompress;
     private int usedBitesForEncoding;
 
-    public void decompressFile(String compressedFile, String decompressedFile) {
-        try (FileChannel inputFChan = (FileChannel) Files.newByteChannel(Paths.get(compressedFile));
-             FileChannel outputFChan = (FileChannel) Files.newByteChannel(Paths.get(decompressedFile),
-                     StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-        ) {
-            long startTime = System.currentTimeMillis();
-            long compressedFileSize = inputFChan.size();
-
-            // read first chunk of data
-            int bytesInsideReadBuff = inputFChan.read(readBuff);
+    public void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
+            // read first chunk of data to the buff
+            inputFChan.read(readBuff);
             readBuff.rewind(); // set the position inside the buff to the beginning
 
             // get table size, uncompressed data size, usedBitesForEncoding, and create relation table hashMap
@@ -34,18 +24,6 @@ public class Decompressor extends Common {
             createRelationTable(tableSizeInBytes);
 
             decompress(readBuff.remaining(), inputFChan, outputFChan);
-
-            long endTime = System.currentTimeMillis();
-            long duration = (endTime - startTime);
-            long decompressedFSize = outputFChan.size();
-            long efficiency = decompressedFSize - compressedFileSize;
-            System.out.printf("efficiency of decompression: %d (bytes)\n", efficiency);
-            System.out.printf("time of compression: %d (milliseconds)\n", duration);
-            System.out.printf("compressed file size: %d (bytes)\n", compressedFileSize);
-            System.out.printf("decompressed file size: %d (bytes)\n", decompressedFSize);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void createRelationTable(int tableSizeInBytes) {
@@ -64,8 +42,8 @@ public class Decompressor extends Common {
         }
     }
 
-    private void decompress(int bytesInsideReadBuff, FileChannel inputFChan, FileChannel outputFChan) throws IOException {
-        int neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideReadBuff);
+    private void decompress(int bytesInsideRBuff, FileChannel inputFChan, FileChannel outputFChan) throws IOException {
+        int neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideRBuff);
 
         writeBuff = ByteBuffer.allocate(neededWBuffCapacity);
 
@@ -73,7 +51,7 @@ public class Decompressor extends Common {
 
         // continue reading till end of the compressed file
         int bytesInsideRBuffer;
-        while ((bytesInsideRBuffer = inputFChan.read(readBuff)) != -1) { // read from a file to a buffer; -1 means end of file
+        while ((bytesInsideRBuffer = inputFChan.read(readBuff)) != -1) { // read file; -1 means end of file
             readBuff.rewind(); // set the position inside the buff to the beginning
 
             neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideRBuffer);
