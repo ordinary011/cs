@@ -14,15 +14,17 @@ public class Archiver {
         if (args.length == 0) {
             compressOrDecompress("test.txt", "test.txt.par", "compression");
         } else if (args.length == 1) {
-            determineOpBasedOnExtension(args[0], args[0]);
+            determineOpFor1Param(args[0], args[0]);
         } else if (args.length == 2) {
-            determineOpBasedOnExtension2(args[0], args[1]);
+            determineOpFor2Params(args[0], args[1]);
         } else if (args.length == 3) {
             String flag = args[0];
             if (flag.equals("-a")) {
                 compressOrDecompress(args[1], args[2], "compression");
             } else if (flag.equals("-u")) {
                 compressOrDecompress(args[1], args[2], "decompression");
+            } else {
+                System.err.println("Sorry could not recognize the followig flag: " + flag);
             }
         } else {
             System.err.println("Sorry too many parameters. Please check maybe there are some redundant spaces");
@@ -32,14 +34,14 @@ public class Archiver {
     /**
      * Determines operation based on input file extension
      */
-    private void determineOpBasedOnExtension(String inputFileName, String outputFileName) {
+    private void determineOpFor1Param(String inputFileName, String outputFileName) {
         int indOfLastDot = inputFileName.lastIndexOf(".");
 
         if (indOfLastDot != -1 || inputFileName.endsWith(".par")) { //if inputFile has any extension or ends with ".par"
             int indexOfFirstDot = inputFileName.indexOf(".");
 
             // remove extension for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
-            outputFileName = inputFileName.substring(0, indOfLastDot); // todo
+            outputFileName = inputFileName.substring(0, indOfLastDot);
 
             if (indexOfFirstDot != indOfLastDot) { // true if inputFileName e.g. "poem.txt.par"
                 compressOrDecompress(inputFileName, outputFileName, "decompression");
@@ -55,23 +57,19 @@ public class Archiver {
     /**
      * Determines operation based on input file extension
      */
-    private void determineOpBasedOnExtension2(String inputFileName, String outputFileName) {
-        int indOfLastDot = inputFileName.lastIndexOf(".");
-
-        if (indOfLastDot != -1 || inputFileName.endsWith(".par")) { //if inputFile has any extension or ends with ".par"
-            int indexOfFirstDot = inputFileName.indexOf(".");
-
-            // remove extension for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
-            outputFileName = inputFileName.substring(0, indOfLastDot); // todo
-
-            if (indexOfFirstDot != indOfLastDot) { // true if inputFileName e.g. "poem.txt.par"
+    private void determineOpFor2Params(String inputFileName, String outputFileName) {
+        if (inputFileName.endsWith(".par")) {
+            if (outputFileName.indexOf('.') != -1) { // true if outputFileName has an extension
                 compressOrDecompress(inputFileName, outputFileName, "decompression");
-            } else { // file ends only with ".par" e.g. "test.par" -> extension of output file can not be determined
-                compressOrDecompress(inputFileName, outputFileName + "uar", "decompression");
+            } else {
+                compressOrDecompress(inputFileName, outputFileName + ".uar", "decompression");
             }
-
-        } else { // inputFile doesn't have an extension e.g. "test"
-            compressOrDecompress(inputFileName, outputFileName + ".par", "compression");
+        } else { // inputFile doesn't end with ".par". Hence we compress
+            if (outputFileName.endsWith(".par")) {
+                compressOrDecompress(inputFileName, outputFileName, "compression");
+            } else {
+                compressOrDecompress(inputFileName, outputFileName + ".par", "compression");
+            }
         }
     }
 
