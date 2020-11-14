@@ -6,16 +6,28 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Compressor extends CommonUtils {
+/**
+ * The following class comprises all the logic for file compression
+ */
+class Compressor extends CommonUtils {
 
-    private final HashMap<Byte, String> relTable = new HashMap<>();
+    /**
+     * byte and a sequence of bits (as string) that are used for encoding the byte
+     */
+    private final HashMap<Byte, String> byteToEncodedByte = new HashMap<>();
+
     private final int usedBytesForSavingUncompressedData = 8;
     private final int usedBytesForSavingTableSize = 4;
     private int bufferSequentialNum = 1; // first buffer
-    private int bufferCount;
+    private int totalBufferCount;
 
-    public void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
-        bufferCount = (int) Math.ceil(inputFileSize / (double) megaByte);
+    /**
+     * Starting method for compressing the data
+     *
+     * @throws IOException
+     */
+    void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
+        totalBufferCount = (int) Math.ceil(inputFileSize / (double) MAGABYTE);
         HashSet<Byte> uniqueBytes = findUniqueBytes(inputFChan);
 
         createRelationTable(uniqueBytes);
@@ -23,6 +35,12 @@ public class Compressor extends CommonUtils {
         compressAndWrite(inputFChan, outputFChan, inputFileSize);
     }
 
+    /**
+     * Searches for the unique bytes in the file
+     *
+     * @return uniqueBytes
+     * @throws IOException
+     */
     private HashSet<Byte> findUniqueBytes(FileChannel inputFChan) throws IOException {
         HashSet<Byte> uniqueBytes = new HashSet<>();
 
@@ -39,25 +57,34 @@ public class Compressor extends CommonUtils {
         return uniqueBytes;
     }
 
+    /**
+     * Creates relation table
+     */
     private void createRelationTable(HashSet<Byte> uniqueBytes) {
         int usedBitsForEncoding = findEncodingLen(uniqueBytes.size());
         table = new byte[uniqueBytes.size() * 2];
         byte encodingForTheByte = 0;
 
         int tableIndex = 0;
+        int indexForEncodedStr = BYTE_SIZE - usedBitsForEncoding;
         for (Byte uniqueByte : uniqueBytes) {
             table[tableIndex++] = uniqueByte;
             table[tableIndex++] = encodingForTheByte;
 
             String encodedByteStr = String.format("%8s", Integer.toBinaryString(encodingForTheByte & 0xFF))
                     .replace(' ', '0');
-            encodedByteStr = encodedByteStr.substring(encodedByteStr.length() - usedBitsForEncoding);//"00000011"->"11"
-            relTable.put(uniqueByte, encodedByteStr);
+            encodedByteStr = encodedByteStr.substring(indexForEncodedStr); // "00000011" -> "11"
+            byteToEncodedByte.put(uniqueByte, encodedByteStr);
 
             encodingForTheByte++;
         }
     }
 
+    /**
+     * compresses data and writes it directly to the file
+     *
+     * @throws IOException
+     */
     private void compressAndWrite(FileChannel readFChan, FileChannel writeFChan, long inputFSize) throws IOException {
         readFChan.position(0); // we will read file from the beginning again
         int offsetBeforeCompressedData = usedBytesForSavingTableSize +
@@ -72,7 +99,7 @@ public class Compressor extends CommonUtils {
         ByteBuffer writeBuff = ByteBuffer.allocate(writeBufferCapacity);
 
         // fill the write buffer
-        writeBuff.putInt(relTable.size() * 2); // whole table size in bytes
+        writeBuff.putInt(byteToEncodedByte.size() * 2); // whole table size in bytes
         writeBuff.putLong(inputFSize); // uncompressed data size in bytes
         writeBuff.put(table); // table of relations
         writeCompressedDataToAFile(writeFChan, writeBuff);
@@ -89,17 +116,23 @@ public class Compressor extends CommonUtils {
         }
     }
 
+    /**
+     * creates a string that represemts a compressed data chunk
+     *
+     * @return sizeOfCompressedDataChunk
+     */
     private int createCompressedDataString(int bytesInsideReadBuffer) {
         readBuff.rewind(); // set the position inside the buff to the beginning
         for (int i = 0; i < bytesInsideReadBuffer; i++) {
             byte byteInsideBuff = readBuff.get();
-            compressedDataStr.append(relTable.get(byteInsideBuff));
+            compressedDataStr.append(byteToEncodedByte.get(byteInsideBuff));
         }
         readBuff.rewind(); // set the position inside the buff to the beginning after last read
 
         // if this is not the last buffer, there might be remained bits for the next buffer. So we don't Math.ceil
-        return (bufferCount == bufferSequentialNum) ? // true if buff is the last one
-                (int) Math.ceil(compressedDataStr.length() / (double) byteSize) : compressedDataStr.length() / byteSize;
+        return (totalBufferCount == bufferSequentialNum) ? // true if buff is the last one
+                (int) Math.ceil(compressedDataStr.length() / (double) BYTE_SIZE) :
+                compressedDataStr.length() / BYTE_SIZE;
     }
 
     /**
@@ -108,14 +141,14 @@ public class Compressor extends CommonUtils {
     private void writeCompressedDataToAFile(FileChannel writeFChan, ByteBuffer writeBuff) throws IOException {
         String remainderForTheNextBuffer = "";
         String oneByte;
-        for (int i = 0; i < compressedDataStr.length(); i += byteSize) {
-            if ((i + byteSize) <= compressedDataStr.length()) { // if string has 8 chars (bits) inside
-                oneByte = compressedDataStr.substring(i, i + byteSize);
+        for (int i = 0; i < compressedDataStr.length(); i += BYTE_SIZE) {
+            if ((i + BYTE_SIZE) <= compressedDataStr.length()) { // if string has 8 chars (bits) inside
+                oneByte = compressedDataStr.substring(i, i + BYTE_SIZE);
                 writeBuff.put((byte) Integer.parseInt(oneByte, 2));
             } else { // if string is less than a byte
                 String lessThanByte = compressedDataStr.substring(i);
-                if (bufferSequentialNum == bufferCount) { // if this is the last write buffer
-                    int zeroBitsToEnd = byteSize - lessThanByte.length();
+                if (bufferSequentialNum == totalBufferCount) { // if this is the last write buffer
+                    int zeroBitsToEnd = BYTE_SIZE - lessThanByte.length();
                     oneByte = lessThanByte + "0".repeat(zeroBitsToEnd);
                     writeBuff.put((byte) Integer.parseInt(oneByte, 2));
                 } else { // leave remainder for the next buffer
@@ -133,6 +166,5 @@ public class Compressor extends CommonUtils {
 
         bufferSequentialNum++;
     }
-
 
 }

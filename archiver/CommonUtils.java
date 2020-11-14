@@ -6,16 +6,32 @@ import java.nio.ByteBuffer;
  * The following class contains class fields and methods
  * that are used both in compression and decompression
  */
-public class CommonUtils {
+abstract class CommonUtils {
 
-    protected final int byteSize = 8;
-    ; // bytes
-    protected final int megaByte = 1024 * 1024; // bytes
+    protected final int BYTE_SIZE = 8; // bytes
+    protected final int MAGABYTE = 1024 * 1024; // bytes
 
+    /**
+     * contains compressed data string
+     */
     protected final StringBuilder compressedDataStr = new StringBuilder();
-    protected final ByteBuffer readBuff = ByteBuffer.allocate(megaByte);
+
+    /**
+     * contains chunk of data that is read from the read channel
+     */
+    protected final ByteBuffer readBuff = ByteBuffer.allocate(MAGABYTE);
+
+    /**
+     *
+     */
     protected byte[] table;
 
+    /**
+     * Determines encoding length for a byte
+     *
+     * @param uniqueBytesSize amount of unique bytes in the file
+     * @return amount of bits that are needed for encoding one byte
+     */
     protected int findEncodingLen(int uniqueBytesSize) {
         int exponent = 0;
         int byteSize = 8;

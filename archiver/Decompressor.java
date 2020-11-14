@@ -5,13 +5,25 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 
+/**
+ * The following class comprises all the logic for file decompression
+ */
 public class Decompressor extends CommonUtils {
 
-    private final HashMap<String, Byte> relTable = new HashMap<>();
+    /**
+     *  key = a sequence of bits (as string) that are used for encoding the byte AND value = byte
+     */
+    private final HashMap<String, Byte> encodedByteToByte = new HashMap<>();
+
     private ByteBuffer writeBuff;
     private long bytesLeftToDecompress;
     private int usedBitesForEncoding;
 
+    /**
+     * Starting method for decompressing the data
+     *
+     * @throws IOException
+     */
     public void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
             // read first chunk of data to the buff
             inputFChan.read(readBuff);
@@ -26,22 +38,32 @@ public class Decompressor extends CommonUtils {
             decompress(readBuff.remaining(), inputFChan, outputFChan);
     }
 
+    /**
+     * Creates relation table from the compressed file
+     *
+     * @throws IOException
+     */
     private void createRelationTable(int tableSizeInBytes) {
         table = new byte[tableSizeInBytes];
         readBuff.get(table, 0, tableSizeInBytes); // get table from a read buff
 
-        // create relation table todo later A
-        int offsetBeforeEncodedByte = byteSize - usedBitesForEncoding;
+        // create relation table
+        int offsetBeforeEncodedByte = BYTE_SIZE - usedBitesForEncoding;
         for (int i = 0; i < table.length; i += 2) {
             byte encodingForTheByte = table[i + 1];
             String encodedByteStr = String.format("%8s", Integer.toBinaryString(encodingForTheByte & 0xFF))
                     .replace(' ', '0');
 
             encodedByteStr = encodedByteStr.substring(offsetBeforeEncodedByte);
-            relTable.put(encodedByteStr, table[i]);
+            encodedByteToByte.put(encodedByteStr, table[i]);
         }
     }
 
+    /**
+     * comprises logic of decompression
+     *
+     * @throws IOException
+     */
     private void decompress(int bytesInsideRBuff, FileChannel inputFChan, FileChannel outputFChan) throws IOException {
         int neededWBuffCapacity = recreateCompressedDataChunkStr(bytesInsideRBuff);
 
@@ -93,7 +115,7 @@ public class Decompressor extends CommonUtils {
             String encodedByte = compressedDataStr.substring(j, j + usedBitesForEncoding);
             j += usedBitesForEncoding;
 
-            byte decompressedByte = relTable.get(encodedByte);
+            byte decompressedByte = encodedByteToByte.get(encodedByte);
             writeBuff.put(decompressedByte);
         }
         writeBuff.rewind();
