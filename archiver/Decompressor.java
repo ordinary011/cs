@@ -98,9 +98,12 @@ public class Decompressor extends CommonUtils {
         }
         readBuff.rewind(); // set the position inside the buff to the beginning
 
-        int WBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
-        if (WBuffCapacity > bytesLeftToDecompress) { // if there are redundant zeroes at the end of compressedDataStr
-            WBuffCapacity = (int) bytesLeftToDecompress;
+        int WBuffCapacity = 0;
+        if (usedBitesForEncoding != 0) { // usedBitesForEncoding == 0 when file is empty
+            WBuffCapacity = compressedDataStr.length() / usedBitesForEncoding;
+            if (WBuffCapacity > bytesLeftToDecompress) {// if there are redundant zeroes at the end of compressedDataStr
+                WBuffCapacity = (int) bytesLeftToDecompress;
+            }
         }
 
         return WBuffCapacity;

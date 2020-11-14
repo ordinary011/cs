@@ -22,6 +22,8 @@ public class Archiver {
     private final String ARCHIVE_FLAG = "-a";
     private final String UNARCHIVE_FLAG = "-u";
 
+    private final String ANSI_GREEN = "\u001B[32m";
+
     /**
      * Determines operation. Either compression or decompression based on args
      * @param args array of arguments from a user
@@ -34,13 +36,13 @@ public class Archiver {
                 compressOrDecompress(DEFAULT_INPUT_FILENAME, DEFAULT_OUTPUT_FILENAME, COMPRESSION);
                 break;
             case 1:
-                determineOpFor1Param(args[0], args[0]);
+                logicFor1Param(args[0], args[0]);
                 break;
             case 2:
-                determineOpFor2Params(args[0], args[1]);
+                logicFor2Params(args[0], args[1]);
                 break;
             case 3:
-                determineOpOnFlag(args[0], args[1], args[2]);
+                logicForFlag(args[0], args[1], args[2]);
                 break;
             default:
                 System.err.println("Sorry too many parameters. Please check maybe there are some redundant spaces");
@@ -51,7 +53,7 @@ public class Archiver {
     /**
      * Determines operation based on input file extension
      */
-    private void determineOpFor1Param(String inputFileName, String outputFileName) {
+    private void logicFor1Param(String inputFileName, String outputFileName) {
         int indOfLastDot = inputFileName.lastIndexOf(".");
 
         if (indOfLastDot != -1 || inputFileName.endsWith(PAR_ENDING)) { // if inputFile has any extension or ends ".par"
@@ -74,7 +76,7 @@ public class Archiver {
     /**
      * Determines operation based on input and output file extensions
      */
-    private void determineOpFor2Params(String inputFileName, String outputFileName) {
+    private void logicFor2Params(String inputFileName, String outputFileName) {
         if (inputFileName.endsWith(PAR_ENDING)) {
             if (outputFileName.indexOf('.') != -1) { // true if outputFileName has an extension
                 compressOrDecompress(inputFileName, outputFileName, DECOMPRESSION);
@@ -95,7 +97,7 @@ public class Archiver {
      *
      * @param flag can be either "-a" or "-u"
      */
-    private void determineOpOnFlag(String flag, String inputFile, String outputFile) {
+    private void logicForFlag(String flag, String inputFile, String outputFile) {
         if (flag.equals(ARCHIVE_FLAG)) {
             compressOrDecompress(inputFile, outputFile, COMPRESSION);
         } else if (flag.equals(UNARCHIVE_FLAG)) {
@@ -129,7 +131,7 @@ public class Archiver {
             long outFSize = outputFChan.size();
             long efficiency = (operation.equals(COMPRESSION)) ? inputFileSize - outFSize : outFSize - inputFileSize;
 
-            System.out.printf("efficiency of %s: %d (bytes)\n", operation, efficiency);
+            System.out.printf(ANSI_GREEN + "efficiency of %s: %d (bytes)\n", operation, efficiency);
             System.out.printf("time of compression: %d (milliseconds)\n", duration);
             System.out.printf("input file size: %d (bytes)\n", inputFileSize);
             System.out.printf("output file size: %d (bytes)\n", outFSize);

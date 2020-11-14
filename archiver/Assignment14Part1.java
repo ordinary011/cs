@@ -11,8 +11,6 @@ public class Assignment14Part1 {
      * {"-u" "test3.txt", "arvhied_poem.par"}
      */
     public static void main(String[] args) {
-//        args = new String[]{"biggest.jpg", "biggest.jpg.par"};
-        args = new String[]{"biggest.jpg.par", "res.jpg"};
         new Archiver().determineOperation(args);
     }
 }

@@ -8,8 +8,10 @@ import java.nio.ByteBuffer;
  */
 abstract class CommonUtils {
 
-    protected final int BYTE_SIZE = 8; // bytes
+    private final int UNIQ_BYTES_MAXCOUNT = 256; // bytes
+
     protected final int MAGABYTE = 1024 * 1024; // bytes
+    protected final int BYTE_SIZE = 8; // bytes
 
     /**
      * contains compressed data string
@@ -29,21 +31,11 @@ abstract class CommonUtils {
     /**
      * Determines encoding length for a byte
      *
-     * @param uniqueBytesSize amount of unique bytes in the file
+     * @param uniqueBytesCount amount of unique bytes in the file
      * @return amount of bits that are needed for encoding one byte
      */
-    protected int findEncodingLen(int uniqueBytesSize) {
-        int exponent = 0;
-        int byteSize = 8;
-        for (int i = 0; i <= byteSize; i++) {
-            if (uniqueBytesSize <= Math.pow(2, exponent)) {
-                return exponent;
-            }
-
-            exponent++;
-        }
-
-        return -1;
+    protected int findEncodingLen(int uniqueBytesCount) {
+        return uniqueBytesCount == UNIQ_BYTES_MAXCOUNT ? BYTE_SIZE : Integer.toBinaryString(uniqueBytesCount).length();
     }
 
 }
