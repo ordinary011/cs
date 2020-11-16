@@ -1,0 +1,48 @@
+80 + 24 + 11 = 115;    // 24 + 11 = 35
+
+int tableSize = 115;
+int uniqueBytesCount = 8;
+
+
+originalFile:
+a piece of cake\n
+
+Binary heap:
+p      1011
+i      1001
+o      1010
+f      1000
+k      0111
+\n     0110
+a      110
+c      010
+\s     111
+e      00
+
+
+Compressed File Structure:
+
+First byte:
+higher order 4 bits of the first byte -> redundant zeroes In Last compressed Byte;
+lower order 4 bits -> amount of bytes for tableInfo (in this file example 0110 which is 6 in decimal)
+
+tableInfo (each element is represented as one byte):
+(N bytes : encoding length for N bytes)
+6: 4
+3: 3
+1: 2
+
+table:
+p      1011
+i      1001
+o      1010
+f      1000
+k      0111
+\n     0110
+a      110
+c      010
+\s     111
+e      00
+
+compressedData:
+1101111011............
