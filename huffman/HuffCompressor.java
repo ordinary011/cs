@@ -1,5 +1,8 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
+import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.BTree;
+import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.TreeLeaf;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -8,20 +11,35 @@ import java.util.PriorityQueue;
 
 class HuffCompressor {
 
-    private final int MAGABYTE = 1024 * 1024; // bytes
-    private final HashMap<Byte, TreeNode> byteToByteFrequency = new HashMap<>();
-    private PriorityQueue<TreeNode> copyOfPrioritizedTreeNodes;
+    private final int MEGABYTE = 1024 * 1024; // bytes
+    private final HashMap<Byte, TreeLeaf> byteToByteTreeLeaf = new HashMap<>();
+    private PriorityQueue<TreeLeaf> prioritizedTreeLeaves;
     /**
      * contains chunk of data that is read from the read channel
      */
-    protected final ByteBuffer readBuff = ByteBuffer.allocate(MAGABYTE);
+    private final ByteBuffer readBuff = ByteBuffer.allocate(MEGABYTE);
 
     void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
         countUniqueBytes(inputFChan);
 
-        createBinaryHeap();
+        prioritizedTreeLeaves = new BTree().prioritizeBytesAndBuildTree(byteToByteTreeLeaf);
 
+//        for (int i = prioritizedTreeLeaves.size(); i > 0; i--) {
+//            System.out.println(prioritizedTreeLeaves.poll());
+//        }
+//        System.out.println("oppaaaa");
 
+        ByteBuffer writeBuff = ByteBuffer.allocate(prioritizedTreeLeaves.size());
+
+        for (int i = 0; i < 10; i++) {
+            writeBuff.put(
+//                    prioritizedTreeLeaves.peek()
+                    prioritizedTreeLeaves.poll().getByteValue()
+            );
+        }
+        writeBuff.rewind();
+
+        outputFChan.write(writeBuff);
     }
 
     private void countUniqueBytes(FileChannel inputFChan) throws IOException {
@@ -30,79 +48,19 @@ class HuffCompressor {
         while ((bytesInsideReadBuffer = inputFChan.read(readBuff)) != -1) { // read file; -1 means end of file
             readBuff.rewind(); // set the position inside the buff to the beginning
 
+            // count unique bytes in the buffer
             for (int i = 0; i < bytesInsideReadBuffer; i++) {
                 byte buffByte = readBuff.get();
 
-                TreeNode treeNode = byteToByteFrequency.get(buffByte);
+                TreeLeaf treeNode = byteToByteTreeLeaf.get(buffByte);
                 if (treeNode != null) {
                     treeNode.incrementWeight();
                 } else {
-                    byteToByteFrequency.put(buffByte, new TreeNode(buffByte));
+                    byteToByteTreeLeaf.put(buffByte, new TreeLeaf(buffByte));
                 }
             }
             readBuff.rewind(); // set the position inside the buff to the beginning
         }
     }
-
-    private void createBinaryHeap() {
-        PriorityQueue<TreeNode> orderedTreeNodes =
-                new PriorityQueue<>(byteToByteFrequency.size(), new TreeNodeComparator());
-        orderedTreeNodes.addAll(byteToByteFrequency.values());
-        copyOfPrioritizedTreeNodes = new PriorityQueue<>(orderedTreeNodes);
-
-//        for (int i = orderedTreeNodes.size(); i > 0; i--) {
-//            System.out.println(orderedTreeNodes.poll());
-//        }
-
-        startBuildingHeap(orderedTreeNodes);
-    }
-
-    private void startBuildingHeap(PriorityQueue<TreeNode> orderedTreeNodes) {
-        PriorityQueue<TreeNode> internalTreeNodes = new PriorityQueue<>(new TreeNodeComparator());
-        TreeNode firstSmallestNode;
-        TreeNode secondSmallestNode;
-
-        while (!orderedTreeNodes.isEmpty()) {
-            firstSmallestNode = orderedTreeNodes.poll();
-            secondSmallestNode = findSecondSmallestNode(internalTreeNodes, orderedTreeNodes);
-
-            connectTwoNodes(firstSmallestNode, secondSmallestNode, internalTreeNodes);
-        }
-
-        while (internalTreeNodes.size() > 1) { // till root node is created
-            firstSmallestNode = internalTreeNodes.poll();
-            secondSmallestNode = internalTreeNodes.poll();
-
-            connectTwoNodes(firstSmallestNode, secondSmallestNode, internalTreeNodes);
-        }
-    }
-
-    private void connectTwoNodes(TreeNode firstSmallestNode, TreeNode secondSmallestNode,
-                                 PriorityQueue<TreeNode> internalTreeNodes) {
-        int sumOfChildrenWeights = firstSmallestNode.getWeight() + secondSmallestNode.getWeight();
-
-        internalTreeNodes.add(new TreeNode(sumOfChildrenWeights, firstSmallestNode, secondSmallestNode));
-
-        firstSmallestNode.addNewBitToEncoding(0);
-        secondSmallestNode.addNewBitToEncoding(1);
-    }
-
-    private TreeNode findSecondSmallestNode(PriorityQueue<TreeNode> internalTreeNodes,
-                                        PriorityQueue<TreeNode> orderedTreeNodes) {
-        if (!orderedTreeNodes.isEmpty()) {
-
-            if (!internalTreeNodes.isEmpty()) { // true if both queues have nodes
-                return internalTreeNodes.peek().getWeight() <= orderedTreeNodes.peek().getWeight() ?
-                        internalTreeNodes.poll() : orderedTreeNodes.poll();
-            } else { // nodes are present only in orderedTreeNodes queue
-                return orderedTreeNodes.poll();
-            }
-        }
-
-        // nodes are present only in internalTreeNodes queue
-        return internalTreeNodes.poll();
-    }
-
-
 }
 

@@ -12,7 +12,8 @@ public class Assignment15Part1 {
      * {"-u" "test3.txt", "arvhied_poem.par"}
      */
     public static void main(String[] args) {
-        args = new String[]{"test5.txt", "test.txt.par"};
+//        args = new String[]{"test5.txt", "test.txt.par"};
+        args = new String[]{"test.txt.par", "res.txt"};
 
         new HuffmanArchiver().determineOperation(args);
     }

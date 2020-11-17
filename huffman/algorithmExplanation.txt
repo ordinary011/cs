@@ -7,7 +7,7 @@ int uniqueBytesCount = 8;
 originalFile:
 a piece of cake\n
 
-Binary heap:
+Binary tree:
 p      1011
 i      1001
 o      1010

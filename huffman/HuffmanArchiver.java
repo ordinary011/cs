@@ -123,7 +123,7 @@ public class HuffmanArchiver {
             if (operation.equals(COMPRESSION)) {
                 new HuffCompressor().compressFile(inputFChan, outputFChan, inputFileSize);
             } else if (operation.equals(DECOMPRESSION)) {
-//                new Decompressor().decompressFile(inputFChan, outputFChan);
+                new HuffDecompressor().decompressFile(inputFChan, outputFChan);
             }
 
             long endTime = System.currentTimeMillis();
