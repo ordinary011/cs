@@ -21,6 +21,14 @@ public class TreeLeaf extends BTreeNode {
         return byteValue;
     }
 
+    public int getEncodingLength() {
+        return usedBitesForEncoding;
+    }
+
+    public int getEncodingOfTheByte() {
+        return encodingOfTheByte;
+    }
+
     public void setWeight(int weight) {
         super.weight = weight;
     }

@@ -20,11 +20,6 @@ public class BTree {
         // create a copy of prioritized queue
         PriorityQueue<TreeLeaf> copyOfPrioritizedTreeLeaves = new PriorityQueue<>(prioritizedTreeLeaves);
 
-//        for (int i = prioritizedTreeLeaves.size(); i > 0; i--) {
-//            System.out.println(prioritizedTreeLeaves.poll());
-//        }
-//        System.out.println();
-
         startBuildingTree(prioritizedTreeLeaves);
 
         return copyOfPrioritizedTreeLeaves;
@@ -53,7 +48,7 @@ public class BTree {
 
     private void connectTwoNodes(BTreeNode firstSmallestNode, BTreeNode secondSmallestNode,
                                  PriorityQueue<InternalTreeNode> internalTreeNodes) {
-        int sumOfChildrenWeights = firstSmallestNode.getWeight() + secondSmallestNode.getWeight();
+        long sumOfChildrenWeights = firstSmallestNode.getWeight() + secondSmallestNode.getWeight();
 
         internalTreeNodes.add(new InternalTreeNode(sumOfChildrenWeights, firstSmallestNode, secondSmallestNode));
 

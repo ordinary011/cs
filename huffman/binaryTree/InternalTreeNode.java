@@ -5,7 +5,7 @@ public class InternalTreeNode extends BTreeNode {
     private BTreeNode leftChild = null;
     private BTreeNode rightChild = null;
 
-    public InternalTreeNode(int weight, BTreeNode leftChild, BTreeNode rightChild) {
+    public InternalTreeNode(long weight, BTreeNode leftChild, BTreeNode rightChild) {
         super.weight = weight;
         this.leftChild = leftChild;
         this.rightChild = rightChild;

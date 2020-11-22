@@ -23,6 +23,7 @@ public class HuffmanArchiver {
     private final String UNARCHIVE_FLAG = "-u";
 
     private final String ANSI_GREEN = "\u001B[32m";
+    private final String ANSI_BLUE = "\u001B[34m";
 
     /**
      * Determines operation. Either compression or decompression based on args
@@ -131,8 +132,10 @@ public class HuffmanArchiver {
             long outFSize = outputFChan.size();
             long efficiency = (operation.equals(COMPRESSION)) ? inputFileSize - outFSize : outFSize - inputFileSize;
 
-            System.out.printf(ANSI_GREEN + "Efficiency of %s: %d (bytes)\n", operation, efficiency);
+            System.out.print(ANSI_BLUE);
+            System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
             System.out.printf("Time of compression: %d (milliseconds)\n", duration);
+            System.out.print(ANSI_BLUE);
             System.out.printf("Input file size: %d (bytes)\n", inputFileSize);
             System.out.printf("Output file size: %d (bytes)\n", outFSize);
         } catch (Exception e) {

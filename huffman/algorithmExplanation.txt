@@ -1,48 +1,39 @@
-80 + 24 + 11 = 115;    // 24 + 11 = 35
-
-int tableSize = 115;
-int uniqueBytesCount = 8;
-
-
-originalFile:
+Original File example:
 a piece of cake\n
 
-Binary tree:
-p      1011
-i      1001
-o      1010
-f      1000
-k      0111
-\n     0110
-a      110
-c      010
-\s     111
-e      00
+COMPRESSED File Structure:
+First byte: redundant bits In Last compressed Byte;
 
+Second byte:
+higher order 4 bits of the second byte -> amount of bytes in tableInfo (in this example: 3)
+lower order 4 bits of the second byte -> the longest encoding length (in bits) for the byte
+(in this example longest encoding length is 4 bits because p is encoded as 1011)
 
-Compressed File Structure:
-
-First byte:
-higher order 4 bits of the first byte -> redundant zeroes In Last compressed Byte;
-lower order 4 bits -> amount of bytes for tableInfo (in this file example 0110 which is 6 in decimal)
-
-tableInfo (each element is represented as one byte):
-(N bytes : encoding length for N bytes)
-6: 4
-3: 3
-1: 2
+TableInfo:
+First byte of tableInfo: 6 (number of elements with the longest encoding length)
+(6 because p, i, o, f, k, \n have the longest encoding length (in this example it's 4 because 1011 is four bits))
+Second byte of tableInfo: 3 (number of elements with the longest encoding length -1)
+Third byte of tableInfo: 1 (number of elements with the longest encoding length -2)
+and so on ........
 
 table:
-p      1011
-i      1001
-o      1010
-f      1000
-k      0111
-\n     0110
-a      110
-c      010
-\s     111
+p      1010
+\n     1011
+k      1110
+o      1111
+i      0110
+f      0111
+c      100
+a      010
+\s     110
 e      00
 
-compressedData:
-1101111011............
+compressedData as encoded bits:
+010 110 1010 0110 00 100 00 110 1111 0111 110 100 010 1110 00 1011
+
+compressedData as bytes:
+01011010 10011000 10000110 11110111 11010001 01110001 011
+(last byte will end with zeroes)
+
+Original File example:
+a piece of cake\n
