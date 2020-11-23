@@ -19,7 +19,7 @@ public class InternalTreeNode extends BTreeNode {
             if (currentBit == 1) {
                 parentNode.rightChild = new TreeLeaf((byte) uniqueByte);
             } else { // currentBit == 0
-                parentNode.leftChild = new TreeLeaf((byte) uniqueByte);
+                parentNode.leftChild = new TreeLeaf((byte) uniqueByte); // todo parent node may be current node
             }
         } else { // this is not the last bit in encoding sequence
             InternalTreeNode currentNode;
@@ -41,6 +41,21 @@ public class InternalTreeNode extends BTreeNode {
             currentBit = currentBit >>> (8 - 1); // 11100000 >>> 00000001
             currentNode.recreateTreeLeaf(uniqueByte, byteEncoding, bitPositionInEncoding, currentBit, currentNode);
         }
+    }
+
+    public BTreeNode findEncodedByte(int encodedByte, int shift) {
+        encodedByte >>>= shift; // 11010000 becomes 00001101
+        encodedByte &= 1; // 00001101 becomes 00000001
+        if (encodedByte == 1) {
+            return this.rightChild;
+        } else { // encodedByte == 0
+            return this.leftChild;
+        }
+    }
+
+    @Override
+    public boolean isTreeLeaf() {
+        return false;
     }
 
     @Override

@@ -34,6 +34,11 @@ public class TreeLeaf extends BTreeNode {
     }
 
     @Override
+    public boolean isTreeLeaf() {
+        return true;
+    }
+
+    @Override
     public void addNewBitToEncoding(int bitToAdd) {
         if (bitToAdd == 1) {
             // e.g. (usedBitesForEncoding == 2) 00000001 -> 00000100
@@ -47,6 +52,11 @@ public class TreeLeaf extends BTreeNode {
 
         usedBitesForEncoding++;
     }
+
+//    @Override
+//    public BTreeNode findEncodedByte(int encodedByte, int shift) {
+//        return null;
+//    }
 
     @Override
     public String toString() {

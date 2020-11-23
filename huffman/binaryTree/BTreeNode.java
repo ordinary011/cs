@@ -1,6 +1,6 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 
-abstract class BTreeNode {
+public abstract class BTreeNode {
 
     protected long weight = 1;
 
@@ -12,5 +12,9 @@ abstract class BTreeNode {
         this.weight = weight;
     }
 
+    abstract public boolean isTreeLeaf();
+
     abstract public void addNewBitToEncoding(int bitToAdd);
+
+//    abstract public BTreeNode findEncodedByte(int encodedByte, int shift);
 }

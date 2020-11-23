@@ -13,8 +13,8 @@ public class Assignment15Part1 {
      */
     public static void main(String[] args) {
 //        args = new String[]{"test5.txt", "test5.txt.par"};
+//        new HuffmanArchiver().determineOperation(args);
         args = new String[]{"test5.txt.par", "res.txt"};
-
         new HuffmanArchiver().determineOperation(args);
     }
 }
