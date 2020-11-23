@@ -5,10 +5,42 @@ public class InternalTreeNode extends BTreeNode {
     private BTreeNode leftChild = null;
     private BTreeNode rightChild = null;
 
+    public InternalTreeNode() { }
+
     public InternalTreeNode(long weight, BTreeNode leftChild, BTreeNode rightChild) {
-        super.weight = weight;
+        this.weight = weight;
         this.leftChild = leftChild;
         this.rightChild = rightChild;
+    }
+
+    public void recreateTreeLeaf(int uniqueByte, int byteEncoding,
+                                 int bitPositionInEncoding, int currentBit, InternalTreeNode parentNode) {
+        if (bitPositionInEncoding == 1) { // true if this is the last bit in encoding sequence
+            if (currentBit == 1) {
+                parentNode.rightChild = new TreeLeaf((byte) uniqueByte);
+            } else { // currentBit == 0
+                parentNode.leftChild = new TreeLeaf((byte) uniqueByte);
+            }
+        } else { // this is not the last bit in encoding sequence
+            InternalTreeNode currentNode;
+            if (currentBit == 1) {
+                if (parentNode.rightChild == null) {
+                    parentNode.rightChild = new InternalTreeNode();
+                }
+                currentNode = (InternalTreeNode) parentNode.rightChild;
+            } else { // currentBit == 0
+                if (parentNode.leftChild == null) {
+                    parentNode.leftChild = new InternalTreeNode();
+                }
+                currentNode = (InternalTreeNode) parentNode.leftChild;
+            }
+
+            bitPositionInEncoding--; // set the position to the next bit in encoding
+            currentBit = byteEncoding << (8 - bitPositionInEncoding); // 00001111 after "<<" becomes 11100000
+            currentBit = currentBit & 0x000000FF; // 00000001 11100000 becomes 00000000 11100000
+            currentBit = currentBit >>> (8 - 1); // 11100000 >>> 00000001
+            currentNode.recreateTreeLeaf(uniqueByte, byteEncoding, bitPositionInEncoding, currentBit, currentNode);
+        }
     }
 
     @Override

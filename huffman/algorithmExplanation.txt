@@ -16,7 +16,7 @@ Second byte of tableInfo: 3 (number of elements with the longest encoding length
 Third byte of tableInfo: 1 (number of elements with the longest encoding length -2)
 and so on ........
 
-table:
+table: (the order of elements is important)
 p      1010
 \n     1011
 k      1110

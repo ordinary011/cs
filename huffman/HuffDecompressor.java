@@ -1,13 +1,11 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.BTree;
-import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.TreeLeaf;
-import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.TreeNodeComparator;
+import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.InternalTreeNode;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.PriorityQueue;
+import java.util.ArrayList;
 
 public class HuffDecompressor {
 
@@ -20,49 +18,40 @@ public class HuffDecompressor {
      */
     void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
         // read first chunk of data to the buff
-        inputFChan.read(readBuff);
+        int bytesInsideReadBuffer = inputFChan.read(readBuff);
         readBuff.rewind(); // set the position inside the buff to the beginning
 
         int redundantBitsInLastCompressedByte = readBuff.get();
-
         int secondByte = readBuff.get();
         int tableInfoSize = secondByte >>> 4;
         int theLongestEncodingLength = secondByte & 0x0F;
 
-        int keysCountInTable = 0;
-        byte[] tableInfo = new byte[tableInfoSize];
+        bytesInsideReadBuffer -= 2;
+
+        ArrayList<Integer> usedBitsForEncodingTheByte = new ArrayList<>();
         for (int i = 0; i < tableInfoSize; i++) {
-            byte byteCountOfSomeEncodingLength = readBuff.get();
-            tableInfo[i] = byteCountOfSomeEncodingLength;
-            keysCountInTable += byteCountOfSomeEncodingLength;
+            int bytesCountWithTheSameEncodingLength = readBuff.get();
+            bytesInsideReadBuffer--;
+
+            for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
+                usedBitsForEncodingTheByte.add(theLongestEncodingLength);
+            }
+
+            theLongestEncodingLength--;
         }
 
-        int tableSize = keysCountInTable * 2;
-        byte[] table = new byte[tableSize];
-        for (int i = 0; i < tableSize; i++) {
+        InternalTreeNode rootNode = new InternalTreeNode();
 
+        for (int i = 0; i < usedBitsForEncodingTheByte.size(); i++) {
+            int tableByte = readBuff.get();
+            int encodingForTheByte = readBuff.get();
+            int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
+            int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); // 00001010 >>> 00000001
+
+            rootNode.recreateTreeLeaf(tableByte, encodingForTheByte, usedBitsForEncoding, firstBitInEncoding, rootNode);
         }
+
+        System.out.println(readBuff.get());
     }
 
 }
-
-
-
-//    PriorityQueue<TreeLeaf> prioritizedTreeLeaves =
-//            new PriorityQueue<>(10, new TreeNodeComparator());
-//
-
-//
-//                for (int i = 0; i < 10; i++) {
-//        TreeLeaf tl = new TreeLeaf(readBuff.get());
-//        tl.setWeight(i);
-//        prioritizedTreeLeaves.add(tl);
-//        }
-//
-//        PriorityQueue<TreeLeaf> copyOfPrioritizedTreeLeaves = new PriorityQueue<>(prioritizedTreeLeaves);
-//
-//        new BTree().startBuildingTree(prioritizedTreeLeaves);
-//
-//        for (int i = copyOfPrioritizedTreeLeaves.size(); i > 0; i--) {
-//        System.out.println(copyOfPrioritizedTreeLeaves.poll());
-//        }
