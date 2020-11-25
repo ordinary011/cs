@@ -24,7 +24,7 @@ public class MyArrayList<T> {
 
     public void add(int pasteIndex, T element) {
         if (pasteIndex > indexForInsertion || pasteIndex < 0) {
-            System.err.printf("Index %s is out of array boundaries. Array size is %d", pasteIndex, indexForInsertion);
+            System.err.printf("Index %s is out of array boundaries. List size is %d", pasteIndex, indexForInsertion);
             System.exit(1);
         } else if (pasteIndex == indexForInsertion) {
             array[indexForInsertion] = element;
@@ -75,10 +75,15 @@ public class MyArrayList<T> {
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder("[");
-        for (int i = 0; i < indexForInsertion - 1; i++) {
-            res.append(array[i]).append(", ");
+
+        if (indexForInsertion > 0) {
+            for (int i = 0; i < indexForInsertion - 1; i++) {
+                res.append(array[i]).append(", ");
+            }
+            res.append(array[indexForInsertion - 1]); // last element is neither followed by coma nor space
         }
-        res.append(array[indexForInsertion - 1]).append("]"); // last element doesn't have coma and space
+
+        res.append("]");
         return res.toString();
     }
 }
