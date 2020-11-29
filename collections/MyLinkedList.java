@@ -16,6 +16,10 @@ public class MyLinkedList<T> {
         }
     }
 
+    /**
+     * Adds element to the end of the list
+     * @param element
+     */
     public void add(T element) {
         ListNode newNode = new ListNode(element);
         newNode.prevNode = lastNode;
@@ -30,24 +34,24 @@ public class MyLinkedList<T> {
         }
 
         lastNode = newNode;
-        size++; // todo check for last node and first where do they point?
+        size++;
     }
 
     public void add(int pasteIndex, T element) {
         if (pasteIndex > size || pasteIndex < 0) {
             System.err.printf("Index %s is out of boundaries. Last index in the List is %d", pasteIndex, (size - 1));
             System.exit(1);
-        } else if (pasteIndex == size) { // true when we add the element to the end OR when list is empty
+        } else if (pasteIndex == size) { // true when we add the element to the end of the list OR when list is empty
             add(element);
         } else {
             ListNode newNode = new ListNode(element);
-            if (pasteIndex == 0) {
+            if (pasteIndex == 0) { // true when list is not empty and we need to add the el at the beginning of the list
                 newNode.prevNode = null;
                 newNode.nextNode = firstNode;
 
                 firstNode.prevNode = newNode;
                 firstNode = newNode;
-            } else {
+            } else { // add somewhere whithin the list. not in the beginning nor at the end
                 ListNode nodeBeforePasteIndex = firstNode;
                 for (int i = 0; i < pasteIndex - 1; i++) { // todo later search optimization
                     nodeBeforePasteIndex = nodeBeforePasteIndex.nextNode;
@@ -55,7 +59,7 @@ public class MyLinkedList<T> {
                 newNode.prevNode = nodeBeforePasteIndex;
                 newNode.nextNode = nodeBeforePasteIndex.nextNode;
 
-                nodeBeforePasteIndex.nextNode = newNode; // todo check for last node and first where do they point?
+                nodeBeforePasteIndex.nextNode = newNode;
             }
 
             size++;
@@ -94,21 +98,32 @@ public class MyLinkedList<T> {
         if (elIndex >= size || elIndex < 0 || firstNode == null) {
             System.err.printf("Index %s is out of boundaries. Last index in the List is %d", elIndex, (size - 1));
             System.exit(1);
-        } else {
-            if (elIndex == 0) {
+        } else { // list has at least 1 element in it
+            if (elIndex == 0) { // true when we remove at the beginning
+                if (lastNode == firstNode) { // true if we have only 1 element in the list
+                    lastNode = null;
+                } else { // more than 1 element in the list
+                    firstNode.nextNode.prevNode = null;
+                }
                 firstNode = firstNode.nextNode;
-            } else {
-                ListNode currentNode = firstNode;
+            } else if (elIndex == (size - 1)) { // remove the last element in the list
+                lastNode.prevNode.nextNode = null;
+                lastNode = lastNode.prevNode;
+            } else { // somewhere in the middle
+                ListNode nodeToRemove = firstNode;
                 for (int i = 0; i < elIndex; i++) { // todo later search optimization
-                    currentNode = currentNode.nextNode;
+                    nodeToRemove = nodeToRemove.nextNode;
                 }
 
-                currentNode.prevNode.nextNode = currentNode.nextNode;
-                currentNode.nextNode.prevNode = currentNode.prevNode;
+                nodeToRemove.prevNode.nextNode = nodeToRemove.nextNode;
+                nodeToRemove.nextNode.prevNode = nodeToRemove.prevNode;
+
+//                if (lastNode == nodeToRemove) {
+//                    lastNode = nodeToRemove.prevNode;
+//                }
             }
         }
     }
-
 
     public int size() {
         return size;
@@ -134,3 +149,9 @@ public class MyLinkedList<T> {
 }
 
 // todo tests for empty lists
+
+// for tests
+// MyLinkedList<Integer> m = new MyLinkedList<>();
+//        m.add(33);
+//        m.remove(0);
+//        m.add(34);
