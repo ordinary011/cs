@@ -37,3 +37,20 @@ compressedData as bytes:
 
 Original File example:
 a piece of cake\n
+
+
+
+
+for debugging: (delete later)
+table: (the order of elements is important)
+symbol 	encoding	ascii for symbol
+p      	1010     	112
+\n     	1011		10
+k      	1110		107
+o      	1111		111
+i     	0110		105
+f     	0111		102
+c      	100		    99
+a      	010		    97
+\s     	110		    32
+e      	00		    101

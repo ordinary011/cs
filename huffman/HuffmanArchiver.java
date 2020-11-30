@@ -134,7 +134,7 @@ public class HuffmanArchiver {
 
             System.out.print(ANSI_BLUE);
             System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
-            System.out.printf("Time of compression: %d (milliseconds)\n", duration);
+            System.out.printf("Time of %s: %d (milliseconds)\n", operation, duration);
             System.out.print(ANSI_BLUE);
             System.out.printf("Input file size: %d (bytes)\n", inputFileSize);
             System.out.printf("Output file size: %d (bytes)\n", outFSize);

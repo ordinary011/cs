@@ -1,5 +1,6 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.PriorityQueue;
 
@@ -16,11 +17,17 @@ public class BTree {
                 new PriorityQueue<>(byteToByteTreeLeaf.size(), new TreeNodeComparator());
 
         // add values to created queue
-        prioritizedTreeLeaves.addAll(byteToByteTreeLeaf.values());
+        for (TreeLeaf tl : byteToByteTreeLeaf.values()) {
+            prioritizedTreeLeaves.add(tl);
+        }
+//        prioritizedTreeLeaves.addAll(byteToByteTreeLeaf.values());
         // create a copy of prioritized queue
         PriorityQueue<TreeLeaf> copyOfPrioritizedTreeLeaves = new PriorityQueue<>(prioritizedTreeLeaves);
 
         startBuildingTree(prioritizedTreeLeaves);
+
+        PriorityQueue<TreeLeaf> prioritizedByEncodingLength =
+                new PriorityQueue<>(byteToByteTreeLeaf.size(), new TreeNodeComparator());
 
         return copyOfPrioritizedTreeLeaves;
     }

@@ -12,9 +12,8 @@ import java.util.ArrayList;
 public class HuffDecompressor {
 
     int meg = 1024 * 1024;
-    int meg1 = 5;
+//    int meg = 28;
     private final ByteBuffer readBuff = ByteBuffer.allocate(meg);
-//    private final ByteBuffer readBuff = ByteBuffer.allocate(1024 * 1024);
 
     /**
      * Starting method for decompressing the data
@@ -36,7 +35,7 @@ public class HuffDecompressor {
 
         ArrayList<Integer> usedBitsForEncodingTheByte = new ArrayList<>();
         for (int i = 0; i < tableInfoSize; i++) {
-            int bytesCountWithTheSameEncodingLength = readBuff.get();
+            int bytesCountWithTheSameEncodingLength = readBuff.get() & 0xff; // byte to unsigned byte in the integer
 
             for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
                 usedBitsForEncodingTheByte.add(theLongestEncodingLength);
@@ -45,18 +44,19 @@ public class HuffDecompressor {
             theLongestEncodingLength--;
         }
 
+        // recreate tree
         InternalTreeNode rootNode = new InternalTreeNode();
-
         for (int i = 0; i < usedBitsForEncodingTheByte.size(); i++) {
             int tableByte = readBuff.get();
             int encodingForTheByte = readBuff.get();
             int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
-            int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); // 00001010 >>> 00000001
+            int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); //00001010 >>> 3 becomes 00000001
+            firstBitInEncoding = firstBitInEncoding & 1; // 00000001 & 11100000 becomes 00000000 11100000
 
             rootNode.recreateTreeLeaf(tableByte, encodingForTheByte, usedBitsForEncoding, firstBitInEncoding, rootNode);
         }
 
-        // read the rest of the file
+        // read the rest of the first buffer
         int remainedBytesInFirstRBuff = bytesInsideReadBuffer - readBuff.position();
 
         BTreeNode currentNode = rootNode;
@@ -67,7 +67,7 @@ public class HuffDecompressor {
 
             int compressedByte = readBuff.get();
 
-            // if this is the last byte to decompress
+            // if this is the last byte in the last read buffer
             if (totalNumberOfBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
                 lastBitPosition = redundantBitsInLastCompressedByte;
             }
@@ -83,6 +83,8 @@ public class HuffDecompressor {
             }
 
         }
+        readBuff.rewind(); // set the position inside the buff to the beginning
+        RBufferSequentialNum++;
 
         ByteBuffer writeBuff = ByteBuffer.allocate(decompressedBytes.size());
         for (Byte decompressedByte : decompressedBytes) {
@@ -90,17 +92,50 @@ public class HuffDecompressor {
         }
         writeBuff.rewind();
 
-        // write to a file
+        // write to the file
         outputFChan.write(writeBuff);
         writeBuff.rewind();
 
-        RBufferSequentialNum++;
-        // continue reading till end of the compressed file
-        for (; RBufferSequentialNum < totalNumberOfBuffers; RBufferSequentialNum++) {
+        // if compressed file is larger than 1 megabyte continue reading till end of it
+        for (; RBufferSequentialNum <= totalNumberOfBuffers; RBufferSequentialNum++) {
             bytesInsideReadBuffer = inputFChan.read(readBuff);
             readBuff.rewind(); // set the position inside the buff to the beginning
 
+            decompressedBytes = new ArrayList<>();
+            lastBitPosition = 0;
+            lastByteInCurrentRBuff = bytesInsideReadBuffer - 1;
+            for (int i = 0; i < bytesInsideReadBuffer; i++) {
 
+                int compressedByte = readBuff.get();
+
+                // if this is the last byte to decompress
+                if (totalNumberOfBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
+                    lastBitPosition = redundantBitsInLastCompressedByte;
+                }
+
+                for (int j = 8 - 1; j >= lastBitPosition; j--) {
+                    currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, j);
+                    if (currentNode.isTreeLeaf()) {
+                        decompressedBytes.add(
+                                ((TreeLeaf) currentNode).getByteValue()
+                        );
+                        currentNode = rootNode;
+                    }
+                }
+
+            }
+
+            if (writeBuff.capacity() != decompressedBytes.size()) {
+                writeBuff = ByteBuffer.allocate(decompressedBytes.size());
+            }
+            for (Byte decompressedByte : decompressedBytes) {
+                writeBuff.put(decompressedByte);
+            }
+            writeBuff.rewind();
+
+            // write to a file
+            outputFChan.write(writeBuff);
+            writeBuff.rewind();
         }
     }
 }

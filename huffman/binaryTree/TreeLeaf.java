@@ -33,6 +33,11 @@ public class TreeLeaf extends BTreeNode {
         super.weight = weight;
     }
 
+    // todo delete later this is for tests only
+    public void setEncodingLength(int length) {
+        usedBitesForEncoding = length;
+    }
+
     @Override
     public boolean isTreeLeaf() {
         return true;
@@ -45,7 +50,7 @@ public class TreeLeaf extends BTreeNode {
             int byteWithSetBitInRightPlace = bitToAdd << usedBitesForEncoding;
 
             encodingOfTheByte = encodingOfTheByte | byteWithSetBitInRightPlace;
-            // 00000011 &
+            // 00000011 |
             // 00000100
             // 00000111
         }
@@ -66,6 +71,6 @@ public class TreeLeaf extends BTreeNode {
                 ", tempChar=" + tempChar +
                 ", usedBitesForEncoding=" + usedBitesForEncoding +
                 ", encodingOfTheByte=" + encodingOfTheByte +
-                '}';
+                "}";
     }
 }
