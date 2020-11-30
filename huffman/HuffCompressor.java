@@ -73,6 +73,7 @@ class HuffCompressor {
         byte[] table = new byte[prioritizedTreeLeaves.size() * 2];
 
         int longestEncodingLength = prioritizedTreeLeaves.peek().getEncodingLength();
+        System.out.println("longest: " + longestEncodingLength);
 
         // create table and count bytes of their corresponding encoding length
         for (int i = 0; i < table.length; i += 2) {

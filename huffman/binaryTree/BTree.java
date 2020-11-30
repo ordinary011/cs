@@ -17,23 +17,25 @@ public class BTree {
                 new PriorityQueue<>(byteToByteTreeLeaf.size(), new TreeNodeComparator());
 
         // add values to created queue
-        for (TreeLeaf tl : byteToByteTreeLeaf.values()) {
-            prioritizedTreeLeaves.add(tl);
-        }
-//        prioritizedTreeLeaves.addAll(byteToByteTreeLeaf.values());
+        prioritizedTreeLeaves.addAll(byteToByteTreeLeaf.values());
         // create a copy of prioritized queue
         PriorityQueue<TreeLeaf> copyOfPrioritizedTreeLeaves = new PriorityQueue<>(prioritizedTreeLeaves);
 
         startBuildingTree(prioritizedTreeLeaves);
 
-        PriorityQueue<TreeLeaf> prioritizedByEncodingLength =
-                new PriorityQueue<>(byteToByteTreeLeaf.size(), new TreeNodeComparator());
+//        PriorityQueue<TreeLeaf> prioritizedByEncodingLength =
+//                new PriorityQueue<>(byteToByteTreeLeaf.size(), new TreeNodeComparator());
 
         return copyOfPrioritizedTreeLeaves;
     }
 
     // todo private
     public void startBuildingTree(PriorityQueue<TreeLeaf> orderedTreeLeaves) {
+//        int size = orderedTreeLeaves.size();
+//        for (int i = 0; i < size; i++) {
+//            System.out.println(orderedTreeLeaves.poll());
+//        }
+
         PriorityQueue<InternalTreeNode> internalTreeNodes = new PriorityQueue<>(new TreeNodeComparator());
         BTreeNode firstSmallestNode;
         BTreeNode secondSmallestNode;
@@ -51,6 +53,8 @@ public class BTree {
 
             connectTwoNodes(firstSmallestNode, secondSmallestNode, internalTreeNodes);
         }
+
+//        System.out.println();
     }
 
     private void connectTwoNodes(BTreeNode firstSmallestNode, BTreeNode secondSmallestNode,
@@ -64,14 +68,17 @@ public class BTree {
     }
 
     private BTreeNode findSecondSmallestNode(PriorityQueue<InternalTreeNode> internalTreeNodes,
-                                             PriorityQueue<TreeLeaf> orderedTreeNodes) {
-        if (!orderedTreeNodes.isEmpty()) {
+                                             PriorityQueue<TreeLeaf> orderedTreeLeaves) {
+        if (!orderedTreeLeaves.isEmpty()) {
 
             if (!internalTreeNodes.isEmpty()) { // true if both queues have nodes
-                return internalTreeNodes.peek().getWeight() <= orderedTreeNodes.peek().getWeight() ?
-                        internalTreeNodes.poll() : orderedTreeNodes.poll();
+//                return orderedTreeLeaves.peek().getWeight() <= internalTreeNodes.peek().getWeight() ?
+//                        orderedTreeLeaves.poll() : internalTreeNodes.poll();
+
+                return internalTreeNodes.peek().getWeight() <= orderedTreeLeaves.peek().getWeight() ?
+                        internalTreeNodes.poll() : orderedTreeLeaves.poll();
             } else { // nodes are present only in orderedTreeNodes queue
-                return orderedTreeNodes.poll();
+                return orderedTreeLeaves.poll();
             }
         }
 

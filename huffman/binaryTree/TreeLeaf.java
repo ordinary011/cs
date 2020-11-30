@@ -67,8 +67,8 @@ public class TreeLeaf extends BTreeNode {
     public String toString() {
         return "TreeNode{" +
                 "weight=" + weight +
-                ", byteValue=" + byteValue +
                 ", tempChar=" + tempChar +
+                ", byteValue=" + byteValue +
                 ", usedBitesForEncoding=" + usedBitesForEncoding +
                 ", encodingOfTheByte=" + encodingOfTheByte +
                 "}";
