@@ -11,9 +11,8 @@ import java.util.ArrayList;
 
 public class HuffDecompressor {
 
-    int meg = 1024 * 1024;
-//    int meg = 28;
-    private final ByteBuffer readBuff = ByteBuffer.allocate(meg);
+    int MEGABYTE = 1024 * 1024;
+    private final ByteBuffer readBuff = ByteBuffer.allocate(MEGABYTE);
 
     /**
      * Starting method for decompressing the data
@@ -21,7 +20,7 @@ public class HuffDecompressor {
      * @throws IOException
      */
     void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
-        int totalNumberOfBuffers = (int) Math.ceil(inputFChan.size() / (double) meg);
+        int totalNumberOfBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
 
         // read first chunk of data to the buff
         int bytesInsideReadBuffer = inputFChan.read(readBuff);
@@ -30,7 +29,7 @@ public class HuffDecompressor {
 
         int redundantBitsInLastCompressedByte = readBuff.get();
         int secondByte = readBuff.get();
-        int tableInfoSize = secondByte >>> 4;
+        int tableInfoSize = (secondByte >>> 4) & 0x0F;
         int theLongestEncodingLength = secondByte & 0x0F;
 
         ArrayList<Integer> usedBitsForEncodingTheByte = new ArrayList<>();

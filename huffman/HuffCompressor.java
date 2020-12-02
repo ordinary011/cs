@@ -1,9 +1,7 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.BTree;
-import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.BTreeNode;
 import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.TreeLeaf;
-import com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree.TreeNodeComparator;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,6 +10,7 @@ import java.util.*;
 
 class HuffCompressor {
 
+//    int bytesInsideInteger = 4;
         private final int MEGABYTE = 1024 * 1024; // bytes
 //    private final int MEGABYTE = 5; // bytes
     private final HashMap<Byte, TreeLeaf> byteToItsTreeLeaf = new HashMap<>();
@@ -69,19 +68,35 @@ class HuffCompressor {
     }
 
     private void createTable(PriorityQueue<TreeLeaf> prioritizedTreeLeaves, FileChannel outputFChan) throws IOException {
-        HashMap<Integer, Integer> encodingLengthToByteCount = new HashMap<>();
-        byte[] table = new byte[prioritizedTreeLeaves.size() * 2];
-
         int longestEncodingLength = prioritizedTreeLeaves.peek().getEncodingLength();
-        System.out.println("longest: " + longestEncodingLength);
 
-        // create table and count bytes of their corresponding encoding length
-        for (int i = 0; i < table.length; i += 2) {
+        HashMap<Integer, Integer> encodingLengthToByteCount = new HashMap<>();
+        int uniqueBytesCount = prioritizedTreeLeaves.size();
+        int tableSize = uniqueBytesCount * 2;
+        if (longestEncodingLength > 8) { // true if we need more than 1 byte for storing the encoding for a byte
+            tableSize += uniqueBytesCount;
+        }
+        byte[] table = new byte[tableSize];
+
+        // create table and count bytes with certain encoding length
+        int tableIndex = 0;
+        for (int i = 0; i < uniqueBytesCount; i++) {
             TreeLeaf byteAsATreeLeaf = prioritizedTreeLeaves.poll();
 
-            // write byte and its encoding to the table
-            table[i] = byteAsATreeLeaf.getByteValue();
-            table[i + 1] = (byte) byteAsATreeLeaf.getEncodingOfTheByte();
+            // write byte to the table
+            table[tableIndex] = byteAsATreeLeaf.getByteValue();
+
+            // write encoding for the byte to the table
+            if (longestEncodingLength > 8) {
+                int secondLowerByteFromInt = byteAsATreeLeaf.getEncodingOfTheByte() & 0xFF00;
+                secondLowerByteFromInt >>>= 8;
+                table[tableIndex + 1] = (byte) secondLowerByteFromInt; // get second lower byte from int
+                table[tableIndex + 2] = (byte) byteAsATreeLeaf.getEncodingOfTheByte();
+                tableIndex += 3;
+            } else {
+                table[tableIndex + 1] = (byte) byteAsATreeLeaf.getEncodingOfTheByte();
+                tableIndex += 2;
+            }
 
             // count bytes with certain encoding length
             int usedBitesForEncoding = byteAsATreeLeaf.getEncodingLength();
@@ -100,11 +115,11 @@ class HuffCompressor {
             index++;
         }
 
-        // Please watch algorithmExlanation.txt in order to ubderstand code below
+        // Please watch algorithmExlanation.txt in order to understand code below
         int buffCapacity = 2 + tableInfo.length + table.length;
         writeBuff = ByteBuffer.allocate(buffCapacity);
 
-        int firstByte = 0; // will contain redundant bits count In Last compressed Byte;
+        int firstByte = 0; // later will contain redundant bits count In Last compressed Byte;
         writeBuff.put((byte) firstByte); // first byte will be added at the very end. Now this is a placeholder
 
         int secondByte = 0;
@@ -122,19 +137,22 @@ class HuffCompressor {
 
     private void compressAndWriteData(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
         inputFChan.position(0); // read file from the beginning again
-        int totalNumberOfBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
-        byte[] compressedDataChunk = new byte[MEGABYTE];
-        int compressedDataChunkIndAfterLastByte = 0;
+        int totalNumberOfRBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
+        int[] compressedDataChunk = new int[MEGABYTE / 4];
+        int compressedChunkIndex = 0;
 
-        int compressedByte = 0;
-        int availableBitsInCompressedByte = 8;
+        int fourBytesContainer = 0;
+        int freeBitsInContainer = 32;
 
         int rememberedBits = 0;
         int bitsCountInRemembered = 0;
 
+        int lastContainer = 0;
+        int bitsCountInLastContainer = 0;
+
         // read file by chunks till end of file. each iteration is a new read buffer (chunk of data)
         int bytesInsideReadBuffer;
-        for (int bufferSequentialNum = 1; bufferSequentialNum <= totalNumberOfBuffers; bufferSequentialNum++) {
+        for (int bufferSequentialNum = 1; bufferSequentialNum <= totalNumberOfRBuffers; bufferSequentialNum++) {
             bytesInsideReadBuffer = inputFChan.read(readBuff);
             readBuff.rewind(); // set the position inside the buff to the beginning
 
@@ -143,70 +161,89 @@ class HuffCompressor {
                 byte byteFromTheReadFile = readBuff.get();
                 TreeLeaf leafForCurrentByte = byteToItsTreeLeaf.get(byteFromTheReadFile);
                 int encodingOfTheByte = leafForCurrentByte.getEncodingOfTheByte();
-                int usedBitsForEncodingTheOriginalByte = leafForCurrentByte.getEncodingLength();
+                int usedBitsForEncodingTheByte = leafForCurrentByte.getEncodingLength();
 
                 if (bitsCountInRemembered > 0) {
-                    compressedByte |= rememberedBits; // move rememberedBits to compressedByte
-                    availableBitsInCompressedByte -= bitsCountInRemembered;
+                    fourBytesContainer |= rememberedBits; // move rememberedBits to fourBytesContainer
+                    freeBitsInContainer -= bitsCountInRemembered;
                     bitsCountInRemembered = 0;
                     rememberedBits = 0;
                 }
 
-                availableBitsInCompressedByte -= usedBitsForEncodingTheOriginalByte;
-                if (availableBitsInCompressedByte >= 0) { // true when there is a place to fit the whole encoding
+                freeBitsInContainer -= usedBitsForEncodingTheByte;
+                if (freeBitsInContainer >= 0) { // true when there is a place to fit the whole encoding
                     // move low order bits to left 00000010 << 5 becomes 01000000
-                    encodingOfTheByte <<= availableBitsInCompressedByte;
+                    encodingOfTheByte <<= freeBitsInContainer;
                     // combine new byte encoded bits with bits that encoded previous byte(s)
-                    compressedByte |= encodingOfTheByte; // 01000000 | 00011000 becomes 01011000
+                    fourBytesContainer |= encodingOfTheByte; // 01000000 | 00011000 becomes 01011000
                 } else { // compressedByte can not fit all the encoding in it
-                    bitsCountInRemembered = Math.abs(availableBitsInCompressedByte);
-                    rememberedBits = encodingOfTheByte << (8 - bitsCountInRemembered);// remember bits that can not fit to compressed byte
-                    encodingOfTheByte >>>= bitsCountInRemembered; // remove bits that can not fit to compressed byte
-                    compressedByte |= encodingOfTheByte;
-                    availableBitsInCompressedByte = 0;
+                    bitsCountInRemembered = Math.abs(freeBitsInContainer);
+                    rememberedBits = encodingOfTheByte << (32 - bitsCountInRemembered);// remember bits that can not fit to container
+                    rememberedBits &= 0xFFFF0000; // remove lower bits from int // todo tru to delete later
+                    encodingOfTheByte >>>= bitsCountInRemembered; // remove bits that can not fit to container byte
+                    encodingOfTheByte &= 0xFFFF; // todo try to remove later
+                    fourBytesContainer |= encodingOfTheByte;
+                    freeBitsInContainer = 0;
                 }
 
-                if (availableBitsInCompressedByte == 0) { // true when compressed byte is full
-                    compressedDataChunk[compressedDataChunkIndAfterLastByte] = (byte) compressedByte;
-                    compressedDataChunkIndAfterLastByte++;
-                    compressedByte = 0;
-                    availableBitsInCompressedByte = 8;
+                if (freeBitsInContainer == 0) { // true when twoBytesContainer is full
+//                    int secondLowerByte = fourBytesContainer & 0xFF00;
+//                    secondLowerByte >>>= 8;
+//                    compressedDataChunk[compressedChunkPasteIndex] = (byte) secondLowerByte;
+//                    compressedDataChunk[compressedChunkPasteIndex + 1] = (byte) fourBytesContainer;
+                    compressedDataChunk[compressedChunkIndex] = fourBytesContainer;
+                    compressedChunkIndex++;
+                    fourBytesContainer = 0;
+                    freeBitsInContainer = 32;
                 }
             }
             readBuff.rewind(); // set the position inside the buff to the beginning
 
             // if this is the last Read Buffer
-            if (bufferSequentialNum == totalNumberOfBuffers) {
+            if (bufferSequentialNum == totalNumberOfRBuffers) {
                 if (bitsCountInRemembered > 0) { // true when there are some remembered bits
-                    // availableBitsInCompressedByte will be used for determining redundantBitsInLastCompressedByte
-                    availableBitsInCompressedByte -= bitsCountInRemembered;
-                    compressedDataChunk[compressedDataChunkIndAfterLastByte] = (byte) rememberedBits;
-                    compressedDataChunkIndAfterLastByte++;
-                } else if (availableBitsInCompressedByte < 8) { // true if compressedByte is not empty yet
-                    compressedDataChunk[compressedDataChunkIndAfterLastByte] = (byte) compressedByte;
-                    compressedDataChunkIndAfterLastByte++;
+                    // freeBitsInContainer will be used for determining redundantBitsInLastCompressedByte // todo delete here
+//                    freeBitsInContainer -= bitsCountInRemembered;
+                    lastContainer = rememberedBits;
+                    bitsCountInLastContainer = bitsCountInRemembered;
+                } else if (freeBitsInContainer < 32) { // true if fourBytesContainer is not empty
+                    lastContainer = fourBytesContainer;
+                    bitsCountInLastContainer = 32 - freeBitsInContainer;
                 }
             }
 
-            if (writeBuff.capacity() != compressedDataChunkIndAfterLastByte) {
-                writeBuff = ByteBuffer.allocate(compressedDataChunkIndAfterLastByte);
+            if (writeBuff.capacity() != (compressedChunkIndex * 4)) {
+                writeBuff = ByteBuffer.allocate(compressedChunkIndex * 4);
             }
 
-            for (int i = 0; i < compressedDataChunkIndAfterLastByte; i++) {
-                writeBuff.put(compressedDataChunk[i]);
+            for (int i = 0; i < compressedChunkIndex; i++) {
+                writeBuff.putInt(compressedDataChunk[i]);
             }
             writeBuff.rewind();
 
             outputFChan.write(writeBuff);
             writeBuff.rewind();
 
-            compressedDataChunkIndAfterLastByte = 0;
+            compressedChunkIndex = 0;
         }
 
-        int redundantBitsInLastCompressedByte = (availableBitsInCompressedByte == 8) ? 0 : availableBitsInCompressedByte;
-        outputFChan.position(0);
+        // write bytes from last container to the file
+        int bytesInsideLastContainer = (int) Math.ceil(bitsCountInLastContainer / 8.0);
+        ByteBuffer lastWBuffer = ByteBuffer.allocate(bytesInsideLastContainer);
+        int shift = 24;
+        for (int i = 0; i < bytesInsideLastContainer; i++) {
+            byte byteFromContainer = (byte) (lastContainer >>> shift);
+            lastWBuffer.put(byteFromContainer);
+            shift -= 8;
+        }
+        lastWBuffer.rewind();
+        outputFChan.write(lastWBuffer);
+
+        // write redundantZeroesInLastCompressedByte at the beginning of the file
+        outputFChan.position(0); // set the position of outputFChan to the beginning
+        int redundantZeroesInLastCompressedByte = (bytesInsideLastContainer * 8) - bitsCountInLastContainer;
         ByteBuffer oneByteBuffer = ByteBuffer.allocate(1);
-        oneByteBuffer.put((byte) redundantBitsInLastCompressedByte);
+        oneByteBuffer.put((byte) redundantZeroesInLastCompressedByte);
         oneByteBuffer.rewind();
         outputFChan.write(oneByteBuffer);
     }

@@ -15,17 +15,12 @@ public class Assignment15Part1 {
 //        new HuffmanArchiver().determineOperation(args);
 //        args = new String[]{"test5.txt.par", "test5_res.txt"};
 //        new HuffmanArchiver().determineOperation(args);
-
+//
 //        args = new String[]{"test2.txt", "test2.txt.par"};
 //        new HuffmanArchiver().determineOperation(args);
 //        args = new String[]{"test2.txt.par", "test2_res.txt"};
 //        new HuffmanArchiver().determineOperation(args);
 
-        args = new String[]{"test3.txt", "test3.txt.par"};
-        new HuffmanArchiver().determineOperation(args);
-//        args = new String[]{"test3.txt.par", "test3_res.txt"};
-//        new HuffmanArchiver().determineOperation(args);
-//
 //        args = new String[]{"test4.txt", "test4.txt.par"};
 //        new HuffmanArchiver().determineOperation(args);
 //        args = new String[]{"test4.txt.par", "test4_res.txt"};
@@ -34,6 +29,11 @@ public class Assignment15Part1 {
 //        args = new String[]{"big.txt", "big.txt.par"};
 //        new HuffmanArchiver().determineOperation(args);
 //        args = new String[]{"big.txt.par", "big_res.txt"};
+//        new HuffmanArchiver().determineOperation(args);
+
+        args = new String[]{"test3.txt", "test3.txt.par"};
+        new HuffmanArchiver().determineOperation(args);
+//        args = new String[]{"test3.txt.par", "test3_res.txt"};
 //        new HuffmanArchiver().determineOperation(args);
 
 //        args = new String[]{"biggest.jpg", "biggest.jpg.par"};

@@ -2,7 +2,7 @@ Original File example:
 a piece of cake\n
 
 COMPRESSED File Structure:
-First byte: redundant bits In Last compressed Byte;
+First byte: redundant bits In Last compressed Byte
 
 Second byte:
 higher order 4 bits of the second byte -> amount of bytes in tableInfo (in this example: 3)
@@ -17,40 +17,37 @@ Third byte of tableInfo: 1 (number of elements with the longest encoding length 
 and so on ........
 
 table: (the order of elements is important)
-p      1010
-\n     1011
-k      1110
-o      1111
-i      0110
-f      0111
-c      100
+p      1000
+\n     1001
+k      1100
+o      1101
+i      1011
+f      1010
+c      011
 a      010
-\s     110
+\s     111
 e      00
 
 compressedData as encoded bits:
-010 110 1010 0110 00 100 00 110 1111 0111 110 100 010 1110 00 1011
+010 111 1000 1011 00 011 00 111 1101 1010 111 011 010 1100 00 1001
 
 compressedData as bytes:
-01011010 10011000 10000110 11110111 11010001 01110001 011
-(last byte will end with zeroes)
+01011110 00101100 01100111 11011010 11101101 01100001 001
+(last byte may end with redundant zeroes)
 
 Original File example:
 a piece of cake\n
 
 
-
-
-for debugging: (delete later)
-table: (the order of elements is important)
-symbol 	encoding	ascii for symbol
-p      	1010     	112
-\n     	1011		10
-k      	1110		107
-o      	1111		111
-i     	0110		105
-f     	0111		102
-c      	100		    99
-a      	010		    97
-\s     	110		    32
-e      	00		    101
+for debugging:
+symbol 		ascii for symbol
+p      	    	112
+\n    		    10
+k      			107
+o      			111
+i     			105
+f     			102
+c     	        99
+a      		    97
+\s     		    32
+e      		    101
