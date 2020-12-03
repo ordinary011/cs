@@ -36,9 +36,12 @@ public class InternalTreeNode extends BTreeNode {
             }
 
             bitPositionInEncoding--; // set the position to the next bit in encoding
-            currentBit = byteEncoding << (8 - bitPositionInEncoding); // 00001111 after "<<" becomes 11100000
-            currentBit = currentBit & 0xFF; // 00000001 11100000 & 00000000 11111111 becomes 00000000 11100000
-            currentBit = currentBit >>> (8 - 1); // 11100000 >>> 00000001
+            // remove all all bits that are on the left from current bit
+            currentBit = byteEncoding << (16 - bitPositionInEncoding); // 00001111 after "<<" becomes 11100000
+            currentBit &= 0xFFFF; // 00000001 11100000 & 00000000 11111111 becomes 00000000 11100000
+
+            currentBit = currentBit >>> (16 - 1); // 11100000 >>> 00000001 // todo int stetchik????
+            currentBit &= 1;
             foundOrNewNode.recreateTreeLeaf(uniqueByte, byteEncoding, bitPositionInEncoding, currentBit, foundOrNewNode);
         }
     }

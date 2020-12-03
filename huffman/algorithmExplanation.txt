@@ -3,20 +3,15 @@ a piece of cake\n
 
 COMPRESSED File Structure:
 First byte: redundant bits In Last compressed Byte
+Second byte: amount of bytes in tableInfo (in this example: 6)
 
-Second byte:
-higher order 4 bits of the second byte -> amount of bytes in tableInfo (in this example: 3)
-lower order 4 bits of the second byte -> the longest encoding length (in bits) for the byte
-(in this example longest encoding length is 4 bits because p is encoded as 1011)
-
-TableInfo:
-First byte of tableInfo: 6 (number of elements with the longest encoding length)
-(6 because p, i, o, f, k, \n have the longest encoding length (in this example it's 4 because 1011 is four bits))
-Second byte of tableInfo: 3 (number of elements with the longest encoding length -1)
-Third byte of tableInfo: 1 (number of elements with the longest encoding length -2)
-and so on ........
+TableInfo: (n bytes with the same encoding length : encoding length of n bytes)
+6 : 4
+3 : 3
+1 : 2
 
 table: (the order of elements is important)
+byte   encoding
 p      1000
 \n     1001
 k      1100
@@ -33,7 +28,8 @@ compressedData as encoded bits:
 
 compressedData as bytes:
 01011110 00101100 01100111 11011010 11101101 01100001 001
-(last byte may end with redundant zeroes)
+(last byte may end with redundant zeroes, in this example it does. see below)
+01011110 00101100 01100111 11011010 11101101 01100001 00100000
 
 Original File example:
 a piece of cake\n
@@ -51,3 +47,15 @@ c     	        99
 a      		    97
 \s     		    32
 e      		    101
+
+
+p      1000
+\n     1001
+k      1100
+o      1101
+i      1011
+f      1010
+c      011
+a      010
+\s     111
+e      00

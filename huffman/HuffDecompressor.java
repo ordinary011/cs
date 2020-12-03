@@ -12,7 +12,9 @@ import java.util.ArrayList;
 public class HuffDecompressor {
 
     int MEGABYTE = 1024 * 1024;
+//    int MEGABYTE = 200;
     private final ByteBuffer readBuff = ByteBuffer.allocate(MEGABYTE);
+    int totallyDecodedBytes = 0;
 
     /**
      * Starting method for decompressing the data
@@ -20,7 +22,7 @@ public class HuffDecompressor {
      * @throws IOException
      */
     void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
-        int totalNumberOfBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
+        int totalNumberOfRBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
 
         // read first chunk of data to the buff
         int bytesInsideReadBuffer = inputFChan.read(readBuff);
@@ -28,36 +30,41 @@ public class HuffDecompressor {
         int RBufferSequentialNum = 1; // first read buffer
 
         int redundantBitsInLastCompressedByte = readBuff.get();
-        int secondByte = readBuff.get();
-        int tableInfoSize = (secondByte >>> 4) & 0x0F;
-        int theLongestEncodingLength = secondByte & 0x0F;
+        int tableInfoSize = readBuff.get();
 
         ArrayList<Integer> usedBitsForEncodingTheByte = new ArrayList<>();
-        for (int i = 0; i < tableInfoSize; i++) {
+        for (int i = 0; i < (tableInfoSize / 2); i++) {
             int bytesCountWithTheSameEncodingLength = readBuff.get() & 0xff; // byte to unsigned byte in the integer
+            int encodingLenOfBytesCount = readBuff.get(); // byte to unsigned byte in the integer
 
+//            System.out.println();
             for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
-                usedBitsForEncodingTheByte.add(theLongestEncodingLength);
+                usedBitsForEncodingTheByte.add(encodingLenOfBytesCount);
             }
-
-            theLongestEncodingLength--;
         }
+        int longestEncodingLength = usedBitsForEncodingTheByte.get(0);
 
         // recreate tree
         InternalTreeNode rootNode = new InternalTreeNode();
         for (int i = 0; i < usedBitsForEncodingTheByte.size(); i++) {
             int tableByte = readBuff.get();
-            int encodingForTheByte = readBuff.get();
+
+            int encodingForTheByte;
+            if (longestEncodingLength > 8) {
+                encodingForTheByte = readBuff.getShort();
+            } else {
+                encodingForTheByte = readBuff.get();
+            }
+
             int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
             int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); //00001010 >>> 3 becomes 00000001
-            firstBitInEncoding = firstBitInEncoding & 1; // 00000001 & 11100000 becomes 00000000 11100000
+            firstBitInEncoding &= 1; // 00000001 & 11100000 becomes 00000000 11100000
 
             rootNode.recreateTreeLeaf(tableByte, encodingForTheByte, usedBitsForEncoding, firstBitInEncoding, rootNode);
         }
 
         // read the rest of the first buffer
         int remainedBytesInFirstRBuff = bytesInsideReadBuffer - readBuff.position();
-
         BTreeNode currentNode = rootNode;
         ArrayList<Byte> decompressedBytes = new ArrayList<>();
         int lastBitPosition = 0;
@@ -67,7 +74,7 @@ public class HuffDecompressor {
             int compressedByte = readBuff.get();
 
             // if this is the last byte in the last read buffer
-            if (totalNumberOfBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
+            if (totalNumberOfRBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
                 lastBitPosition = redundantBitsInLastCompressedByte;
             }
 
@@ -94,9 +101,10 @@ public class HuffDecompressor {
         // write to the file
         outputFChan.write(writeBuff);
         writeBuff.rewind();
+        totallyDecodedBytes += decompressedBytes.size();
 
         // if compressed file is larger than 1 megabyte continue reading till end of it
-        for (; RBufferSequentialNum <= totalNumberOfBuffers; RBufferSequentialNum++) {
+        for (; RBufferSequentialNum <= totalNumberOfRBuffers; RBufferSequentialNum++) {
             bytesInsideReadBuffer = inputFChan.read(readBuff);
             readBuff.rewind(); // set the position inside the buff to the beginning
 
@@ -108,7 +116,7 @@ public class HuffDecompressor {
                 int compressedByte = readBuff.get();
 
                 // if this is the last byte to decompress
-                if (totalNumberOfBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
+                if (totalNumberOfRBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
                     lastBitPosition = redundantBitsInLastCompressedByte;
                 }
 
@@ -121,8 +129,8 @@ public class HuffDecompressor {
                         currentNode = rootNode;
                     }
                 }
-
             }
+            readBuff.rewind(); // set the position inside the buff to the beginning
 
             if (writeBuff.capacity() != decompressedBytes.size()) {
                 writeBuff = ByteBuffer.allocate(decompressedBytes.size());
@@ -135,6 +143,9 @@ public class HuffDecompressor {
             // write to a file
             outputFChan.write(writeBuff);
             writeBuff.rewind();
+            totallyDecodedBytes += decompressedBytes.size();
         }
+        System.out.println(inputFChan.size() - inputFChan.position());
     }
+
 }

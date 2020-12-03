@@ -10,9 +10,9 @@ import java.util.*;
 
 class HuffCompressor {
 
-//    int bytesInsideInteger = 4;
-        private final int MEGABYTE = 1024 * 1024; // bytes
-//    private final int MEGABYTE = 5; // bytes
+    //    int bytesInsideInteger = 4;
+    private final int MEGABYTE = 1024 * 1024; // bytes
+    //    private final int MEGABYTE = 5; // bytes
     private final HashMap<Byte, TreeLeaf> byteToItsTreeLeaf = new HashMap<>();
     /**
      * contains chunk of data that is read from the read channel
@@ -73,7 +73,7 @@ class HuffCompressor {
         HashMap<Integer, Integer> encodingLengthToByteCount = new HashMap<>();
         int uniqueBytesCount = prioritizedTreeLeaves.size();
         int tableSize = uniqueBytesCount * 2;
-        if (longestEncodingLength > 8) { // true if we need more than 1 byte for storing the encoding for a byte
+        if (longestEncodingLength > 8) { // true if we need more than 1 byte for storing the byte encoding
             tableSize += uniqueBytesCount;
         }
         byte[] table = new byte[tableSize];
@@ -88,9 +88,9 @@ class HuffCompressor {
 
             // write encoding for the byte to the table
             if (longestEncodingLength > 8) {
-                int secondLowerByteFromInt = byteAsATreeLeaf.getEncodingOfTheByte() & 0xFF00;
-                secondLowerByteFromInt >>>= 8;
-                table[tableIndex + 1] = (byte) secondLowerByteFromInt; // get second lower byte from int
+                int secondLowerByteInInt = byteAsATreeLeaf.getEncodingOfTheByte() & 0xFF00;
+                secondLowerByteInInt >>>= 8;
+                table[tableIndex + 1] = (byte) secondLowerByteInInt; // get second lower byte from int
                 table[tableIndex + 2] = (byte) byteAsATreeLeaf.getEncodingOfTheByte();
                 tableIndex += 3;
             } else {
@@ -105,14 +105,15 @@ class HuffCompressor {
             encodingLengthToByteCount.put(usedBitesForEncoding, byteCount + 1);
         }
 
-        byte[] tableInfo = new byte[encodingLengthToByteCount.size()];
-        TreeMap<Integer, Integer> sortedMap = new TreeMap<>(encodingLengthToByteCount);
-        NavigableMap<Integer, Integer> descendingMap = sortedMap.descendingMap();
+        byte[] tableInfo = new byte[encodingLengthToByteCount.size() * 2];
+        TreeMap<Integer, Integer> sortedEncodingLengthToByteCount = new TreeMap<>(encodingLengthToByteCount);
+        NavigableMap<Integer, Integer> descendingMap = sortedEncodingLengthToByteCount.descendingMap();
 
         int index = 0;
         for (Map.Entry<Integer, Integer> entry : descendingMap.entrySet()) {
-            tableInfo[index] = entry.getValue().byteValue();
-            index++;
+            tableInfo[index] = entry.getValue().byteValue(); // bytesCount with the same encoding length
+            tableInfo[index + 1] = entry.getKey().byteValue();//encoding length of bytesCount with the same encoding len
+            index += 2;
         }
 
         // Please watch algorithmExlanation.txt in order to understand code below
@@ -121,12 +122,7 @@ class HuffCompressor {
 
         int firstByte = 0; // later will contain redundant bits count In Last compressed Byte;
         writeBuff.put((byte) firstByte); // first byte will be added at the very end. Now this is a placeholder
-
-        int secondByte = 0;
-        secondByte |= (tableInfo.length << 4); // fill the first 4 bits with amount of bytes in tableInfo
-        secondByte |= longestEncodingLength; // fill the last 4 bits with longest encoding length (in bits)
-        writeBuff.put((byte) secondByte);
-
+        writeBuff.put((byte) tableInfo.length); // second byte
         writeBuff.put(tableInfo);
         writeBuff.put(table);
         writeBuff.rewind();
@@ -138,7 +134,7 @@ class HuffCompressor {
     private void compressAndWriteData(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
         inputFChan.position(0); // read file from the beginning again
         int totalNumberOfRBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
-        int[] compressedDataChunk = new int[MEGABYTE / 4];
+        int[] compressedDataChunk = new int[MEGABYTE];
         int compressedChunkIndex = 0;
 
         int fourBytesContainer = 0;

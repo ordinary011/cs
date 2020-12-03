@@ -46,6 +46,8 @@ public class BTree {
 
             connectTwoNodes(firstSmallestNode, secondSmallestNode, orderedTreeLeaves);
         }
+
+        System.out.println();
     }
 
     private void connectTwoNodes(BTreeNode firstSmallestNode, BTreeNode secondSmallestNode,
