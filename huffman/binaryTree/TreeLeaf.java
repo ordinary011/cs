@@ -10,7 +10,7 @@ public class TreeLeaf extends BTreeNode {
 
     public TreeLeaf(byte byteValue) {
         this.byteValue = byteValue;
-        this.tempChar = (char) byteValue;
+        this.tempChar = (char) byteValue; // todo delete this is for debugging
     }
 
     public void incrementWeight() {
@@ -33,10 +33,10 @@ public class TreeLeaf extends BTreeNode {
         super.weight = weight;
     }
 
-    // todo delete later this is for tests only
-    public void setEncodingLength(int length) {
-        usedBitesForEncoding = length;
-    }
+//    // todo delete later this is for tests only
+//    public void setEncodingLength(int length) {
+//        usedBitesForEncoding = length;
+//    }
 
     @Override
     public boolean isTreeLeaf() {
@@ -58,16 +58,11 @@ public class TreeLeaf extends BTreeNode {
         usedBitesForEncoding++;
     }
 
-//    @Override
-//    public BTreeNode findEncodedByte(int encodedByte, int shift) {
-//        return null;
-//    }
-
     @Override
     public String toString() {
         return "TreeNode{" +
                 "weight=" + weight +
-                ", tempChar=" + tempChar +
+                ", tempChar=" + tempChar + // todo delete later
                 ", byteValue=" + byteValue +
                 ", usedBitesForEncoding=" + usedBitesForEncoding +
                 ", encodingOfTheByte=" + encodingOfTheByte +

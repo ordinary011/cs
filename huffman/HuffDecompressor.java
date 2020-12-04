@@ -12,16 +12,14 @@ import java.util.ArrayList;
 public class HuffDecompressor {
 
     int MEGABYTE = 1024 * 1024;
-//    int MEGABYTE = 200;
     private final ByteBuffer readBuff = ByteBuffer.allocate(MEGABYTE);
-    int totallyDecodedBytes = 0;
 
     /**
      * Starting method for decompressing the data
      *
      * @throws IOException
      */
-    void decompressFile(FileChannel inputFChan, FileChannel outputFChan) throws IOException {
+    void decompressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
         int totalNumberOfRBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
 
         // read first chunk of data to the buff
@@ -37,7 +35,6 @@ public class HuffDecompressor {
             int bytesCountWithTheSameEncodingLength = readBuff.get() & 0xff; // byte to unsigned byte in the integer
             int encodingLenOfBytesCount = readBuff.get(); // byte to unsigned byte in the integer
 
-//            System.out.println();
             for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
                 usedBitsForEncodingTheByte.add(encodingLenOfBytesCount);
             }
@@ -48,15 +45,15 @@ public class HuffDecompressor {
         InternalTreeNode rootNode = new InternalTreeNode();
         for (int i = 0; i < usedBitsForEncodingTheByte.size(); i++) {
             int tableByte = readBuff.get();
+            int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
 
             int encodingForTheByte;
-            if (longestEncodingLength > 8) {
+            if (usedBitsForEncoding > 8) {
                 encodingForTheByte = readBuff.getShort();
             } else {
                 encodingForTheByte = readBuff.get();
             }
 
-            int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
             int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); //00001010 >>> 3 becomes 00000001
             firstBitInEncoding &= 1; // 00000001 & 11100000 becomes 00000000 11100000
 
@@ -101,7 +98,6 @@ public class HuffDecompressor {
         // write to the file
         outputFChan.write(writeBuff);
         writeBuff.rewind();
-        totallyDecodedBytes += decompressedBytes.size();
 
         // if compressed file is larger than 1 megabyte continue reading till end of it
         for (; RBufferSequentialNum <= totalNumberOfRBuffers; RBufferSequentialNum++) {
@@ -143,9 +139,7 @@ public class HuffDecompressor {
             // write to a file
             outputFChan.write(writeBuff);
             writeBuff.rewind();
-            totallyDecodedBytes += decompressedBytes.size();
         }
-        System.out.println(inputFChan.size() - inputFChan.position());
     }
 
 }

@@ -63,7 +63,7 @@ public class HuffmanArchiver {
             // remove extension for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
             outputFileName = inputFileName.substring(0, indOfLastDot);
 
-            if (indexOfFirstDot != indOfLastDot) { // true if inputFileName e.g. "poem.txt.par"
+            if (indexOfFirstDot != indOfLastDot) { // true if inputFileName has two extentions e.g. "poem.txt.par"
                 compressOrDecompress(inputFileName, outputFileName, DECOMPRESSION);
             } else { // file ends only with ".par" e.g. "test.par" -> extension of output file can not be determined
                 compressOrDecompress(inputFileName, outputFileName + UAR_ENDING, DECOMPRESSION);
@@ -121,18 +121,21 @@ public class HuffmanArchiver {
             long startTime = System.currentTimeMillis();
             long inputFileSize = inputFChan.size();
 
-            if (operation.equals(COMPRESSION)) {
-                new HuffCompressor().compressFile(inputFChan, outputFChan, inputFileSize);
-            } else if (operation.equals(DECOMPRESSION)) {
-                new HuffDecompressor().decompressFile(inputFChan, outputFChan);
+            if (inputFileSize != 0) { // inputFileSize == 0 only when file is empty
+                if (operation.equals(COMPRESSION)) {
+                    new HuffCompressor().compressFile(inputFChan, outputFChan, inputFileSize);
+                } else if (operation.equals(DECOMPRESSION)) {
+                    new HuffDecompressor().decompressFile(inputFChan, outputFChan, inputFileSize);
+                }
             }
 
             long endTime = System.currentTimeMillis();
-            long duration = (endTime - startTime);
+            long duration = endTime - startTime;
             long outFSize = outputFChan.size();
             long efficiency = (operation.equals(COMPRESSION)) ? inputFileSize - outFSize : outFSize - inputFileSize;
 
-            System.out.print(ANSI_BLUE);
+//            System.out.print(ANSI_BLUE); // todo delete here
+            System.out.print(ANSI_GREEN);
             System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
             System.out.printf("Time of %s: %d (milliseconds)\n", operation, duration);
             System.out.print(ANSI_BLUE);

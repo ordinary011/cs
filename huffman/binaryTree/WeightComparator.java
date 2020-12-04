@@ -3,7 +3,7 @@ package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 import java.util.Comparator;
 
 // todo undo public later
-public class TreeNodeComparator implements Comparator<BTreeNode> {
+public class WeightComparator implements Comparator<BTreeNode> {
 
     @Override
     public int compare(BTreeNode treeNode1, BTreeNode treeNode2) {

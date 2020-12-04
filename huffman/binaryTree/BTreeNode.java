@@ -8,13 +8,8 @@ public abstract class BTreeNode {
         return weight;
     }
 
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
     abstract public boolean isTreeLeaf();
 
     abstract public void addNewBitToEncoding(int bitToAdd);
 
-//    abstract public BTreeNode findEncodedByte(int encodedByte, int shift);
 }
