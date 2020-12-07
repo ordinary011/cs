@@ -1,5 +1,9 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
 public class Testing {
 
 //    public static void main(String[] args) {
@@ -22,27 +26,28 @@ public class Testing {
 //            4202
 
     public static void main(String[] args) {
-        args = new String[]{"test2.txt", "test2.txt.par"};
-        new HuffmanArchiver().determineOperation(args);
-        args = new String[]{"test2.txt.par", "test2_res.txt"};
-        new HuffmanArchiver().determineOperation(args);
+//        args = new String[]{"test5.txt", "test5.txt.par"};
+//        new HuffmanArchiver().determineOperation(args);
+//        args = new String[]{"test5.txt.par", "test5_res.txt"};
+//        new HuffmanArchiver().determineOperation(args);
 
 //        emptyTest(args);
-//        test1(args);
+        test1(args);
 //        test2(args);
-    }
 
-    private static void emptyTest(String[] args) {
-        args = new String[]{"empty.txt", "empty.txt.par"};
-        new HuffmanArchiver().determineOperation(args);
-        args = new String[]{"empty.txt.par", "empty_res.txt"};
-        new HuffmanArchiver().determineOperation(args);
     }
 
     private static void test2(String[] args) {
         args = new String[]{"test9.mp4", "test9.mp4.par"};
         new HuffmanArchiver().determineOperation(args);
         args = new String[]{"test9.mp4.par", "test9_res.mp4"};
+        new HuffmanArchiver().determineOperation(args);
+    }
+
+    private static void emptyTest(String[] args) {
+        args = new String[]{"empty.txt", "empty.txt.par"};
+        new HuffmanArchiver().determineOperation(args);
+        args = new String[]{"empty.txt.par", "empty_res.txt"};
         new HuffmanArchiver().determineOperation(args);
     }
 

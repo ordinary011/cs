@@ -4,53 +4,52 @@ public class InternalTreeNode extends BTreeNode {
 
     private BTreeNode leftChild = null;
     private BTreeNode rightChild = null;
+    private final int BITS_IN_INTEGER = 32;
 
-    public InternalTreeNode() { }
+    public InternalTreeNode() {}
 
     public InternalTreeNode(long weight, BTreeNode leftChild, BTreeNode rightChild) {
-        this.weight = weight;
+        super(weight);
         this.leftChild = leftChild;
         this.rightChild = rightChild;
     }
 
-    public void recreateTreeLeaf(int uniqueByte, int byteEncoding,
-                                 int bitPositionInEncoding, int currentBit, InternalTreeNode currentNode) {
-        if (bitPositionInEncoding == 1) { // true if this is the last bit in encoding sequence
+    public void recreateTreeLeaf(int uniqueByte, int byteEncoding, int offsetFromRight, int currentBit) {
+        if (offsetFromRight == 1) { // true if this is the last bit in encoding sequence
             if (currentBit == 1) {
-                currentNode.rightChild = new TreeLeaf((byte) uniqueByte);
+                rightChild = new TreeLeaf((byte) uniqueByte);
             } else { // currentBit == 0
-                currentNode.leftChild = new TreeLeaf((byte) uniqueByte);
+                leftChild = new TreeLeaf((byte) uniqueByte);
             }
         } else { // this is not the last bit in encoding sequence
             InternalTreeNode foundOrNewNode;
             if (currentBit == 1) {
-                if (currentNode.rightChild == null) {
-                    currentNode.rightChild = new InternalTreeNode();
+                if (rightChild == null) {
+                    rightChild = new InternalTreeNode();
                 }
-                foundOrNewNode = (InternalTreeNode) currentNode.rightChild;
+                foundOrNewNode = (InternalTreeNode) rightChild;
             } else { // currentBit == 0
-                if (currentNode.leftChild == null) {
-                    currentNode.leftChild = new InternalTreeNode();
+                if (leftChild == null) {
+                    leftChild = new InternalTreeNode();
                 }
-                foundOrNewNode = (InternalTreeNode) currentNode.leftChild;
+                foundOrNewNode = (InternalTreeNode) leftChild;
             }
 
-            bitPositionInEncoding--; // set the position to the next bit in encoding
-            // remove all all bits that are on the left from current bit
-            currentBit = byteEncoding << (16 - bitPositionInEncoding); // 00001111 after "<<" becomes 11100000
-            currentBit &= 0xFFFF; // 00000001 11100000 & 00000000 11111111 becomes 00000000 11100000
+            offsetFromRight--; // set the position to the next bit in encoding
+            // remove all bits that are on the left from current bit
+            currentBit = byteEncoding << (BITS_IN_INTEGER - offsetFromRight); // 00001111 after "<<" becomes 11100000
+            // remove all bits that are on the right from current bit
+            currentBit = currentBit >>> (BITS_IN_INTEGER - 1); // 11100000 >>> 00000001
 
-            currentBit = currentBit >>> (16 - 1); // 11100000 >>> 00000001 // todo int stetchik????
-            currentBit &= 1;
-            foundOrNewNode.recreateTreeLeaf(uniqueByte, byteEncoding, bitPositionInEncoding, currentBit, foundOrNewNode);
+            foundOrNewNode.recreateTreeLeaf(uniqueByte, byteEncoding, offsetFromRight, currentBit);
         }
     }
 
     public BTreeNode findEncodedByte(int encodedByte, int shiftBitsToTheRight) {
         int byteWithNeededBitAtTheEnd = encodedByte >>> shiftBitsToTheRight; // 11010000 >>> 4 becomes 00001101
-        int neededBit = byteWithNeededBitAtTheEnd & 1;//retain only the lowest bit: 00001101 & 00000001 becomes 00000001
+        int onlyNeededBit = byteWithNeededBitAtTheEnd & 1; // only the lowest bit: 00001101 & 00000001 becomes 00000001
 
-        if (neededBit == 1) {
+        if (onlyNeededBit == 1) {
             return this.rightChild;
         } else { // neededBit == 0
             return this.leftChild;
@@ -63,7 +62,7 @@ public class InternalTreeNode extends BTreeNode {
     }
 
     @Override
-    public void addNewBitToEncoding(int bitToAdd) {
+    void addNewBitToEncoding(int bitToAdd) {
         if (leftChild != null) {
             leftChild.addNewBitToEncoding(bitToAdd);
         }
@@ -78,7 +77,7 @@ public class InternalTreeNode extends BTreeNode {
         return "InternalTreeNode{" +
                 "leftChild=" + leftChild +
                 ", rightChild=" + rightChild +
-                ", weight=" + weight +
+                ", weight=" + getWeight() +
                 '}';
     }
 }

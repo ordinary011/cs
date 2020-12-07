@@ -7,9 +7,6 @@ public class BTree {
 
     /**
      * Creates priority queue of treeLeaves and its copy
-     *
-     * @param byteToItsTreeLeaf
-     * @return
      */
     public PriorityQueue<TreeLeaf> prioritizeAndBuildTree(HashMap<Byte, TreeLeaf> byteToItsTreeLeaf) {
         // create a prioritizedByWeight queue of tree leaves
@@ -25,8 +22,7 @@ public class BTree {
         return prioritizeBytesByEncodingLength(copyOfPrioritizedByWeight);
     }
 
-    // todo private
-    public void buildTree(PriorityQueue<BTreeNode> orderedByWeightAscending) {
+    private void buildTree(PriorityQueue<BTreeNode> orderedByWeightAscending) {
         BTreeNode firstSmallestNode;
         BTreeNode secondSmallestNode;
 

@@ -2,19 +2,17 @@ package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 
 public class TreeLeaf extends BTreeNode {
 
-    private byte byteValue;
-    private char tempChar; // todo delete this is for debugging
+    private final byte byteValue;
 
     private int usedBitesForEncoding = 0;
     private int encodingOfTheByte = 0;
 
     public TreeLeaf(byte byteValue) {
         this.byteValue = byteValue;
-        this.tempChar = (char) byteValue; // todo delete this is for debugging
     }
 
     public void incrementWeight() {
-        weight++;
+        super.incrementWeight();
     }
 
     public byte getByteValue() {
@@ -29,30 +27,18 @@ public class TreeLeaf extends BTreeNode {
         return encodingOfTheByte;
     }
 
-    public void setWeight(int weight) {
-        super.weight = weight;
-    }
-
-//    // todo delete later this is for tests only
-//    public void setEncodingLength(int length) {
-//        usedBitesForEncoding = length;
-//    }
-
     @Override
     public boolean isTreeLeaf() {
         return true;
     }
 
     @Override
-    public void addNewBitToEncoding(int bitToAdd) {
+    void addNewBitToEncoding(int bitToAdd) {
         if (bitToAdd == 1) {
-            // e.g. (usedBitesForEncoding == 2) 00000001 -> 00000100
-            int byteWithSetBitInRightPlace = bitToAdd << usedBitesForEncoding;
+            // we add new bit to the beginning of already existed encoding, hence if e.g. (usedBitesForEncoding == 2)
+            int byteWithSetBitInRightPlace = bitToAdd << usedBitesForEncoding; // 00000001 << 2 becomes 00000100
 
-            encodingOfTheByte = encodingOfTheByte | byteWithSetBitInRightPlace;
-            // 00000011 |
-            // 00000100
-            // 00000111
+            encodingOfTheByte = encodingOfTheByte | byteWithSetBitInRightPlace; // 00000011 | 00000100 becomes 00000111
         }
 
         usedBitesForEncoding++;
@@ -61,8 +47,7 @@ public class TreeLeaf extends BTreeNode {
     @Override
     public String toString() {
         return "TreeNode{" +
-                "weight=" + weight +
-                ", tempChar=" + tempChar + // todo delete later
+                "weight=" + super.getWeight() +
                 ", byteValue=" + byteValue +
                 ", usedBitesForEncoding=" + usedBitesForEncoding +
                 ", encodingOfTheByte=" + encodingOfTheByte +

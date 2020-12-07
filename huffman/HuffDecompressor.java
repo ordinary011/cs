@@ -9,43 +9,124 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
-public class HuffDecompressor {
+/**
+ * The following class contains all the logic that is needed for decompression
+ */
+public class HuffDecompressor extends CommonUtils {
 
-    int MEGABYTE = 1024 * 1024;
-    private final ByteBuffer readBuff = ByteBuffer.allocate(MEGABYTE);
+    private final byte[] decompressedDataChunk = new byte[MEGABYTE * 4];
+    private int redundantBitsInLastCompressedByte;
+    private int RBufferSequentialNum = 1; // first read buffer
+    private BTreeNode currentNode = null;
 
     /**
      * Starting method for decompressing the data
-     *
-     * @throws IOException
      */
     void decompressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
-        int totalNumberOfRBuffers = (int) Math.ceil(inputFChan.size() / (double) MEGABYTE);
+        int totalNumberOfRBuffers = (int) Math.ceil(inputFileSize / (double) MEGABYTE);
 
         // read first chunk of data to the buff
         int bytesInsideReadBuffer = inputFChan.read(readBuff);
         readBuff.rewind(); // set the position inside the buff to the beginning
-        int RBufferSequentialNum = 1; // first read buffer
 
-        int redundantBitsInLastCompressedByte = readBuff.get();
+        redundantBitsInLastCompressedByte = readBuff.get();
         int tableInfoSize = readBuff.get();
 
-        ArrayList<Integer> usedBitsForEncodingTheByte = new ArrayList<>();
+        InternalTreeNode rootNode = recreateTree(tableInfoSize);
+        currentNode = rootNode;
+
+        // read the rest of the first buffer
+        int remainedBytesInFirstRBuff = bytesInsideReadBuffer - readBuff.position();
+        decompressDataChunk(outputFChan, remainedBytesInFirstRBuff, totalNumberOfRBuffers, rootNode);
+
+        // if compressed file is larger than 1 megabyte continue reading (by chunks) till end of it
+        while (RBufferSequentialNum <= totalNumberOfRBuffers) {
+            bytesInsideReadBuffer = inputFChan.read(readBuff);
+            readBuff.rewind(); // set the position inside the buff to the beginning
+
+            decompressDataChunk(outputFChan, bytesInsideReadBuffer, totalNumberOfRBuffers, rootNode);
+        }
+    }
+
+    /**
+     * decompresses the data from the input file
+     */
+    private void decompressDataChunk(FileChannel outputFChan, int bytesInsideReadBuffer,
+                                     int totalNumberOfRBuffers, BTreeNode rootNode) throws IOException {
+        int decompressedDataChunkIndex = 0;
+
+        int offsetFromRight = 0;
+        int lastByteInCurrentRBuff = bytesInsideReadBuffer - 1;
+        for (int i = 0; i < bytesInsideReadBuffer; i++) {
+
+            int compressedByte = readBuff.get();
+
+            // if this is the last byte in the last read buffer
+            if (totalNumberOfRBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
+                offsetFromRight = redundantBitsInLastCompressedByte;
+            }
+
+            for (int shiftBitsToRight = BYTE_SIZE - 1; shiftBitsToRight >= offsetFromRight; shiftBitsToRight--) {
+                currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, shiftBitsToRight);
+                if (currentNode.isTreeLeaf()) {
+                    decompressedDataChunk[decompressedDataChunkIndex] = ((TreeLeaf) currentNode).getByteValue();
+                    decompressedDataChunkIndex++;
+                    currentNode = rootNode;
+                }
+            }
+
+        }
+        readBuff.rewind(); // set the position inside the buff to the beginning
+        RBufferSequentialNum++;
+
+        writeDecompressedToTheFile(outputFChan, decompressedDataChunkIndex);
+    }
+
+    /**
+     * writes data to the output file
+     */
+    private void writeDecompressedToTheFile(FileChannel outputFChan, int decompressedDataChunkInd) throws IOException {
+        if (writeBuff.capacity() != decompressedDataChunkInd) {
+            writeBuff = ByteBuffer.allocate(decompressedDataChunkInd);
+        }
+        for (int i = 0; i < decompressedDataChunkInd; i++) {
+            writeBuff.put(decompressedDataChunk[i]);
+        }
+        writeBuff.rewind();  // set the position inside the buff to the beginning
+
+        // write to the file
+        outputFChan.write(writeBuff);
+        writeBuff.rewind();  // set the position inside the buff to the beginning
+    }
+
+    /**
+     * creates an array with encoding lengths for each unique byte
+     */
+    private ArrayList<Integer> createArrOfEncodingLengths(int tableInfoSize) {
+        ArrayList<Integer> lengthsOfEncodings = new ArrayList<>();
+
         for (int i = 0; i < (tableInfoSize / 2); i++) {
             int bytesCountWithTheSameEncodingLength = readBuff.get() & 0xff; // byte to unsigned byte in the integer
             int encodingLenOfBytesCount = readBuff.get(); // byte to unsigned byte in the integer
 
             for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
-                usedBitsForEncodingTheByte.add(encodingLenOfBytesCount);
+                lengthsOfEncodings.add(encodingLenOfBytesCount);
             }
         }
-        int longestEncodingLength = usedBitsForEncodingTheByte.get(0);
 
-        // recreate tree
+        return lengthsOfEncodings;
+    }
+
+    /**
+     * recreates tree based on the encodings of the bytes
+     */
+    private InternalTreeNode recreateTree(int tableInfoSize) {
+        ArrayList<Integer> lengthsOfEncodings = createArrOfEncodingLengths(tableInfoSize);
         InternalTreeNode rootNode = new InternalTreeNode();
-        for (int i = 0; i < usedBitsForEncodingTheByte.size(); i++) {
+
+        for (Integer usedBitsForEncodingTheByte : lengthsOfEncodings) {
             int tableByte = readBuff.get();
-            int usedBitsForEncoding = usedBitsForEncodingTheByte.get(i);
+            int usedBitsForEncoding = usedBitsForEncodingTheByte;
 
             int encodingForTheByte;
             if (usedBitsForEncoding > 8) {
@@ -55,91 +136,12 @@ public class HuffDecompressor {
             }
 
             int firstBitInEncoding = encodingForTheByte >>> (usedBitsForEncoding - 1); //00001010 >>> 3 becomes 00000001
-            firstBitInEncoding &= 1; // 00000001 & 11100000 becomes 00000000 11100000
+            firstBitInEncoding &= 1; // encodingForTheByte is < 0 then after shift we need to remove bit to the left
 
-            rootNode.recreateTreeLeaf(tableByte, encodingForTheByte, usedBitsForEncoding, firstBitInEncoding, rootNode);
+            rootNode.recreateTreeLeaf(tableByte, encodingForTheByte, usedBitsForEncoding, firstBitInEncoding);
         }
 
-        // read the rest of the first buffer
-        int remainedBytesInFirstRBuff = bytesInsideReadBuffer - readBuff.position();
-        BTreeNode currentNode = rootNode;
-        ArrayList<Byte> decompressedBytes = new ArrayList<>();
-        int lastBitPosition = 0;
-        int lastByteInCurrentRBuff = remainedBytesInFirstRBuff - 1;
-        for (int i = 0; i < remainedBytesInFirstRBuff; i++) {
-
-            int compressedByte = readBuff.get();
-
-            // if this is the last byte in the last read buffer
-            if (totalNumberOfRBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
-                lastBitPosition = redundantBitsInLastCompressedByte;
-            }
-
-            for (int j = 8 - 1; j >= lastBitPosition; j--) {
-                currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, j);
-                if (currentNode.isTreeLeaf()) {
-                    decompressedBytes.add(
-                            ((TreeLeaf) currentNode).getByteValue()
-                    );
-                    currentNode = rootNode;
-                }
-            }
-
-        }
-        readBuff.rewind(); // set the position inside the buff to the beginning
-        RBufferSequentialNum++;
-
-        ByteBuffer writeBuff = ByteBuffer.allocate(decompressedBytes.size());
-        for (Byte decompressedByte : decompressedBytes) {
-            writeBuff.put(decompressedByte);
-        }
-        writeBuff.rewind();
-
-        // write to the file
-        outputFChan.write(writeBuff);
-        writeBuff.rewind();
-
-        // if compressed file is larger than 1 megabyte continue reading till end of it
-        for (; RBufferSequentialNum <= totalNumberOfRBuffers; RBufferSequentialNum++) {
-            bytesInsideReadBuffer = inputFChan.read(readBuff);
-            readBuff.rewind(); // set the position inside the buff to the beginning
-
-            decompressedBytes = new ArrayList<>();
-            lastBitPosition = 0;
-            lastByteInCurrentRBuff = bytesInsideReadBuffer - 1;
-            for (int i = 0; i < bytesInsideReadBuffer; i++) {
-
-                int compressedByte = readBuff.get();
-
-                // if this is the last byte to decompress
-                if (totalNumberOfRBuffers == RBufferSequentialNum && i == lastByteInCurrentRBuff) {
-                    lastBitPosition = redundantBitsInLastCompressedByte;
-                }
-
-                for (int j = 8 - 1; j >= lastBitPosition; j--) {
-                    currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, j);
-                    if (currentNode.isTreeLeaf()) {
-                        decompressedBytes.add(
-                                ((TreeLeaf) currentNode).getByteValue()
-                        );
-                        currentNode = rootNode;
-                    }
-                }
-            }
-            readBuff.rewind(); // set the position inside the buff to the beginning
-
-            if (writeBuff.capacity() != decompressedBytes.size()) {
-                writeBuff = ByteBuffer.allocate(decompressedBytes.size());
-            }
-            for (Byte decompressedByte : decompressedBytes) {
-                writeBuff.put(decompressedByte);
-            }
-            writeBuff.rewind();
-
-            // write to a file
-            outputFChan.write(writeBuff);
-            writeBuff.rewind();
-        }
+        return rootNode;
     }
 
 }

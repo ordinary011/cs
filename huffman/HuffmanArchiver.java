@@ -63,7 +63,7 @@ public class HuffmanArchiver {
             // remove extension for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
             outputFileName = inputFileName.substring(0, indOfLastDot);
 
-            if (indexOfFirstDot != indOfLastDot) { // true if inputFileName has two extentions e.g. "poem.txt.par"
+            if (indexOfFirstDot != indOfLastDot) { // true if inputFileName has two extensions e.g. "poem.txt.par"
                 compressOrDecompress(inputFileName, outputFileName, DECOMPRESSION);
             } else { // file ends only with ".par" e.g. "test.par" -> extension of output file can not be determined
                 compressOrDecompress(inputFileName, outputFileName + UAR_ENDING, DECOMPRESSION);
@@ -134,7 +134,6 @@ public class HuffmanArchiver {
             long outFSize = outputFChan.size();
             long efficiency = (operation.equals(COMPRESSION)) ? inputFileSize - outFSize : outFSize - inputFileSize;
 
-//            System.out.print(ANSI_BLUE); // todo delete here
             System.out.print(ANSI_GREEN);
             System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
             System.out.printf("Time of %s: %d (milliseconds)\n", operation, duration);
