@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
  */
 abstract class CommonUtils {
 
-    int BYTE_SIZE = 8; // bits
     int MEGABYTE = 1024 * 1024; // bytes
 
     /**

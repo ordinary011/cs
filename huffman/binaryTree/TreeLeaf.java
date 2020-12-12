@@ -1,5 +1,8 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 
+/**
+ * The following class contains logic for tree leaf Node of the tree that is used for encoding the file
+ */
 public class TreeLeaf extends BTreeNode {
 
     private final byte byteValue;
@@ -32,6 +35,11 @@ public class TreeLeaf extends BTreeNode {
         return true;
     }
 
+    /**
+     * adds bit to the encoding of the byte. this method is used when we build the tree
+     *
+     * @param bitToAdd either 0 or 1
+     */
     @Override
     void addNewBitToEncoding(int bitToAdd) {
         if (bitToAdd == 1) {

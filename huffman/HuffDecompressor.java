@@ -21,6 +21,11 @@ public class HuffDecompressor extends CommonUtils {
 
     /**
      * Starting method for decompressing the data
+     *
+     * @param inputFChan    reference to the input channel between our process and OS
+     * @param outputFChan   reference to the output channel between our process and OS
+     * @param inputFileSize size of input file
+     * @throws IOException can be caused by reading or writing the file
      */
     void decompressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
         int totalNumberOfRBuffers = (int) Math.ceil(inputFileSize / (double) MEGABYTE);
@@ -50,6 +55,12 @@ public class HuffDecompressor extends CommonUtils {
 
     /**
      * decompresses the data from the input file
+     *
+     * @param outputFChan           reference to the output channel between our process and OS
+     * @param bytesInsideReadBuffer amount of bytes Inside Read Buffer
+     * @param totalNumberOfRBuffers total amount of read buffers
+     * @param rootNode              reference to the tree root
+     * @throws IOException can be caused by reading or writing the file
      */
     private void decompressDataChunk(FileChannel outputFChan, int bytesInsideReadBuffer,
                                      int totalNumberOfRBuffers, BTreeNode rootNode) throws IOException {
@@ -66,7 +77,7 @@ public class HuffDecompressor extends CommonUtils {
                 offsetFromRight = redundantBitsInLastCompressedByte;
             }
 
-            for (int shiftBitsToRight = BYTE_SIZE - 1; shiftBitsToRight >= offsetFromRight; shiftBitsToRight--) {
+            for (int shiftBitsToRight = (Byte.SIZE - 1); shiftBitsToRight >= offsetFromRight; shiftBitsToRight--) {
                 currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, shiftBitsToRight);
                 if (currentNode.isTreeLeaf()) {
                     decompressedDataChunk[decompressedDataChunkIndex] = ((TreeLeaf) currentNode).getByteValue();
@@ -84,6 +95,10 @@ public class HuffDecompressor extends CommonUtils {
 
     /**
      * writes data to the output file
+     *
+     * @param outputFChan              reference to the output channel between our process and OS
+     * @param decompressedDataChunkInd paste index inside decompressed data chunk array
+     * @throws IOException can be caused by reading or writing the file
      */
     private void writeDecompressedToTheFile(FileChannel outputFChan, int decompressedDataChunkInd) throws IOException {
         if (writeBuff.capacity() != decompressedDataChunkInd) {
@@ -101,6 +116,9 @@ public class HuffDecompressor extends CommonUtils {
 
     /**
      * creates an array with encoding lengths for each unique byte
+     *
+     * @param tableInfoSize amount of bytes that are used as information about the table (see algorithmExplanation.txt)
+     * @return array that contains bytesCountWithTheSameEncodingLength and encodingLengthOfBytesCountWithTheSameLength
      */
     private ArrayList<Integer> createArrOfEncodingLengths(int tableInfoSize) {
         ArrayList<Integer> lengthsOfEncodings = new ArrayList<>();
@@ -119,6 +137,9 @@ public class HuffDecompressor extends CommonUtils {
 
     /**
      * recreates tree based on the encodings of the bytes
+     *
+     * @param tableInfoSize amount of bytes that are used as information about the table (see algorithmExplanation.txt)
+     * @return reference to the tree root
      */
     private InternalTreeNode recreateTree(int tableInfoSize) {
         ArrayList<Integer> lengthsOfEncodings = createArrOfEncodingLengths(tableInfoSize);
@@ -129,7 +150,7 @@ public class HuffDecompressor extends CommonUtils {
             int usedBitsForEncoding = usedBitsForEncodingTheByte;
 
             int encodingForTheByte;
-            if (usedBitsForEncoding > 8) {
+            if (usedBitsForEncoding > Byte.SIZE) {
                 encodingForTheByte = readBuff.getShort();
             } else {
                 encodingForTheByte = readBuff.get();

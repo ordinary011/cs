@@ -1,12 +1,15 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15.binaryTree;
 
+/**
+ * The following class contains logic for Internal Node of the tree that is used for encoding the file
+ */
 public class InternalTreeNode extends BTreeNode {
 
     private BTreeNode leftChild = null;
     private BTreeNode rightChild = null;
-    private final int BITS_IN_INTEGER = 32;
 
-    public InternalTreeNode() {}
+    public InternalTreeNode() {
+    }
 
     public InternalTreeNode(long weight, BTreeNode leftChild, BTreeNode rightChild) {
         super(weight);
@@ -14,6 +17,14 @@ public class InternalTreeNode extends BTreeNode {
         this.rightChild = rightChild;
     }
 
+    /**
+     * the following method is used only for decompression of the file. it recreates tree from byte encodings
+     *
+     * @param uniqueByte      unique byte from the file
+     * @param byteEncoding    encoding for the unique byte
+     * @param offsetFromRight offsetFromRight inside of the byte
+     * @param currentBit      one of the bits from the encoding
+     */
     public void recreateTreeLeaf(int uniqueByte, int byteEncoding, int offsetFromRight, int currentBit) {
         if (offsetFromRight == 1) { // true if this is the last bit in encoding sequence
             if (currentBit == 1) {
@@ -37,16 +48,23 @@ public class InternalTreeNode extends BTreeNode {
 
             offsetFromRight--; // set the position to the next bit in encoding
             // remove all bits that are on the left from current bit
-            currentBit = byteEncoding << (BITS_IN_INTEGER - offsetFromRight); // 00001111 after "<<" becomes 11100000
+            currentBit = byteEncoding << (Integer.SIZE - offsetFromRight); // 00001111 after "<<" becomes 11100000
             // remove all bits that are on the right from current bit
-            currentBit = currentBit >>> (BITS_IN_INTEGER - 1); // 11100000 >>> 00000001
+            currentBit = currentBit >>> (Integer.SIZE - 1); // 11100000 >>> 00000001
 
             foundOrNewNode.recreateTreeLeaf(uniqueByte, byteEncoding, offsetFromRight, currentBit);
         }
     }
 
-    public BTreeNode findEncodedByte(int encodedByte, int shiftBitsToTheRight) {
-        int byteWithNeededBitAtTheEnd = encodedByte >>> shiftBitsToTheRight; // 11010000 >>> 4 becomes 00001101
+    /**
+     * the following method is used for finding the tree leaf
+     *
+     * @param compressedByte      compressed byte
+     * @param shiftBitsToTheRight amount of bits that need to be shifted to the right
+     * @return tree node that is one level below current (can be treeLeaf or another internalNode)
+     */
+    public BTreeNode findEncodedByte(int compressedByte, int shiftBitsToTheRight) {
+        int byteWithNeededBitAtTheEnd = compressedByte >>> shiftBitsToTheRight; // 11010000 >>> 4 becomes 00001101
         int onlyNeededBit = byteWithNeededBitAtTheEnd & 1; // only the lowest bit: 00001101 & 00000001 becomes 00000001
 
         if (onlyNeededBit == 1) {
@@ -61,6 +79,11 @@ public class InternalTreeNode extends BTreeNode {
         return false;
     }
 
+    /**
+     * adds bit to the encoding of the byte. this method is used when we build the tree
+     *
+     * @param bitToAdd either 0 or 1
+     */
     @Override
     void addNewBitToEncoding(int bitToAdd) {
         if (leftChild != null) {

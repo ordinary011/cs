@@ -2,6 +2,7 @@ package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
@@ -16,17 +17,18 @@ public class HuffmanArchiver {
     private final String COMPRESSION = "compression";
     private final String DECOMPRESSION = "decompression";
 
-    private final String PAR_ENDING = ".par";
-    private final String UAR_ENDING = ".uar";
+    private final String PAR_ENDING = ".par"; // standart ending of the name for archived file
+    private final String UAR_ENDING = ".uar"; // unarchived (used when output file name can not be determined)
 
     private final String ARCHIVE_FLAG = "-a";
     private final String UNARCHIVE_FLAG = "-u";
 
-    private final String ANSI_GREEN = "\u001B[32m";
     private final String ANSI_BLUE = "\u001B[34m";
+    private final String ANSI_GREEN = "\u001B[32m";
 
     /**
      * Determines operation. Either compression or decompression based on args
+     *
      * @param args array of arguments from a user
      */
     public void determineOperation(String[] args) {
@@ -37,13 +39,13 @@ public class HuffmanArchiver {
                 compressOrDecompress(DEFAULT_INPUT_FILENAME, DEFAULT_OUTPUT_FILENAME, COMPRESSION);
                 break;
             case 1:
-                logicFor1Param(args[0], args[0]);
+                logicFor1Param(args[0]);
                 break;
             case 2:
                 logicFor2Params(args[0], args[1]);
                 break;
             case 3:
-                logicForFlag(args[0], args[1], args[2]);
+                logicForFlags(args[0], args[1], args[2]);
                 break;
             default:
                 System.err.println("Sorry too many parameters. Please check maybe there are some redundant spaces");
@@ -53,15 +55,16 @@ public class HuffmanArchiver {
 
     /**
      * Determines operation based on input file extension
+     *
+     * @param inputFileName relative path to the input file
      */
-    private void logicFor1Param(String inputFileName, String outputFileName) {
-        int indOfLastDot = inputFileName.lastIndexOf(".");
-
-        if (indOfLastDot != -1 || inputFileName.endsWith(PAR_ENDING)) { // if inputFile has any extension or ends ".par"
+    private void logicFor1Param(String inputFileName) {
+        if (inputFileName.endsWith(PAR_ENDING)) {
             int indexOfFirstDot = inputFileName.indexOf(".");
+            int indOfLastDot = inputFileName.lastIndexOf(".");
 
-            // remove extension for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
-            outputFileName = inputFileName.substring(0, indOfLastDot);
+            // remove ".par" ending for output file e.g. "poem.txt.par" -> "poem.txt" || "test.par" -> "test"
+            String outputFileName = inputFileName.substring(0, indOfLastDot);
 
             if (indexOfFirstDot != indOfLastDot) { // true if inputFileName has two extensions e.g. "poem.txt.par"
                 compressOrDecompress(inputFileName, outputFileName, DECOMPRESSION);
@@ -69,16 +72,19 @@ public class HuffmanArchiver {
                 compressOrDecompress(inputFileName, outputFileName + UAR_ENDING, DECOMPRESSION);
             }
 
-        } else { // inputFile doesn't have an extension e.g. "test"
-            compressOrDecompress(inputFileName, outputFileName + PAR_ENDING, COMPRESSION);
+        } else { // inputFile doesn't end with ".par" or doesn't have an extension e.g. "test"
+            compressOrDecompress(inputFileName, inputFileName + PAR_ENDING, COMPRESSION);
         }
     }
 
     /**
      * Determines operation based on input and output file extensions
+     *
+     * @param inputFileName  relative path to the input file
+     * @param outputFileName relative path to the output file
      */
     private void logicFor2Params(String inputFileName, String outputFileName) {
-        if (inputFileName.endsWith(PAR_ENDING)) {
+        if (inputFileName.endsWith(PAR_ENDING)) { // PAR_ENDING identify that we must decompress
             if (outputFileName.indexOf('.') != -1) { // true if outputFileName has an extension
                 compressOrDecompress(inputFileName, outputFileName, DECOMPRESSION);
             } else { // outputFileName doesn't have an extension
@@ -94,11 +100,13 @@ public class HuffmanArchiver {
     }
 
     /**
-     * Determines operation based on the specified flag
+     * * Determines operation based on the specified flag
      *
-     * @param flag can be either "-a" or "-u"
+     * @param flag       can be either "-a" or "-u"
+     * @param inputFile  relative path to the input file
+     * @param outputFile relative path to the output file
      */
-    private void logicForFlag(String flag, String inputFile, String outputFile) {
+    private void logicForFlags(String flag, String inputFile, String outputFile) {
         if (flag.equals(ARCHIVE_FLAG)) {
             compressOrDecompress(inputFile, outputFile, COMPRESSION);
         } else if (flag.equals(UNARCHIVE_FLAG)) {
@@ -111,7 +119,9 @@ public class HuffmanArchiver {
     /**
      * Compresses or Decompresses the file
      *
-     * @param operation can be either "compression" or "decompression" string
+     * @param inputFile  relative path to the input file
+     * @param outputFile relative path to the output file
+     * @param operation  can be either "compression" or "decompression" string
      */
     private void compressOrDecompress(String inputFile, String outputFile, String operation) {
         try (FileChannel inputFChan = (FileChannel) Files.newByteChannel(Paths.get(inputFile));
@@ -130,19 +140,33 @@ public class HuffmanArchiver {
             }
 
             long endTime = System.currentTimeMillis();
-            long duration = endTime - startTime;
+            long runTimeDuration = endTime - startTime;
             long outFSize = outputFChan.size();
             long efficiency = (operation.equals(COMPRESSION)) ? inputFileSize - outFSize : outFSize - inputFileSize;
 
-            System.out.print(ANSI_GREEN);
-            System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
-            System.out.printf("Time of %s: %d (milliseconds)\n", operation, duration);
-            System.out.print(ANSI_BLUE);
-            System.out.printf("Input file size: %d (bytes)\n", inputFileSize);
-            System.out.printf("Output file size: %d (bytes)\n", outFSize);
+            logResults(operation, efficiency, runTimeDuration, inputFileSize, outFSize);
+        } catch (NoSuchFileException e) {
+            System.err.println("Could not find file with the following name: " + inputFile);
         } catch (Exception e) {
-            System.err.println("Some mistake occurred. See the reason down below");
-            e.printStackTrace();
+            System.err.println(e.toString());
         }
+    }
+
+    /**
+     * Logs the result of compression or decompression
+     *
+     * @param operation       can be either "compression" or "decompression" string
+     * @param efficiency      efficiency of compression or decompression (difference between input and output files)
+     * @param runTimeDuration duration of the program runtime
+     * @param inputFSize      size of input file
+     * @param outFSize        size of output file
+     */
+    private void logResults(String operation, long efficiency, long runTimeDuration, long inputFSize, long outFSize) {
+        System.out.print(ANSI_GREEN);
+        System.out.printf("Efficiency of %s: %d (bytes)\n", operation, efficiency);
+        System.out.printf("Time of %s: %d (milliseconds)\n", operation, runTimeDuration);
+        System.out.print(ANSI_BLUE);
+        System.out.printf("Input file size: %d (bytes)\n", inputFSize);
+        System.out.printf("Output file size: %d (bytes)\n", outFSize);
     }
 }

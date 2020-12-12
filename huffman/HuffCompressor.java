@@ -25,6 +25,11 @@ class HuffCompressor extends CommonUtils {
 
     /**
      * This is the starting method of the compressing process
+     *
+     * @param inputFChan    reference to the input channel between our process and OS
+     * @param outputFChan   reference to the output channel between our process and OS
+     * @param inputFileSize size of input file
+     * @throws IOException can be caused by reading or writing the file
      */
     void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
         countUniqueBytes(inputFChan);
@@ -40,8 +45,11 @@ class HuffCompressor extends CommonUtils {
         new CompressByChunks().compressByChunks(inputFChan, outputFChan, inputFileSize, byteToItsTreeLeaf);
     }
 
-    /*
-     * the following class counts frequency of bytes
+    /**
+     * The following method counts frequency of bytes
+     *
+     * @param inputFChan reference to the input channel between our process and OS
+     * @throws IOException can be caused by reading or writing the file
      */
     private void countUniqueBytes(FileChannel inputFChan) throws IOException {
         // read the whole input file by chunks and search for unique bytes
@@ -65,7 +73,10 @@ class HuffCompressor extends CommonUtils {
     }
 
     /**
-     * The following class creates a table (byte : encoding for the byte)
+     * The following class creates a table (unique byte : encoding for the byte)
+     *
+     * @param prioritizedLeaves ordered by encoding length tree leaves (in descending order)
+     * @return table that contains (unique byte : encoding for the byte)
      */
     private ArrayList<Byte> createTable(PriorityQueue<TreeLeaf> prioritizedLeaves) {
         int uniqueBytesCount = prioritizedLeaves.size();
@@ -79,9 +90,9 @@ class HuffCompressor extends CommonUtils {
             // add byte to the table
             table.add(byteAsATreeLeaf.getByteValue());
             // write encoding for the byte to the table
-            if (encodingLengthOfCurrentByte > BYTE_SIZE) {
+            if (encodingLengthOfCurrentByte > Byte.SIZE) {
                 int secondLowerByteInInt = byteAsATreeLeaf.getEncodingOfTheByte() & 0xFF00;
-                secondLowerByteInInt >>>= BYTE_SIZE;
+                secondLowerByteInInt >>>= Byte.SIZE;
                 table.add((byte) secondLowerByteInInt); // get second lower byte from int
             }
             table.add((byte) byteAsATreeLeaf.getEncodingOfTheByte());
@@ -95,7 +106,7 @@ class HuffCompressor extends CommonUtils {
     }
 
     /**
-     * creates information about the table (please read algorithmExplanation.txt)
+     * Creates information about the table (please read algorithmExplanation.txt)
      */
     private byte[] createTableInfo() {
         byte[] tableInfo = new byte[encodingLengthToByteCount.size() * 2];
@@ -113,6 +124,11 @@ class HuffCompressor extends CommonUtils {
 
     /**
      * writes all the information that is needed for decompression
+     *
+     * @param outputFChan reference to the output channel between our process and OS
+     * @param tableInfo   information for the table (n bytes with the same encoding length : encoding length of n bytes)
+     * @param table       table that contains (unique byte : encoding for the byte)
+     * @throws IOException can be caused by reading or writing the file
      */
     private void writeInfoForDecompression(FileChannel outputFChan,
                                            byte[] tableInfo, ArrayList<Byte> table) throws IOException {
@@ -147,11 +163,8 @@ class CompressByChunks extends CommonUtils {
     private final int[] compressedDataChunk = new int[MEGABYTE];
     private int compressedChunkIndex = 0;
 
-    private final int BYTES_IN_INTEGER = 4;
-    private final int BITS_IN_INTEGER = 32;
-
     private int fourBytesContainer = 0;
-    private int freeBitsInContainer = BITS_IN_INTEGER;
+    private int freeBitsInContainer = Integer.SIZE;
 
     private int rememberedBits = 0; // bits that did not fit to the container are saved for the next
     private int bitsCountInRemembered = 0;
@@ -161,6 +174,12 @@ class CompressByChunks extends CommonUtils {
 
     /**
      * The starting method of the class
+     *
+     * @param inputFChan        reference to the input channel between our process and OS
+     * @param outputFChan       reference to the output channel between our process and OS
+     * @param inputFileSize     size of input file
+     * @param byteToItsTreeLeaf key = unique byte; value = TreeLeaf that is created for corresponding byte
+     * @throws IOException can be caused by reading or writing the file
      */
     void compressByChunks(FileChannel inputFChan, FileChannel outputFChan,
                           long inputFileSize, HashMap<Byte, TreeLeaf> byteToItsTreeLeaf) throws IOException {
@@ -175,13 +194,7 @@ class CompressByChunks extends CommonUtils {
             compressBytesFromRBUff(bytesInsideReadBuffer, byteToItsTreeLeaf);
 
             if (bufferSequentialNum == totalNumberOfRBuffers) { // true if this is the last Read Buffer
-                if (bitsCountInRemembered > 0) { // true if there are some remembered bits
-                    lastContainer = rememberedBits;
-                    bitsCountInLastContainer = bitsCountInRemembered;
-                } else if (freeBitsInContainer < BITS_IN_INTEGER) { // true if fourBytesContainer is not empty
-                    lastContainer = fourBytesContainer;
-                    bitsCountInLastContainer = BITS_IN_INTEGER - freeBitsInContainer;
-                }
+                logicForTheLastRBuff();
             }
 
             writeBytesFromContainerToFile(outputFChan);
@@ -196,12 +209,29 @@ class CompressByChunks extends CommonUtils {
     }
 
     /**
+     * contains logic for the last read buffer
+     */
+    private void logicForTheLastRBuff() {
+        if (bitsCountInRemembered > 0) { // true if there are some remembered bits
+            lastContainer = rememberedBits;
+            bitsCountInLastContainer = bitsCountInRemembered;
+        } else if (freeBitsInContainer < Integer.SIZE) { // true if fourBytesContainer is not empty
+            lastContainer = fourBytesContainer;
+            bitsCountInLastContainer = Integer.SIZE - freeBitsInContainer;
+        }
+    }
+
+    /**
      * writes redundantZeroesInLastCompressedByte to the beginning of the file
+     *
+     * @param outputFChan              reference to the output channel between our process and OS
+     * @param bytesInsideLastContainer number of bytes in the last four bytes container
+     * @throws IOException can be caused by reading or writing the file
      */
     private void addRedundantZeroesInLastCompressedByte(FileChannel outputFChan,
                                                         int bytesInsideLastContainer) throws IOException {
         outputFChan.position(0); // set the position of outputFChan to the beginning (see algorithmExplanation.txt)
-        int redundantZeroesInLastCompressedByte = (bytesInsideLastContainer * BYTE_SIZE) - bitsCountInLastContainer;
+        int redundantZeroesInLastCompressedByte = (bytesInsideLastContainer * Byte.SIZE) - bitsCountInLastContainer;
 
         ByteBuffer oneByteBuffer = ByteBuffer.allocate(1);
         oneByteBuffer.put((byte) redundantZeroesInLastCompressedByte);
@@ -211,11 +241,14 @@ class CompressByChunks extends CommonUtils {
 
     /**
      * writes bytes from container to the file
+     *
+     * @param outputFChan reference to the output channel between our process and OS
+     * @throws IOException can be caused by reading or writing the file
      */
     private void writeBytesFromContainerToFile(FileChannel outputFChan) throws IOException {
         // if writeBuff has less or more bytes than in the compressedDataChunk array
-        if (writeBuff.capacity() != (compressedChunkIndex * BYTES_IN_INTEGER)) {
-            writeBuff = ByteBuffer.allocate(compressedChunkIndex * BYTES_IN_INTEGER);
+        if (writeBuff.capacity() != (compressedChunkIndex * Integer.BYTES)) {
+            writeBuff = ByteBuffer.allocate(compressedChunkIndex * Integer.BYTES);
         }
 
         // put bytes from compressedDataChunk to the write buff
@@ -230,16 +263,20 @@ class CompressByChunks extends CommonUtils {
 
     /**
      * writes bytes from the last container to the file
+     *
+     * @param outputFChan reference to the output channel between our process and OS
+     * @return amount of bytes inside last four bytes container
+     * @throws IOException can be caused by reading or writing the file
      */
     private int writeLastContainerToTheFile(FileChannel outputFChan) throws IOException {
-        int bytesInsideLastContainer = (int) Math.ceil(bitsCountInLastContainer / 8.0);
+        int bytesInsideLastContainer = (int) Math.ceil(bitsCountInLastContainer / (double) Byte.SIZE);
         ByteBuffer lastWBuffer = ByteBuffer.allocate(bytesInsideLastContainer);
 
-        int shift = BITS_IN_INTEGER - BYTE_SIZE; // 24
+        int shift = Integer.SIZE - Byte.SIZE; // 24
         for (int i = 0; i < bytesInsideLastContainer; i++) {
             byte byteFromContainer = (byte) (lastContainer >>> shift);
             lastWBuffer.put(byteFromContainer);
-            shift -= BYTE_SIZE;
+            shift -= Byte.SIZE;
         }
         lastWBuffer.rewind(); // set the position inside the buff to the beginning
 
@@ -250,6 +287,9 @@ class CompressByChunks extends CommonUtils {
 
     /**
      * compresses the bytes, and puts compressed chunk to the array that will be copied to the buffer
+     *
+     * @param bytesInsideReadBuffer amount of bytes Inside Read Buffer
+     * @param byteToItsTreeLeaf key = unique byte; value = TreeLeaf that is created for corresponding byte
      */
     private void compressBytesFromRBUff(int bytesInsideReadBuffer, HashMap<Byte, TreeLeaf> byteToItsTreeLeaf) {
         for (int i = 0; i < bytesInsideReadBuffer; i++) {
@@ -273,7 +313,7 @@ class CompressByChunks extends CommonUtils {
             } else { // compressedByte can not fit all the encoding in it
                 bitsCountInRemembered = Math.abs(freeBitsInContainer);
                 //save bits that can't fit to container
-                rememberedBits = encodingOfTheByte << (BITS_IN_INTEGER - bitsCountInRemembered);
+                rememberedBits = encodingOfTheByte << (Integer.SIZE - bitsCountInRemembered);
                 encodingOfTheByte >>>= bitsCountInRemembered; // remove bits that can not fit to the container
                 fourBytesContainer |= encodingOfTheByte;
                 freeBitsInContainer = 0;
@@ -283,7 +323,7 @@ class CompressByChunks extends CommonUtils {
                 compressedDataChunk[compressedChunkIndex] = fourBytesContainer;
                 compressedChunkIndex++;
                 fourBytesContainer = 0;
-                freeBitsInContainer = BITS_IN_INTEGER;
+                freeBitsInContainer = Integer.SIZE;
             }
         }
         readBuff.rewind(); // set the position inside the buff to the beginning
