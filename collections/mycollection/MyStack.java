@@ -65,4 +65,5 @@ public class MyStack<T> implements MyCollection{
     public boolean isEmpty() {
         return lastNode == null;
     }
+
 }

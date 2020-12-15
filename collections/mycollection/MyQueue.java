@@ -71,4 +71,20 @@ public class MyQueue<T> implements MyCollection {
         return firstNode == null;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder res = new StringBuilder("[");
+
+        if (firstNode != null) { // firstNode == null true when list is empty
+            QueueNode currentNode = firstNode;
+            while (currentNode != null) {
+                res.append(currentNode.value).append(", ");
+                currentNode = currentNode.nextNode;
+            }
+            res.delete(res.length() - 2, res.length()); // remove coma and space after the last element
+        }
+
+        res.append("]");
+        return res.toString();
+    }
 }
