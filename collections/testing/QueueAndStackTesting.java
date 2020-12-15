@@ -17,11 +17,17 @@ interface QueueOrStackRetrieve<T> {
     T retrieve() throws Exception;
 }
 
+/**
+ * The following class contains all the logic for queue and stack tests
+ */
 class QueueAndStackTesting {
 
     private final int MAX_NUM_OF_ELEMENTS = 100;
+
     private final String QUEUE = "queue";
     private final String STACK = "stack";
+    private String CURRENT_COLLECTION; // can either be "stack" or "queue"
+
     private final String ANSI_GREEN = "\u001B[32m";
 
     /**
@@ -31,12 +37,12 @@ class QueueAndStackTesting {
         // queue tests
         MyQueue<Integer> myQueue = new MyQueue<>();
         Queue<Integer> nativeQueue = new LinkedList<>();
-        beginTests(myQueue::add, nativeQueue::add, myQueue::poll, nativeQueue::poll, QUEUE);
+        runQueueOrStackTests(myQueue::add, nativeQueue::add, myQueue::poll, nativeQueue::poll, QUEUE);
 
         // stack tests
         MyStack<Integer> myStack = new MyStack<>();
         Stack<Integer> nativeStack = new Stack<>();
-        beginTests(myStack::push, nativeStack::push, myStack::pop, nativeStack::pop, STACK);
+        runQueueOrStackTests(myStack::push, nativeStack::push, myStack::pop, nativeStack::pop, STACK);
     }
 
     /**
@@ -48,18 +54,20 @@ class QueueAndStackTesting {
      * @param nativeStackOrQueueRetrieve reference for the (poll or pop) method in native Queue or in native Stack
      * @param collectionType             can either be a "queue" or "stack"
      */
-    private void beginTests(QueueOrStackAttach<Integer> myStackOrQueueAttach,
-                            QueueOrStackAttach<Integer> nativeStackOrQueueAttach,
-                            QueueOrStackRetrieve<Integer> myStackOrQueueRetrieve,
-                            QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve, String collectionType) {
+    private void runQueueOrStackTests(QueueOrStackAttach<Integer> myStackOrQueueAttach,
+                                      QueueOrStackAttach<Integer> nativeStackOrQueueAttach,
+                                      QueueOrStackRetrieve<Integer> myStackOrQueueRetrieve,
+                                      QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve, String collectionType) {
         try {
+            CURRENT_COLLECTION = collectionType;
+
             addAndGetTheSameQuantity(myStackOrQueueAttach, nativeStackOrQueueAttach,
-                    myStackOrQueueRetrieve, nativeStackOrQueueRetrieve, collectionType);
+                    myStackOrQueueRetrieve, nativeStackOrQueueRetrieve);
 
             addAndGetDifferentQuantities(myStackOrQueueAttach, nativeStackOrQueueAttach,
-                    myStackOrQueueRetrieve, nativeStackOrQueueRetrieve, collectionType);
+                    myStackOrQueueRetrieve, nativeStackOrQueueRetrieve);
 
-            System.out.println(ANSI_GREEN + "successfully finished all the tests for " + collectionType);
+            System.out.println(ANSI_GREEN + "successfully finished all the tests for " + CURRENT_COLLECTION);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -74,31 +82,21 @@ class QueueAndStackTesting {
      * @param nativeStackOrQueueAttach   reference for the (add or push) method in native Queue or in native Stack
      * @param myStackOrQueueRetrieve     reference for the (poll or pop) method in myQueue or in myStack
      * @param nativeStackOrQueueRetrieve reference for the (poll or pop) method in native Queue or in native Stack
-     * @param collectionType             can either be a "queue" or "stack"
      * @throws Exception specifies that a mismatch occurred between native collection and my own
      */
     private void addAndGetTheSameQuantity(QueueOrStackAttach<Integer> myStackOrQueueAttach,
                                           QueueOrStackAttach<Integer> nativeStackOrQueueAttach,
                                           QueueOrStackRetrieve<Integer> myStackOrQueueRetrieve,
-                                          QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve,
-                                          String collectionType) throws Exception {
+                                          QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve) throws Exception {
         for (int numOfElements = 1; numOfElements < MAX_NUM_OF_ELEMENTS; numOfElements++) {
             // add numOfElementsToAdd to the collectionType
-            for (int j = 0; j < numOfElements; j++) {
-                myStackOrQueueAttach.attach(j);
-                nativeStackOrQueueAttach.attach(j);
-            }
+            attachElementsToTheCollection(numOfElements, myStackOrQueueAttach, nativeStackOrQueueAttach);
 
             // take out numOfElementsToAdd from the collectionType and check if they are the same
-            for (int j = 0; j < numOfElements; j++) {
-                if (!myStackOrQueueRetrieve.retrieve().equals(nativeStackOrQueueRetrieve.retrieve())) {
-                    throw new Exception(
-                            "mismatch happened, when there were " + collectionType + " elements in " + collectionType
-                    );
-                }
-            }
+            retrieveElementsFromTheCollection(numOfElements, myStackOrQueueRetrieve, nativeStackOrQueueRetrieve);
         }
     }
+
 
     /**
      * adds and retrieves different amounts of elements from the collection
@@ -107,36 +105,57 @@ class QueueAndStackTesting {
      * @param nativeStackOrQueueAttach   reference for the (add or push) method in native Queue or in native Stack
      * @param myStackOrQueueRetrieve     reference for the (poll or pop) method in myQueue or in myStack
      * @param nativeStackOrQueueRetrieve reference for the (poll or pop) method in native Queue or in native Stack
-     * @param collectionType             can either be a "queue" or "stack"
      * @throws Exception specifies that a mismatch occurred between native collection and my own
      */
     private void addAndGetDifferentQuantities(QueueOrStackAttach<Integer> myStackOrQueueAttach,
                                               QueueOrStackAttach<Integer> nativeStackOrQueueAttach,
                                               QueueOrStackRetrieve<Integer> myStackOrQueueRetrieve,
-                                              QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve,
-                                              String collectionType) throws Exception {
+                                              QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve
+    ) throws Exception {
         // add (50%) more than retrieve (25%)
         int needToAttachElements = (int) (MAX_NUM_OF_ELEMENTS * 0.5); // 50%
-        for (int i = 0; i < needToAttachElements; i++) {
-            myStackOrQueueAttach.attach(i);
-            nativeStackOrQueueAttach.attach(i);
-        }
+        attachElementsToTheCollection(needToAttachElements, myStackOrQueueAttach, nativeStackOrQueueAttach);
         int needToRetrieveElements = (int) (MAX_NUM_OF_ELEMENTS * 0.25); // 25%
-        for (int i = 0; i < needToRetrieveElements; i++) {
-            if (!myStackOrQueueRetrieve.retrieve().equals(nativeStackOrQueueRetrieve.retrieve())) {
-                throw new Exception("mismatch happened, when there were " + i + " elements in " + collectionType);
-            }
-        }
+        retrieveElementsFromTheCollection(needToRetrieveElements, myStackOrQueueRetrieve, nativeStackOrQueueRetrieve);
 
         // add (100%) less than retrieve (125% including previous attachment)
-        for (int i = 0; i < MAX_NUM_OF_ELEMENTS; i++) {
+        needToAttachElements = MAX_NUM_OF_ELEMENTS;
+        attachElementsToTheCollection(needToAttachElements, myStackOrQueueAttach, nativeStackOrQueueAttach);
+        needToRetrieveElements = (int) (MAX_NUM_OF_ELEMENTS + (MAX_NUM_OF_ELEMENTS * 0.25)); // 125%
+        retrieveElementsFromTheCollection(needToRetrieveElements, myStackOrQueueRetrieve, nativeStackOrQueueRetrieve);
+    }
+
+    /**
+     * adds elements to the current collection (to the queue or to the stack)
+     *
+     * @param numOfElementsToAttach    amount of elements to add
+     * @param myStackOrQueueAttach     reference for the (add or push) method in myQueue or in myStack
+     * @param nativeStackOrQueueAttach reference for the (add or push) method in native Queue or in native Stack
+     */
+    private void attachElementsToTheCollection(int numOfElementsToAttach,
+                                               QueueOrStackAttach<Integer> myStackOrQueueAttach,
+                                               QueueOrStackAttach<Integer> nativeStackOrQueueAttach) {
+        for (int i = 0; i < numOfElementsToAttach; i++) {
             myStackOrQueueAttach.attach(i);
             nativeStackOrQueueAttach.attach(i);
         }
-        needToRetrieveElements = (int) (MAX_NUM_OF_ELEMENTS + (MAX_NUM_OF_ELEMENTS * 0.25)); // 125%
-        for (int i = 0; i < needToRetrieveElements; i++) {
+    }
+
+    /**
+     * takes out numOfElementsToRetrieve from current collection (from the queue or from the stack)
+     *
+     * @param numOfElementsToRetrieve    amount of elements to take out
+     * @param myStackOrQueueRetrieve     reference for the (poll or pop) method in myQueue or in myStack
+     * @param nativeStackOrQueueRetrieve reference for the (poll or pop) method in native Queue or in native Stack
+     * @throws Exception specifies that a mismatch occurred between native collection and my own
+     */
+    private void retrieveElementsFromTheCollection(int numOfElementsToRetrieve,
+                                                   QueueOrStackRetrieve<Integer> myStackOrQueueRetrieve,
+                                                   QueueOrStackRetrieve<Integer> nativeStackOrQueueRetrieve
+    ) throws Exception {
+        for (int i = 0; i < numOfElementsToRetrieve; i++) {
             if (!myStackOrQueueRetrieve.retrieve().equals(nativeStackOrQueueRetrieve.retrieve())) {
-                throw new Exception("mismatch happened, when there were " + i + " elements in " + collectionType);
+                throw new Exception("mismatch occurred, when there were " + i + " elements in " + CURRENT_COLLECTION);
             }
         }
     }

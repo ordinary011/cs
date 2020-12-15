@@ -2,6 +2,9 @@ package com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.MyCollection;
 
+/**
+ * class that contains all the elements in an enhanceable array
+ */
 public class MyArrayList<T> implements MyList<T>, MyCollection {
 
     private final int MIN_ARR_SIZE = 1;

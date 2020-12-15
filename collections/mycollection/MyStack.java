@@ -1,5 +1,8 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection;
 
+/**
+ * Class that implements LIFO logic
+ */
 public class MyStack<T> implements MyCollection{
 
     private StackNode lastNode = null;

@@ -1,5 +1,8 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection;
 
+/**
+ * Class that implements FIFO logic
+ */
 public class MyQueue<T> implements MyCollection {
 
     private QueueNode firstNode = null;

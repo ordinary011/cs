@@ -8,7 +8,7 @@ import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists.MyList;
 
 import java.util.*;
 
-public class Testing { }
+public class MyTesting { }
 
 class StackTesting {
 
@@ -123,7 +123,7 @@ class QueueTesting {
 }
 
 
-class ListTesting {
+class MyListTesting {
 
 //    private MyList<Integer> myArrList = new MyLinkedList<>();
     private MyList<Integer> myArrList = new MyArrayList<>();

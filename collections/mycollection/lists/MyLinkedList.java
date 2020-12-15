@@ -2,6 +2,9 @@ package com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.MyCollection;
 
+/**
+ * class that contains all the elements as nodes. Each node is doubly linked
+ */
 public class MyLinkedList<T> implements MyList<T>, MyCollection {
 
     private ListNode firstNode = null;
