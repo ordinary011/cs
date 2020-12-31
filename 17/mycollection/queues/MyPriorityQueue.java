@@ -10,16 +10,15 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
     private final MyComparator<T> comparator;
 
     public MyPriorityQueue(int initialCapacity, MyComparator<T> comparator) {
-        arr = new ArrayList<>(initialCapacity + 1);
+        arr = new ArrayList<>(initialCapacity + 1); // +1 because first element is a dummy element
         arr.add(null); // first element is a dummy element because we will calculate array index starting from 1
         this.comparator = comparator;
     }
 
-
     @Override
     public void add(T newElement) {
         arr.add(newElement);
-        if (arr.size() == 2) { // true if we have only one element in the arr (the first element is dummy element)
+        if (arr.size() == 2) { // true if we have only one element in the arr (the first element is a dummy element)
             return;
         }
 
@@ -47,13 +46,19 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
 
         T returnVal = arr.get(1); // from the top of the heap
         T parent = arr.get(arr.size() - 1);
-        arr.remove(arr.size() - 1);
+        arr.remove(arr.size() - 1); // remove last element
         arr.set(1, parent); // put the last element to the top of the heap
 
         // bubble down
         int indexOfParent = 1;
+        int leftChildIndex = (int) Math.ceil(indexOfParent * 2);
         int rightChildIndex = (int) Math.ceil(indexOfParent * 2 + 1);
+        T leftChild = arr.get(leftChildIndex);
         T rightChild = arr.get(rightChildIndex);
+
+        if (comparator.compare(rightChild, leftChild) < 0) {
+            
+        }
 
         while (comparator.compare(rightChild, parent) < 0) {
             // swap parent and child (bubble down)
@@ -85,3 +90,38 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
         return arr.get(1);
     }
 }
+
+
+//    @Override
+//    public T poll() throws Exception {
+//        if (arr.size() == 1) { // first element in the arr is a dummy element
+//            throw new Exception("The priority queue is empty");
+//        }
+//
+//        T returnVal = arr.get(1); // from the top of the heap
+//        T parent = arr.get(arr.size() - 1);
+//        arr.remove(arr.size() - 1); // delete last element
+//        arr.set(1, parent); // put the last element to the top of the heap
+//
+//        // bubble down
+//        int indexOfParent = 1;
+//        int rightChildIndex = (int) Math.ceil(indexOfParent * 2 + 1);
+//        T rightChild = arr.get(rightChildIndex);
+//
+//        while (comparator.compare(rightChild, parent) < 0) {
+//            // swap parent and child (bubble down)
+//            arr.set(indexOfParent, rightChild);
+//            arr.set(rightChildIndex, parent);
+//
+//            indexOfParent = rightChildIndex;
+//            rightChildIndex = (int) Math.ceil(indexOfParent * 2 + 1);
+//
+//            if (rightChildIndex < arr.size()) {
+//                rightChild = arr.get(rightChildIndex);
+//            } else {
+//                break;
+//            }
+//        }
+//
+//        return returnVal;
+//    }

@@ -5,7 +5,7 @@ import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 public class MyHashMap<T, E> {
 
     private int size = 0;
-//    private int arrCapacity = 16;
+    //    private int arrCapacity = 16;
     private int arrCapacity = 3;
     private Object[] arrOfBuckets = new Object[arrCapacity];
 
@@ -40,7 +40,12 @@ public class MyHashMap<T, E> {
         // search if key already exists, then we just replace it's value
         boolean keyIsNew = true;
         for (ChainSegment chainSegment : bucket) {
-            if (chainSegment.key.equals(key)) {
+            if (chainSegment.key == null && key == null) {
+                chainSegment.value = value;
+                keyIsNew = false;
+            }
+
+            if (chainSegment.key != null && chainSegment.key.equals(key)) {
                 chainSegment.value = value;
                 keyIsNew = false;
             }
@@ -87,7 +92,11 @@ public class MyHashMap<T, E> {
         }
 
         for (ChainSegment chainSegment : wholeChain) {
-            if (chainSegment.key.equals(key)) {
+            if (chainSegment.key == null && key == null) {
+                return chainSegment.value;
+            }
+
+            if (chainSegment.key != null && chainSegment.key.equals(key)) {
                 return chainSegment.value;
             }
         }
@@ -100,3 +109,4 @@ public class MyHashMap<T, E> {
 // todo add 1 null value
 // todo add to the same chain
 // todo put with the same key
+
