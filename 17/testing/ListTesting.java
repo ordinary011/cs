@@ -1,10 +1,7 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment16.testing;
+package com.shpp.p2p.cs.ldebryniuk.assignment17.testing;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists.MyArrayList;
-import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists.MyLinkedList;
-import com.shpp.p2p.cs.ldebryniuk.assignment16.mycollection.lists.MyList;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,39 +11,25 @@ class ListTesting {
 
     private final int MAX_NUM_OF_ELEMENTS = 10; // should be an even number
 
-    private final String LINKED_LIST = "linked list";
-    private final String ARRAY_LIST = "array list";
-    private String CURRENT_LIST;
+    private final String current_list_type;
 
-    private MyList<Integer> myList;
-    private List<Integer> nativeList;
+    private final MyList<Integer> myList;
+    private final List<Integer> nativeList;
 
     private final String ANSI_GREEN = "\u001B[32m";
 
-    /**
-     * the starting method of the tests for arrayList and LinkedList
-     */
-    void startListTesting() {
-        // linked list tests
-        myList = new MyLinkedList<>();
-        nativeList = new ArrayList<>();
-        runTestsForList(LINKED_LIST);
-
-        // array list tests
-        myList = new MyArrayList<>();
-        nativeList = new ArrayList<>();
-        runTestsForList(ARRAY_LIST);
+    public ListTesting(MyList<Integer> myList, List<Integer> nativeList, String current_list_type) {
+        this.current_list_type = current_list_type;
+        this.myList = myList;
+        this.nativeList = nativeList;
     }
 
     /**
+     * the starting method of the tests for arrayList and LinkedList
      * contains common logic for tests of the arrayList and LinkedList
-     *
-     * @param listType either "linked list" or "array list"
      */
-    private void runTestsForList(String listType) {
+    void runTestsForList() {
         try {
-            CURRENT_LIST = listType;
-
             addAndRemoveFromEndToStart();
             addAndRemoveFromStartToEnd();
 
@@ -56,7 +39,7 @@ class ListTesting {
 
             setMethodCheck();
 
-            System.out.println(ANSI_GREEN + "successfully finished all the tests for " + listType);
+            System.out.println(ANSI_GREEN + "successfully finished all the tests for " + current_list_type);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -214,7 +197,7 @@ class ListTesting {
      */
     private void checkInTwoLists(int elIndexInTheList) throws Exception {
         if (!myList.get(elIndexInTheList).equals(nativeList.get(elIndexInTheList))) {
-            throw new Exception("mismatch occurred, at index: " + elIndexInTheList + " in " + CURRENT_LIST);
+            throw new Exception("mismatch occurred, at index: " + elIndexInTheList + " in " + current_list_type);
         }
     }
 }

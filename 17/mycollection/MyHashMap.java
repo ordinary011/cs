@@ -4,10 +4,10 @@ import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 
 public class MyHashMap<T, E> {
 
-    private int size = 0;
+    private int insertedElements = 0;
     //    private int arrCapacity = 16;
     private int arrCapacity = 3;
-    private Object[] arrOfBuckets = new Object[arrCapacity];
+    private MyLinkedList<ChainSegment>[] arrOfChains = new MyLinkedList[arrCapacity];
 
     private class ChainSegment {
         private final T key;
@@ -20,26 +20,26 @@ public class MyHashMap<T, E> {
     }
 
     public void put(T key, E value) throws Exception {
-        if (size == arrCapacity) {
+        if (insertedElements == arrCapacity) {
             extendArrSize();
         }
 
-        findArrIndexAndAdd(key, value, arrOfBuckets);
+        findArrIndexAndAdd(key, value);
     }
 
-    private void findArrIndexAndAdd(T key, E value, Object[] arrOfBuckets) {
+    private void findArrIndexAndAdd(T key, E value) {
         int hashCode = (key == null) ? 0 : key.hashCode();
-        int arrIndexForTheKey = hashCode % arrCapacity;
+        int arrIndexOfTheKey = hashCode % arrCapacity;
 
-        MyLinkedList<ChainSegment> bucket = (MyLinkedList<ChainSegment>) arrOfBuckets[arrIndexForTheKey];
-        if (bucket == null) {
-            bucket = new MyLinkedList<>();
-            arrOfBuckets[arrIndexForTheKey] = bucket;
+        MyLinkedList<ChainSegment> chain = arrOfChains[arrIndexOfTheKey];
+        if (chain == null) {
+            chain = new MyLinkedList<>();
+            arrOfChains[arrIndexOfTheKey] = chain;
         }
 
         // search if key already exists, then we just replace it's value
         boolean keyIsNew = true;
-        for (ChainSegment chainSegment : bucket) {
+        for (ChainSegment chainSegment : chain) {
             if (chainSegment.key == null && key == null) {
                 chainSegment.value = value;
                 keyIsNew = false;
@@ -52,46 +52,44 @@ public class MyHashMap<T, E> {
         }
 
         if (keyIsNew) {
-            bucket.add(new ChainSegment(key, value));
-            size++;
+            chain.add(new ChainSegment(key, value));
+            insertedElements++;
         }
     }
 
-    private MyLinkedList<ChainSegment> findBucketByKey(T key, Object[] arrOfBuckets) {
-        int hashCode = (key == null) ? 0 : key.hashCode();
-        int arrIndexForTheKey = hashCode % arrCapacity;
-
-        return (MyLinkedList<ChainSegment>) arrOfBuckets[arrIndexForTheKey];
-    }
-
-    private void extendArrSize() throws Exception {
+    private void extendArrSize() {
         arrCapacity *= 2;
-        Object[] extendArr = new Object[arrCapacity];
+        MyLinkedList<ChainSegment>[] extendedArr = new MyLinkedList[arrCapacity];
 
-        for (Object bucket : arrOfBuckets) {
-            if (bucket != null) {
-                ChainSegment segment = ((MyLinkedList<ChainSegment>) bucket).get(0);
+        for (MyLinkedList<ChainSegment> chain : arrOfChains) {
+            if (chain != null) {
+                for (ChainSegment chainSegment : chain) {
+                    int hashCode = (chainSegment.key == null) ? 0 : chainSegment.key.hashCode();
+                    int arrIndexForTheKey = hashCode % arrCapacity;
 
-                int hashCode = (segment.key == null) ? 0 : segment.key.hashCode();
-                int arrIndexForTheKey = hashCode % arrCapacity;
-
-                extendArr[arrIndexForTheKey] = bucket;
+                    MyLinkedList<ChainSegment> chainInExtendedArr = extendedArr[arrIndexForTheKey];
+                    if (chainInExtendedArr == null) {
+                        chainInExtendedArr = new MyLinkedList<>();
+                        extendedArr[arrIndexForTheKey] = chainInExtendedArr;
+                    }
+                    chainInExtendedArr.add(chainSegment);
+                }
             }
         }
 
-        arrOfBuckets = extendArr;
+        arrOfChains = extendedArr;
     }
 
     public E get(T key) {
         int hashCode = (key == null) ? 0 : key.hashCode();
         int arrIndexForTheKey = hashCode % arrCapacity;
 
-        MyLinkedList<ChainSegment> wholeChain = findBucketByKey(key, arrOfBuckets);
-        if (wholeChain == null) {
+        MyLinkedList<ChainSegment> chain = arrOfChains[arrIndexForTheKey];
+        if (chain == null) {
             return null;
         }
 
-        for (ChainSegment chainSegment : wholeChain) {
+        for (ChainSegment chainSegment : chain) {
             if (chainSegment.key == null && key == null) {
                 return chainSegment.value;
             }
@@ -103,10 +101,9 @@ public class MyHashMap<T, E> {
 
         return null;
     }
-
 }
 
 // todo add 1 null value
 // todo add to the same chain
 // todo put with the same key
-
+// get by key that doesn't exist
