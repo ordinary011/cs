@@ -1,5 +1,7 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection;
 
+import java.util.EmptyStackException;
+
 /**
  * Class that implements LIFO logic
  */
@@ -32,11 +34,10 @@ public class MyStack<T> implements MyCollection{
      * retrieves the element from the top of the stack
      *
      * @return the element from the top of the stack
-     * @throws Exception specifies that the stack is empty
      */
-    public T pop() throws Exception {
+    public T pop() {
         if (lastNode == null) {
-            throw new Exception("sorry, stack is empty");
+            throw new EmptyStackException();
         }
 
         StackNode tmpNode = lastNode;

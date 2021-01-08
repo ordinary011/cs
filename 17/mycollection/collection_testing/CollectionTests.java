@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment17.testing;
+package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.collection_testing;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyStack;
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyArrayList;
@@ -12,7 +12,7 @@ import java.util.*;
 /**
  * The entering class for all the tests
  */
-public class Testing {
+public class CollectionTests {
 
     private final String LINKED_LIST = "linked list";
     private final String ARRAY_LIST = "array list";
@@ -29,7 +29,7 @@ public class Testing {
 
         testStackAndQueues();
 
-        testHashMap();
+        new HashMapTesting().runTests();
     }
 
     /**
@@ -72,13 +72,6 @@ public class Testing {
 
         new QueueAndStackTesting(myPriorityQueue::add, nativePriorityQueue::add,
                 myPriorityQueue::poll, nativePriorityQueue::poll, PRIORITY_QUEUE).start();
-    }
-
-    /**
-     *
-     */
-    private void testHashMap() {
-
     }
 
 }

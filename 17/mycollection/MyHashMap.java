@@ -19,7 +19,7 @@ public class MyHashMap<T, E> {
         }
     }
 
-    public void put(T key, E value) throws Exception {
+    public void put(T key, E value) {
         if (insertedElements == arrCapacity) {
             extendArrSize();
         }
@@ -102,8 +102,3 @@ public class MyHashMap<T, E> {
         return null;
     }
 }
-
-// todo add 1 null value
-// todo add to the same chain
-// todo put with the same key
-// get by key that doesn't exist

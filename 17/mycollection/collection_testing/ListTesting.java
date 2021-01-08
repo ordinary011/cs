@@ -1,4 +1,4 @@
-package com.shpp.p2p.cs.ldebryniuk.assignment17.testing;
+package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.collection_testing;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyList;
 

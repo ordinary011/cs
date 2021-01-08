@@ -41,12 +41,11 @@ public class MyQueue<T> implements MyQueueI<T>, MyCollection {
      * retrieves the element from the beginning of the queue
      *
      * @return the element from the beginning of the queue
-     * @throws Exception specifies that the queue is empty
      */
     @Override
-    public T poll() throws Exception {
+    public T poll() {
         if (firstNode == null) {
-            throw new Exception("sorry, queue is empty");
+            return null;
         }
 
         QueueNode nodeToPoll = firstNode;
