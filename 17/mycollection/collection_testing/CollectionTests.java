@@ -25,9 +25,9 @@ public class CollectionTests {
      * start method for running all the tests
      */
     public void runTests() {
-//        testLists();
-//
-//        testStackAndQueues();
+        testLists();
+
+        testStackAndQueues();
 
         new HashMapTesting().runTests();
     }

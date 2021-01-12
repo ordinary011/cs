@@ -4,4 +4,6 @@ public interface MyCollection {
 
     boolean isEmpty();
 
+    int size();
+
 }

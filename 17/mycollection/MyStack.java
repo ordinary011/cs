@@ -5,8 +5,9 @@ import java.util.EmptyStackException;
 /**
  * Class that implements LIFO logic
  */
-public class MyStack<T> implements MyCollection{
+public class MyStack<T> implements MyCollection {
 
+    private int size = 0;
     private StackNode lastNode = null;
 
     private class StackNode {
@@ -28,6 +29,7 @@ public class MyStack<T> implements MyCollection{
         newNode.prevNode = lastNode;
 
         lastNode = newNode;
+        size++;
     }
 
     /**
@@ -44,6 +46,7 @@ public class MyStack<T> implements MyCollection{
 
         lastNode = lastNode.prevNode;
 
+        size--;
         return tmpNode.value;
     }
 
@@ -64,6 +67,11 @@ public class MyStack<T> implements MyCollection{
     @Override
     public boolean isEmpty() {
         return lastNode == null;
+    }
+
+    @Override
+    public int size() {
+        return size;
     }
 
 }

@@ -15,10 +15,9 @@ interface QueueOrStackRetrieve<T> {
 /**
  * The following class contains all the logic for queue and stack tests
  */
-class QueueAndStackTesting {
+class QueueAndStackTesting implements SuccessfulOutput {
 
     private final int MAX_NUM_OF_ELEMENTS = 100;
-    private final String ANSI_GREEN = "\u001B[32m";
     private final String CURRENT_COLLECTION; // can either be "stack" or "FIFO queue" or "PRIORITY queue"
 
     private final ArrayList<Integer> arrOfAllAddedElements = new ArrayList<>();
@@ -136,7 +135,7 @@ class QueueAndStackTesting {
     }
 
     /**
-     * @param elToAttach
+     * @param elToAttach element that is to be attached to the current collection
      */
     private void attachElements(Integer elToAttach) {
         myStackOrQueueAttach.attach(elToAttach);
@@ -164,7 +163,7 @@ class QueueAndStackTesting {
      *
      */
     private void addAndGetRandomNumbers() throws Exception {
-        // add random nums
+        // add random numbers
         for (int i = 0; i < MAX_NUM_OF_ELEMENTS; i++) {
             int randomNum = (int) (Math.random() * MAX_NUM_OF_ELEMENTS);
             attachElements(randomNum);

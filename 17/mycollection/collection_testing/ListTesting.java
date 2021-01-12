@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * The following class contains all the logic for arrayList and LinkedList tests
  */
-class ListTesting {
+class ListTesting implements SuccessfulOutput {
 
     private final int MAX_NUM_OF_ELEMENTS = 10; // should be an even number
 
@@ -15,8 +15,6 @@ class ListTesting {
 
     private final MyList<Integer> myList;
     private final List<Integer> nativeList;
-
-    private final String ANSI_GREEN = "\u001B[32m";
 
     public ListTesting(MyList<Integer> myList, List<Integer> nativeList, String current_list_type) {
         this.current_list_type = current_list_type;
@@ -201,3 +199,34 @@ class ListTesting {
         }
     }
 }
+
+//        MyLinkedList<Integer> m = new MyLinkedList<>();
+//        LinkedList<Integer> n = new LinkedList<>();
+//
+//        MyLinkedList<Integer> m2 = new MyLinkedList<>();
+//        LinkedList<Integer> n2 = new LinkedList<>();
+//
+//        m.add(3);
+//        n.add(3);
+//        m.add(4);
+//        n.add(4);
+//        m.add(5);
+//        n.add(5);
+//
+//        m2.add(6);
+//        n2.add(6);
+//        m2.add(7);
+//        n2.add(7);
+//
+//        n.addAll(n2);
+//        m.addAll(m2);
+//
+//        System.out.println("n");
+//        for (Integer integ : n) {
+//            System.out.print(integ + ", ");
+//        }
+//
+//        System.out.println("\nm");
+//        for (Integer integ : m) {
+//            System.out.print(integ + ", ");
+//        }

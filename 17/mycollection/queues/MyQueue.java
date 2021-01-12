@@ -7,6 +7,7 @@ import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyCollection;
  */
 public class MyQueue<T> implements MyQueueI<T>, MyCollection {
 
+    private int size = 0;
     private QueueNode firstNode = null;
     private QueueNode lastNode = null;
 
@@ -35,6 +36,7 @@ public class MyQueue<T> implements MyQueueI<T>, MyCollection {
         }
 
         lastNode = newNode;
+        size++;
     }
 
     /**
@@ -55,6 +57,7 @@ public class MyQueue<T> implements MyQueueI<T>, MyCollection {
             lastNode = null;
         }
 
+        size--;
         return nodeToPoll.value;
     }
 
@@ -76,6 +79,11 @@ public class MyQueue<T> implements MyQueueI<T>, MyCollection {
     @Override
     public boolean isEmpty() {
         return firstNode == null;
+    }
+
+    @Override
+    public int size() {
+        return size;
     }
 
     @Override

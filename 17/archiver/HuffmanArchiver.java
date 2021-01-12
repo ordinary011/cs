@@ -148,8 +148,7 @@ public class HuffmanArchiver {
         } catch (NoSuchFileException e) {
             System.err.println("Could not find file with the following name: " + inputFile);
         } catch (Exception e) {
-//            System.err.println(e.toString());
-            e.printStackTrace();
+            System.err.println(e.toString());
         }
     }
 

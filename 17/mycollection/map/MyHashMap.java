@@ -1,13 +1,11 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyArrayList;
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 
 public class MyHashMap<T, E> implements MyMap<T, E> {
 
     private int insertedElements = 0;
-//        private int arrCapacity = 16;
-    private int arrCapacity = 3;
+    private int arrCapacity = 16;
     private MyLinkedList<MyMapEntry>[] arrOfChains = new MyLinkedList[arrCapacity];
 
     private class MyMapEntry implements MyMap.Entry<T, E> {
@@ -97,6 +95,10 @@ public class MyHashMap<T, E> implements MyMap<T, E> {
         int hashCode = (key == null) ? 0 : key.hashCode();
         int arrIndexForTheKey = Math.abs(hashCode % arrCapacity);
 
+        if (arrIndexForTheKey >= arrOfChains.length) {
+            return null;
+        }
+
         MyLinkedList<MyMapEntry> chain = arrOfChains[arrIndexForTheKey];
         if (chain == null) {
             return null;
@@ -120,8 +122,6 @@ public class MyHashMap<T, E> implements MyMap<T, E> {
         int hashCode = (key == null) ? 0 : key.hashCode();
         int arrIndexOfTheKey = Math.abs(hashCode % arrCapacity);
 
-        // arrIndexOfTheKey == 3
-        // arrOfChains.length == 3 (indeces: 0, 1, 2)
         if (arrIndexOfTheKey >= arrOfChains.length) {
             return false;
         }
