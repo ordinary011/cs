@@ -4,8 +4,7 @@ import java.util.ArrayList;
 
 public class MyPriorityQueue<T> implements MyQueueI<T> {
 
-    // todo make private
-    public final ArrayList<T> arr;
+    private final ArrayList<T> arr;
     private final MyComparator<T> comparator;
 
     public MyPriorityQueue(int initialCapacity, MyComparator<T> comparator) {
@@ -103,6 +102,10 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
         // at index 0 we have a dummy element
         // todo check peeek when there are no elements
         return arr.get(1);
+    }
+
+    public int size() {
+        return arr.size() - 1;
     }
 }
 

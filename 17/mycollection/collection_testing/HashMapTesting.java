@@ -1,6 +1,7 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.collection_testing;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyHashMap;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyHashMap;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyMap;
 
 import java.util.HashMap;
 
@@ -14,6 +15,15 @@ public class HashMapTesting {
 
             HashMap<String, Integer> nativeHashMap = new HashMap<>();
             MyHashMap<String, Integer> myHashMap = new MyHashMap<>();
+
+            myHashMap.put("karl", 3);
+            myHashMap.put("karlvvvv", 5);
+            myHashMap.put("karlvvvvbbbb", 7);
+
+            for (MyMap.Entry<String, Integer> s : myHashMap.entryList()) {
+                System.out.println("key " + s.getKey());
+                System.out.println("val " + s.getValue());
+            }
 
             // populate maps
             for (int i = 0; i < tests.length; i++) {

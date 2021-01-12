@@ -31,6 +31,7 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
     @Override
     public void add(T element) {
         ListNode newNode = new ListNode(element);
+
         newNode.prevNode = lastNode;
         newNode.nextNode = null;
 
@@ -185,6 +186,26 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
         return firstNode == null && lastNode == null;
     }
 
+    public void addAll(MyLinkedList<T> newListToAppend) { // todo check for empty lists + addAll tests
+        if (newListToAppend.isEmpty()) {
+            return;
+        }
+
+        ListNode firstNodeInNextList = newListToAppend.firstNode;
+
+        firstNodeInNextList.prevNode = this.lastNode;
+
+        if (this.firstNode == null) {
+            this.firstNode = firstNodeInNextList;
+        }
+
+        if (this.lastNode != null) {
+            this.lastNode.nextNode = firstNodeInNextList;
+        }
+
+        lastNode = newListToAppend.lastNode;
+        size += newListToAppend.size;
+    }
 
     private class MyLinkedListIterator<T> implements Iterator<T> {
         private ListNode currentNode = firstNode;

@@ -1,6 +1,6 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.calculator;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyHashMap;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyHashMap;
 
 /**
  * The following class is comprises all the logic in regard to the variable handling

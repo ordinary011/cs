@@ -28,8 +28,11 @@ public class Assignment13Part1 {
     public static int BG_MIN_VAL;
 
     public static void main(String[] args) {
-        if (args.length == 0) findObjCount("test.jpg");
-        else System.out.println(findObjCount(args[0]));
+        if (args.length == 0) {
+            findObjCount("test.jpg");
+        } else {
+            System.out.println(findObjCount(args[0]));
+        }
     }
 
     /**

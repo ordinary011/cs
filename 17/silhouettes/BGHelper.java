@@ -1,7 +1,7 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.silhouettes;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyHashMap;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyMap;
 
 /**
  * The following class comprises the logic for determining background and its max and min values
@@ -15,7 +15,7 @@ public class BGHelper {
      */
     public boolean findBGColor(int[][] pixels, int minPixsInObj) {
         // <pixVal, pixCountOfCurrentPixValue>
-        HashMap<Integer, Integer> pixPopularities = new HashMap<>();
+        MyHashMap<Integer, Integer> pixPopularities = new MyHashMap<>();
 
         findPixPopularities(pixPopularities, pixels);
         if (pixPopularities.size() == 1) return true; // only BG nothing else
@@ -25,7 +25,7 @@ public class BGHelper {
         int biggestPixCount = 0;
         int minVal = 0;
         int maxVal = 0;
-        for (Map.Entry<Integer, Integer> entry : pixPopularities.entrySet()) {
+        for (MyMap.Entry<Integer, Integer> entry : pixPopularities.entryList()) {
             int pixValCount = entry.getValue();
 
             if (pixValCount > biggestPixCount) { // bg value
@@ -47,11 +47,11 @@ public class BGHelper {
     /**
      * The following method maps pix values with their amount
      */
-    private void findPixPopularities(HashMap<Integer, Integer> pixPopularities, int[][] pixels) {
+    private void findPixPopularities(MyHashMap<Integer, Integer> pixPopularities, int[][] pixels) {
         for (int[] pixRow : pixels) {
             for (int pixVal : pixRow) {
                 if (!pixPopularities.containsKey(pixVal)) pixPopularities.put(pixVal, 1);
-                else pixPopularities.compute(pixVal, (k, v) -> v + 1); // increment popularity
+                else pixPopularities.put(pixVal, pixPopularities.get(pixVal) + 1); // increment popularity
             }
         }
     }

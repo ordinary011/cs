@@ -1,13 +1,10 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection;
 
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.queues.MyComparator;
-import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.queues.MyPriorityQueue;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map.MyHashMap;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.PriorityQueue;
+
+// todo delete this whole class
 
 //class MyCharComparator implements MyComparator<String> {
 //

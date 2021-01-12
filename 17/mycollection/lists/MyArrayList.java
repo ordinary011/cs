@@ -2,10 +2,12 @@ package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists;
 
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyCollection;
 
+import java.util.Iterator;
+
 /**
  * class that contains all the elements in an enhanceable array
  */
-public class MyArrayList<T> implements MyList<T>, MyCollection {
+public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
 
     private final int MIN_ARR_SIZE = 1;
     private int arrIndexForInsertion = 0;
@@ -132,6 +134,25 @@ public class MyArrayList<T> implements MyList<T>, MyCollection {
     @Override
     public boolean isEmpty() {
         return arrIndexForInsertion == 0;
+    }
+
+    private class MyArrayListIterator<T> implements Iterator<T> {
+        private int currentElementIndex = 0;
+
+        @Override
+        public boolean hasNext() {
+            return currentElementIndex != arrIndexForInsertion;
+        }
+
+        @Override
+        public T next() {
+            return (T) array[currentElementIndex++];
+        }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new MyArrayListIterator<>();
     }
 
     @Override

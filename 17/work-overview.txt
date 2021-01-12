@@ -1,0 +1,16 @@
+чи допрацювали ви контейнери попереднього тижня:
+yes iterators were added
+
+з якими труднощами зіткнулися при перекладі своїх проектів на свої колекції
+there were no difficulties because of iterators
+
+наскільки просіла продуктивність від переходу
+
+яким алгоритмом реалізували PriorityQueue
+binaryHeap
+
+як ви боретеся з колізіями в HashMap
+chain method
+
+чи тягне ваша робота на 5
+currently no
