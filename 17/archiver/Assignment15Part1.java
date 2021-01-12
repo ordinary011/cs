@@ -22,19 +22,6 @@ public class Assignment15Part1 {
      *             {"-u" "archived_poem_poem.par", "test3.txt"}
      */
     public static void main(String[] args) {
-//        args = new String[]{"test5.txt", "test5.txt.par"};
-//        new HuffmanArchiver().determineOperation(args);
-//
-//        args = new String[]{"test5.txt.par", "test5_res.txt"};
-//        new HuffmanArchiver().determineOperation(args);
-
-
-
-
-//        args = new String[]{"test9.mp4", "test9.mp4.par"};
-//        new HuffmanArchiver().determineOperation(args);
-
-//        args = new String[]{"test9.mp4.par", "test9_res.mp4"};
-//        new HuffmanArchiver().determineOperation(args);
+        new HuffmanArchiver().determineOperation(args);
     }
 }

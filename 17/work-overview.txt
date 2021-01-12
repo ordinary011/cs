@@ -1,16 +1,23 @@
 чи допрацювали ви контейнери попереднього тижня:
-yes iterators were added
+Yes!
+Iterators were added.
+addAll method was added to MyLinkedList.
+All the collections now implement MyCollection interface.
+Small improvements in code.
 
 з якими труднощами зіткнулися при перекладі своїх проектів на свої колекції
 there were no difficulties because of iterators
 
 наскільки просіла продуктивність від переходу
+in calculator decrement of efficiency was not spotted
+in silhouettes decrement of efficiency was not spotted
+in archiver permormance was tested on the mp4 file (78 megabytes) and decrement of efficiency was not spotted
 
 яким алгоритмом реалізували PriorityQueue
-binaryHeap
+binary Heap
 
 як ви боретеся з колізіями в HashMap
-chain method
+chaining
 
 чи тягне ваша робота на 5
-currently no
+no because the priority queue was not refactored

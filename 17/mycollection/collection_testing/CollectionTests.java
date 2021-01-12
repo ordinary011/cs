@@ -44,7 +44,7 @@ public class CollectionTests {
     }
 
     /**
-     *
+     * starts tests for stack and both queues
      */
     private void testStackAndQueues() {
         // stack tests
@@ -61,7 +61,7 @@ public class CollectionTests {
     }
 
     /**
-     *
+     * starts tests for priority queue
      */
     private void priorityQueueTests() {
         MyComparator<Integer> myComparator = (num1, num2) -> num1 - num2;

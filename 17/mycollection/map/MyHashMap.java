@@ -1,8 +1,9 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map;
 
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyCollection;
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 
-public class MyHashMap<T, E> implements MyMap<T, E> {
+public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
 
     private int insertedElements = 0;
     private int arrCapacity = 16;
@@ -28,6 +29,12 @@ public class MyHashMap<T, E> implements MyMap<T, E> {
         }
     }
 
+    /**
+     * adds new element to the array
+     *
+     * @param key   key that is used to determine the location of the value
+     * @param value value that is to be stored "behind" key
+     */
     @Override
     public void put(T key, E value) {
         if (insertedElements == arrCapacity) {
@@ -37,52 +44,54 @@ public class MyHashMap<T, E> implements MyMap<T, E> {
         findArrIndexAndAdd(key, value);
     }
 
+    /**
+     * searchs for the element by index and replaces it
+     *
+     * @param key   key that is used to determine the location of the value
+     * @param value value that is to be stored "behind" key
+     */
     private void findArrIndexAndAdd(T key, E value) {
-        int hashCode = (key == null) ? 0 : key.hashCode();
-        int arrIndexOfTheKey = Math.abs(hashCode % arrCapacity);
+        int arrIndexForTheKey = findArrIndexForTheKey(key);
 
-        MyLinkedList<MyMapEntry> chain = arrOfChains[arrIndexOfTheKey];
-        if (chain == null) {
-            chain = new MyLinkedList<>();
-            arrOfChains[arrIndexOfTheKey] = chain;
+        MyLinkedList<MyMapEntry> chainOfEntries = arrOfChains[arrIndexForTheKey];
+        if (chainOfEntries == null) {
+            chainOfEntries = new MyLinkedList<>();
+            arrOfChains[arrIndexForTheKey] = chainOfEntries;
         }
 
         // search if key already exists, then we just replace it's value
-        boolean keyIsNew = true;
-        for (MyMapEntry chainSegment : chain) {
-            if (chainSegment.key == null && key == null) {
-                chainSegment.value = value;
-                keyIsNew = false;
-            }
-
-            if (chainSegment.key != null && chainSegment.key.equals(key)) {
-                chainSegment.value = value;
-                keyIsNew = false;
+        for (MyMapEntry myMapEntry : chainOfEntries) {
+            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
+                    myMapEntry.key == null && key == null) {
+                myMapEntry.value = value;
+                return;
             }
         }
 
-        if (keyIsNew) {
-            chain.add(new MyMapEntry(key, value));
-            insertedElements++;
-        }
+        // code below is executed only if the key is new
+        chainOfEntries.add(new MyMapEntry(key, value));
+        insertedElements++;
     }
 
+    /**
+     * increases size of the array (x2)
+     * and copies all the elements to the new arr that is two times bigger than before
+     */
     private void extendArrSize() {
         arrCapacity *= 2;
         MyLinkedList<MyMapEntry>[] extendedArr = new MyLinkedList[arrCapacity];
 
-        for (MyLinkedList<MyMapEntry> chain : arrOfChains) {
-            if (chain != null) {
-                for (MyMapEntry chainSegment : chain) {
-                    int hashCode = (chainSegment.key == null) ? 0 : chainSegment.key.hashCode();
-                    int arrIndexForTheKey = Math.abs(hashCode % arrCapacity);
+        for (MyLinkedList<MyMapEntry> chainOfEntries : arrOfChains) {
+            if (chainOfEntries != null) {
+                for (MyMapEntry myMapEntry : chainOfEntries) {
+                    int arrIndexForTheKey = findArrIndexForTheKey(myMapEntry.key);
 
                     MyLinkedList<MyMapEntry> chainInExtendedArr = extendedArr[arrIndexForTheKey];
                     if (chainInExtendedArr == null) {
                         chainInExtendedArr = new MyLinkedList<>();
                         extendedArr[arrIndexForTheKey] = chainInExtendedArr;
                     }
-                    chainInExtendedArr.add(chainSegment);
+                    chainInExtendedArr.add(myMapEntry);
                 }
             }
         }
@@ -90,72 +99,82 @@ public class MyHashMap<T, E> implements MyMap<T, E> {
         arrOfChains = extendedArr;
     }
 
+    /**
+     * based on the key returns value
+     *
+     * @param key key that is used to determine the location of the value
+     * @return value that is stored "behind" the key
+     */
     @Override
     public E get(T key) {
-        int hashCode = (key == null) ? 0 : key.hashCode();
-        int arrIndexForTheKey = Math.abs(hashCode % arrCapacity);
+        int arrIndexForTheKey = findArrIndexForTheKey(key);
 
         if (arrIndexForTheKey >= arrOfChains.length) {
             return null;
         }
 
-        MyLinkedList<MyMapEntry> chain = arrOfChains[arrIndexForTheKey];
-        if (chain == null) {
+        MyLinkedList<MyMapEntry> chainOfEntries = arrOfChains[arrIndexForTheKey];
+        if (chainOfEntries == null) {
             return null;
         }
 
-        for (MyMapEntry chainSegment : chain) {
-            if (chainSegment.key == null && key == null) {
-                return chainSegment.value;
-            }
-
-            if (chainSegment.key != null && chainSegment.key.equals(key)) {
-                return chainSegment.value;
+        for (MyMapEntry myMapEntry : chainOfEntries) {
+            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
+                    myMapEntry.key == null && key == null) {
+                return myMapEntry.value;
             }
         }
 
         return null;
     }
 
-    @Override
-    public boolean containsKey(T key) {
+    /**
+     * @param key key that is used to determine the location of the value
+     * @return index for the key within our hashMap
+     */
+    private int findArrIndexForTheKey(T key) {
         int hashCode = (key == null) ? 0 : key.hashCode();
-        int arrIndexOfTheKey = Math.abs(hashCode % arrCapacity);
-
-        if (arrIndexOfTheKey >= arrOfChains.length) {
-            return false;
-        }
-
-        MyLinkedList<MyMapEntry> chain = arrOfChains[arrIndexOfTheKey];
-        if (chain == null) {
-            return false;
-        }
-
-        for (MyMapEntry chainSegment : chain) {
-            if (chainSegment.key == null && key == null) {
-                return true;
-            }
-
-            if (chainSegment.key != null && chainSegment.key.equals(key)) {
-                return true;
-            }
-        }
-
-        return false;
+        return Math.abs(hashCode % arrCapacity);
     }
 
-    public MyLinkedList<MyMapEntry> entryList() { // todo entryList for 0 values + entryList tests
+    /**
+     * @param key key that is used to determine the location of the value
+     * @return true if current map already contains this key
+     */
+    @Override
+    public boolean containsKey(T key) {
+        return get(key) != null;
+    }
+
+    /**
+     * merges all the chains into one list and returns it
+     *
+     * @return list of all the chains in the hashMap
+     */
+    public MyLinkedList<MyMapEntry> entryList() {
         MyLinkedList<MyMapEntry> allEntriesList = new MyLinkedList<>();
 
-        for (MyLinkedList<MyMapEntry> chain : arrOfChains) {
-            if (chain != null) { // todo maybe redundant
-                allEntriesList.addAll(chain);
+        for (MyLinkedList<MyMapEntry> chainOfEntries : arrOfChains) {
+            if (chainOfEntries != null) {
+                allEntriesList.addAll(chainOfEntries);
             }
         }
 
         return allEntriesList;
     }
 
+    /**
+     * @return true if hashMap is empty
+     */
+    @Override
+    public boolean isEmpty() {
+        return insertedElements == 0;
+    }
+
+    /**
+     * @return amount of elements within the hashMap
+     */
+    @Override
     public int size() {
         return insertedElements;
     }
