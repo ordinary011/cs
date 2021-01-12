@@ -186,7 +186,12 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
         return firstNode == null && lastNode == null;
     }
 
-    public void addAll(MyLinkedList<T> newListToAppend) { // todo check for empty lists + addAll tests
+    /**
+     * merges current list with a new one
+     *
+     * @param newListToAppend new list that is to be merged with the current
+     */
+    public void addAll(MyLinkedList<T> newListToAppend) {
         if (newListToAppend.isEmpty()) {
             return;
         }

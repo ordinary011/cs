@@ -9,9 +9,17 @@ import java.util.Iterator;
  */
 public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
 
-    private final int MIN_ARR_SIZE = 1;
+    private final int DEFAULT_INITIAL_ARR_SIZE = 16;
     private int arrIndexForInsertion = 0;
-    private Object[] array = new Object[MIN_ARR_SIZE];
+    private Object[] array;
+
+    public MyArrayList() {
+        this.array = new Object[DEFAULT_INITIAL_ARR_SIZE];
+    }
+
+    public MyArrayList(int initialSize) {
+        this.array = new Object[initialSize];
+    }
 
     /**
      * Adds element to the end of the array
@@ -87,7 +95,7 @@ public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
         }
 
         if (reducedArray.length == 0) { // when we remove the last element length becomes 0 (array is empty)
-            reducedArray = new Object[MIN_ARR_SIZE];
+            reducedArray = new Object[DEFAULT_INITIAL_ARR_SIZE];
         }
         array = reducedArray;
 

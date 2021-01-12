@@ -1,18 +1,27 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.queues;
 
-import java.util.ArrayList;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyCollection;
+import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyArrayList;
 
-public class MyPriorityQueue<T> implements MyQueueI<T> {
+/**
+ * class that is an implementation of priority queue data structure
+ */
+public class MyPriorityQueue<T> implements MyQueueI<T>, MyCollection {
 
-    private final ArrayList<T> arr;
+    private final MyArrayList<T> arr;
     private final MyComparator<T> comparator;
 
     public MyPriorityQueue(int initialCapacity, MyComparator<T> comparator) {
-        arr = new ArrayList<>(initialCapacity + 1); // +1 because first element is a dummy element
+        arr = new MyArrayList<>(initialCapacity + 1); // +1 because first element is a dummy element
         arr.add(null); // first element is a dummy element because we will calculate array index starting from 1
         this.comparator = comparator;
     }
 
+    /**
+     * adds a new element to the queue
+     *
+     * @param newElement element that needs to be added to the collection
+     */
     @Override
     public void add(T newElement) {
         arr.add(newElement);
@@ -36,6 +45,11 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
         }
     }
 
+    /**
+     * retrieves an element from top of the heap
+     *
+     * @return an element from top of the heap
+     */
     @Override
     public T poll() {
         if (arr.size() == 1) { // first element in the arr is a dummy element
@@ -56,7 +70,19 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
 
         arr.set(indexOfFirstEl, elFromHeapEnd);
 
-        int indexOfElFromHeapEnd = indexOfFirstEl;
+        swapWithChildren(indexOfFirstEl, elFromHeapEnd);
+
+        return elFromHeapTop;
+    }
+
+    /**
+     * first compares two children and then compares children with higher priority with parent and swaps them if needed
+     *
+     * @param indexOfElFromHeapEnd initially is set to 1, because we place it from end to the heap top
+     * @param elFromHeapEnd        element was at the heap end
+     *                             but at the moment this method is called, this element is at top of the heap
+     */
+    private void swapWithChildren(int indexOfElFromHeapEnd, T elFromHeapEnd) {
         while (true) { // while has at least one child
             int indexOfLeftChild = indexOfElFromHeapEnd * 2;
             int indexOfRightChild = indexOfElFromHeapEnd * 2 + 1;
@@ -88,8 +114,6 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
                 break;
             }
         }
-
-        return elFromHeapTop;
     }
 
     /**
@@ -100,87 +124,22 @@ public class MyPriorityQueue<T> implements MyQueueI<T> {
     @Override
     public T peek() {
         // at index 0 we have a dummy element
-        // todo check peeek when there are no elements
         return arr.get(1);
     }
 
+    /**
+     * @return true if priority queue is empty
+     */
+    @Override
+    public boolean isEmpty() {
+        // first element (at index 0) is a dummy element
+        return arr.size() == 1;
+    }
+
+    /**
+     * @return amount of elements within the priority queue
+     */
     public int size() {
         return arr.size() - 1;
     }
 }
-
-
-//        if (arr.size() == 1) { // first element in the arr is a dummy element
-//            return null;
-//        }
-//
-//        int indexOfElementToRemove = arr.size() - 1;
-//
-//        int indexAtTopOfTheHeap = 1;
-//        T fromTopOfTheHeap = arr.get(indexAtTopOfTheHeap);
-//        T elFromTheEnd = arr.get(indexOfElementToRemove);
-//        arr.set(indexAtTopOfTheHeap, elFromTheEnd);
-//        int indexOfElFromTheEnd = indexAtTopOfTheHeap;
-//
-//        if (arr.size() == 4) { // 3 elements
-//            int indexOfLeftChild = indexOfElFromTheEnd * 2;
-//            T leftChild = arr.get(indexOfLeftChild); // second element
-//            if (comparator.compare(leftChild, elFromTheEnd) < 0) {
-//                arr.set(indexOfElFromTheEnd, leftChild);
-//                arr.set(indexOfLeftChild, elFromTheEnd);
-//            }
-//        }
-//
-//        if (arr.size() == 5) { // 4 elements
-//            int indexOfLeftChild = indexOfElFromTheEnd * 2;
-//            int indexOfRightChild = indexOfElFromTheEnd * 2 + 1;
-//            T leftChild = arr.get(indexOfLeftChild);
-//            T rightChild = arr.get(indexOfRightChild);
-//
-//            T childToCompareWith;
-//            if (comparator.compare(rightChild, leftChild) < 0) {
-//                childToCompareWith = rightChild;
-//            } else {
-//                childToCompareWith = leftChild;
-//            }
-//
-//            if (comparator.compare(childToCompareWith, elFromTheEnd) < 0) {
-//                arr.set(indexOfElFromTheEnd, leftChild);
-//                arr.set(indexOfLeftChild, elFromTheEnd);
-//            }
-//        }
-//
-//        if (arr.size() == 6) { // 5 elements
-//            int indexOfLeftChild = indexOfElFromTheEnd * 2;
-//            int indexOfRightChild = indexOfElFromTheEnd * 2 + 1;
-//            T leftChild = arr.get(indexOfLeftChild);
-//            T rightChild = arr.get(indexOfRightChild);
-//
-//            T childToCompareWith;
-//            int indexOfChildToCompareWith;
-//            if (comparator.compare(rightChild, leftChild) < 0) {
-//                childToCompareWith = rightChild;
-//                indexOfChildToCompareWith = indexOfRightChild;
-//            } else {
-//                childToCompareWith = leftChild;
-//                indexOfChildToCompareWith = indexOfLeftChild;
-//            }
-//
-//            if (comparator.compare(childToCompareWith, elFromTheEnd) < 0) {
-//                arr.set(indexOfElFromTheEnd, leftChild);
-//                arr.set(indexOfChildToCompareWith, elFromTheEnd);
-//                indexOfElFromTheEnd = indexOfChildToCompareWith;
-//            }
-//
-//            indexOfLeftChild = indexOfElFromTheEnd * 2;
-//            leftChild = arr.get(indexOfLeftChild);
-//            if (comparator.compare(leftChild, elFromTheEnd) < 0) {
-//                arr.set(indexOfElFromTheEnd, leftChild);
-//                arr.set(indexOfLeftChild, elFromTheEnd);
-//            }
-//        }
-//
-//        arr.remove(indexOfElementToRemove);
-//
-//        return fromTopOfTheHeap;
-//    }

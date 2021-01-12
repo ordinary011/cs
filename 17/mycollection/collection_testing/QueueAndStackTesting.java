@@ -71,6 +71,8 @@ class QueueAndStackTesting implements SuccessfulOutput {
     }
 
     /**
+     * adds elements from a manually created array and then checks the order of retrieving
+     *
      * @throws Exception specifies that a mismatch occurred between native collection and my own
      */
     private void testBySampleData() throws Exception {
@@ -135,6 +137,8 @@ class QueueAndStackTesting implements SuccessfulOutput {
     }
 
     /**
+     * adds elements to myCollection and to native collection
+     *
      * @param elToAttach element that is to be attached to the current collection
      */
     private void attachElements(Integer elToAttach) {
@@ -160,7 +164,7 @@ class QueueAndStackTesting implements SuccessfulOutput {
     }
 
     /**
-     *
+     * adds random numbers to the collections
      */
     private void addAndGetRandomNumbers() throws Exception {
         // add random numbers

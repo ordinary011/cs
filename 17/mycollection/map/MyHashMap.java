@@ -3,6 +3,9 @@ package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map;
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.MyCollection;
 import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 
+/**
+ * class that is an implementation of HashMap data structure
+ */
 public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
 
     private int insertedElements = 0;

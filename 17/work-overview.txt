@@ -3,15 +3,15 @@ Yes!
 Iterators were added.
 addAll method was added to MyLinkedList.
 All the collections now implement MyCollection interface.
-Small improvements in code.
+Other small improvements.
 
 з якими труднощами зіткнулися при перекладі своїх проектів на свої колекції
 there were no difficulties because of iterators
 
 наскільки просіла продуктивність від переходу
 in calculator decrement of efficiency was not spotted
-in silhouettes decrement of efficiency was not spotted
-in archiver permormance was tested on the mp4 file (78 megabytes) and decrement of efficiency was not spotted
+in silhouettes: with native collections is 10 percent faster (approximately)
+in archiver performance was tested on the mp4 file (78 megabytes) and decrement of efficiency was not spotted
 
 яким алгоритмом реалізували PriorityQueue
 binary Heap
@@ -20,4 +20,4 @@ binary Heap
 chaining
 
 чи тягне ваша робота на 5
-no because the priority queue was not refactored
+yes because all the requirements for "5" have been fulfilled
