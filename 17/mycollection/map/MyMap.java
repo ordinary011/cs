@@ -1,12 +1,14 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.map;
 
-public interface MyMap<T, E> {
+public interface MyMap<K, V> {
 
-    void put(T key, E value);
+    void put(K key, V value);
 
-    E get(T key);
+    V get(K key);
 
-    boolean containsKey(T key);
+    void remove(K key);
+
+    boolean containsKey(K key);
 
     interface Entry<K, V> {
         K getKey();

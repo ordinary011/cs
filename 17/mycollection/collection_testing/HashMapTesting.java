@@ -12,6 +12,7 @@ public class HashMapTesting implements SuccessfulOutput {
     private final int NUMBER_OF_INTEGERS_TO_ADD = 100;
     private final int MAX_INTEGER = 5000;
     private final int MIN_INTEGER = -5000;
+    private final String TEST_KEY = "john";
 
     /**
      * the starting method of the tests for myHashMap
@@ -36,8 +37,8 @@ public class HashMapTesting implements SuccessfulOutput {
      * @throws Exception is thrown when there is a mismatch between myHashMap and nativeHashMap
      */
     private void testWithStringsAsKeys() throws Exception {
-        String[] tests = {null, "karl", "john", "ka", "kar", "karl", null,
-                "abc", "chris", "Alex", "john", "Tim", "Bill", "Alex", "john", null};
+        String[] tests = {null, "karl", TEST_KEY, "ka", "kar", "karl", null,
+                "abc", "chris", "Alex", TEST_KEY, "Tim", "Bill", "Alex", TEST_KEY, null};
 
         HashMap<String, Integer> nativeHashMap = new HashMap<>();
         MyHashMap<String, Integer> myHashMap = new MyHashMap<>();
@@ -50,9 +51,15 @@ public class HashMapTesting implements SuccessfulOutput {
             compareInBothMaps(myHashMap, nativeHashMap, key);
         }
 
+        // remove the same key twice in both maps
+        myHashMap.remove(TEST_KEY);
+        nativeHashMap.remove(TEST_KEY);
+        myHashMap.remove(TEST_KEY);
+        nativeHashMap.remove(TEST_KEY);
+
         // get by the key that doesn't exist
-        if (myHashMap.get("hhh") != null) {
-            throw new Exception("get by the key that doesn't exist doesn't work properly");
+        if (myHashMap.get(TEST_KEY) != null) {
+            throw new Exception("failed to remove an element");
         }
     }
 

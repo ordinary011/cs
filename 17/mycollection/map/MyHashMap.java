@@ -6,28 +6,28 @@ import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 /**
  * class that is an implementation of HashMap data structure
  */
-public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
+public class MyHashMap<K, V> implements MyMap<K, V>, MyCollection {
 
     private int insertedElements = 0;
     private int arrCapacity = 16;
     private MyLinkedList<MyMapEntry>[] arrOfChains = new MyLinkedList[arrCapacity];
 
-    private class MyMapEntry implements MyMap.Entry<T, E> {
-        private final T key;
-        private E value;
+    private class MyMapEntry implements MyMap.Entry<K, V> {
+        private final K key;
+        private V value;
 
-        public MyMapEntry(T key, E value) {
+        public MyMapEntry(K key, V value) {
             this.key = key;
             this.value = value;
         }
 
         @Override
-        public T getKey() {
+        public K getKey() {
             return key;
         }
 
         @Override
-        public E getValue() {
+        public V getValue() {
             return value;
         }
     }
@@ -39,33 +39,31 @@ public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
      * @param value value that is to be stored "behind" key
      */
     @Override
-    public void put(T key, E value) {
+    public void put(K key, V value) {
         if (insertedElements == arrCapacity) {
             extendArrSize();
         }
 
-        findArrIndexAndAdd(key, value);
+        addElement(key, value);
     }
 
     /**
-     * searchs for the element by index and replaces it
+     * searches for the element by index and replaces it
      *
      * @param key   key that is used to determine the location of the value
      * @param value value that is to be stored "behind" key
      */
-    private void findArrIndexAndAdd(T key, E value) {
+    private void addElement(K key, V value) {
         int arrIndexForTheKey = findArrIndexForTheKey(key);
 
         MyLinkedList<MyMapEntry> chainOfEntries = arrOfChains[arrIndexForTheKey];
         if (chainOfEntries == null) {
             chainOfEntries = new MyLinkedList<>();
             arrOfChains[arrIndexForTheKey] = chainOfEntries;
-        }
-
-        // search if key already exists, then we just replace it's value
-        for (MyMapEntry myMapEntry : chainOfEntries) {
-            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
-                    myMapEntry.key == null && key == null) {
+        } else {
+            // search if key already exists, then we just replace it's value
+            MyMapEntry myMapEntry = findEntryInChain(key, chainOfEntries);
+            if (myMapEntry != null) {
                 myMapEntry.value = value;
                 return;
             }
@@ -74,6 +72,24 @@ public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
         // code below is executed only if the key is new
         chainOfEntries.add(new MyMapEntry(key, value));
         insertedElements++;
+    }
+
+    /**
+     * searches for an entry in the chain and returns it
+     *
+     * @param key            key that is used to determine the location of the value
+     * @param chainOfEntries chain that contains entries (entry is a key-value pair)
+     * @return entry that is a key-value pair
+     */
+    private MyMapEntry findEntryInChain(K key, MyLinkedList<MyMapEntry> chainOfEntries) {
+        for (MyMapEntry myMapEntry : chainOfEntries) {
+            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
+                    myMapEntry.key == null && key == null) {
+                return myMapEntry;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -103,29 +119,42 @@ public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
     }
 
     /**
-     * based on the key returns value
+     * @param key key that is used to determine the location of the value
+     * @return index for the key within our hashMap
+     */
+    private int findArrIndexForTheKey(K key) {
+        int hashCode = (key == null) ? 0 : key.hashCode();
+        return Math.abs(hashCode % arrCapacity);
+    }
+
+    /**
+     * first searches for a chain and then for an entry in the chain and returns it
      *
      * @param key key that is used to determine the location of the value
-     * @return value that is stored "behind" the key
+     * @return entry (a key-value pair)
      */
-    @Override
-    public E get(T key) {
+    private MyMapEntry findEntryByKey(K key) {
         int arrIndexForTheKey = findArrIndexForTheKey(key);
-
-        if (arrIndexForTheKey >= arrOfChains.length) {
-            return null;
-        }
 
         MyLinkedList<MyMapEntry> chainOfEntries = arrOfChains[arrIndexForTheKey];
         if (chainOfEntries == null) {
             return null;
         }
 
-        for (MyMapEntry myMapEntry : chainOfEntries) {
-            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
-                    myMapEntry.key == null && key == null) {
-                return myMapEntry.value;
-            }
+        return findEntryInChain(key, chainOfEntries);
+    }
+
+    /**
+     * based on the key returns value
+     *
+     * @param key key that is used to determine the location of the value
+     * @return value that is stored "behind" the key
+     */
+    @Override
+    public V get(K key) {
+        MyMapEntry myMapEntry = findEntryByKey(key);
+        if (myMapEntry != null) {
+            return myMapEntry.value;
         }
 
         return null;
@@ -133,20 +162,12 @@ public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
 
     /**
      * @param key key that is used to determine the location of the value
-     * @return index for the key within our hashMap
-     */
-    private int findArrIndexForTheKey(T key) {
-        int hashCode = (key == null) ? 0 : key.hashCode();
-        return Math.abs(hashCode % arrCapacity);
-    }
-
-    /**
-     * @param key key that is used to determine the location of the value
      * @return true if current map already contains this key
      */
     @Override
-    public boolean containsKey(T key) {
-        return get(key) != null;
+    public boolean containsKey(K key) {
+        MyMapEntry myMapEntry = findEntryByKey(key);
+        return myMapEntry != null;
     }
 
     /**
@@ -164,6 +185,31 @@ public class MyHashMap<T, E> implements MyMap<T, E>, MyCollection {
         }
 
         return allEntriesList;
+    }
+
+    /**
+     * removes entry from the chain
+     *
+     * @param key key that is used to determine the location of the value
+     */
+    @Override
+    public void remove(K key) {
+        int arrIndexForTheKey = findArrIndexForTheKey(key);
+
+        MyLinkedList<MyMapEntry> chainOfEntries = arrOfChains[arrIndexForTheKey];
+        if (chainOfEntries == null) {
+            return;
+        }
+
+        int entryIndex = 0;
+        for (MyMapEntry myMapEntry : chainOfEntries) {
+            if (myMapEntry.key != null && myMapEntry.key.equals(key) ||
+                    myMapEntry.key == null && key == null) {
+                chainOfEntries.remove(entryIndex);
+                return;
+            }
+            entryIndex++;
+        }
     }
 
     /**

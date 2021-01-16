@@ -34,15 +34,26 @@ public class MyPriorityQueue<T> implements MyQueueI<T>, MyCollection {
         T parent = arr.get(indexOfParent);
 
         while (indexOfParent != 0 && comparator.compare(newElement, parent) < 0) {
-            // swap newElement and parent (bubble up)
-            arr.set(indexOfParent, newElement);
-            arr.set(indexOfNewElement, parent);
+            swapParentAndChild(indexOfParent, parent, indexOfNewElement, newElement);
 
             indexOfNewElement = indexOfParent;
             indexOfParent = (int) Math.floor(indexOfNewElement / 2.0);
 
             parent = arr.get(indexOfParent);
         }
+    }
+
+    /**
+     * swaps child and its parent
+     *
+     * @param indexOfParent index of parent element in the array
+     * @param parent        parent element
+     * @param indexOfChild  index of child element in the array
+     * @param child         child element
+     */
+    private void swapParentAndChild(int indexOfParent, T parent, int indexOfChild, T child) {
+        arr.set(indexOfParent, child);
+        arr.set(indexOfChild, parent);
     }
 
     /**
@@ -62,13 +73,12 @@ public class MyPriorityQueue<T> implements MyQueueI<T>, MyCollection {
         T elFromHeapTop = arr.get(indexOfFirstEl);
         T elFromHeapEnd = arr.get(indexOfLastEl);
 
+        arr.set(indexOfFirstEl, elFromHeapEnd);
         arr.remove(indexOfLastEl);
 
         if (arr.size() == 1) { // true if there was only one element inside
             return elFromHeapTop;
         }
-
-        arr.set(indexOfFirstEl, elFromHeapEnd);
 
         swapWithChildren(indexOfFirstEl, elFromHeapEnd);
 
@@ -83,14 +93,10 @@ public class MyPriorityQueue<T> implements MyQueueI<T>, MyCollection {
      *                             but at the moment this method is called, this element is at top of the heap
      */
     private void swapWithChildren(int indexOfElFromHeapEnd, T elFromHeapEnd) {
-        while (true) { // while has at least one child
-            int indexOfLeftChild = indexOfElFromHeapEnd * 2;
-            int indexOfRightChild = indexOfElFromHeapEnd * 2 + 1;
+        int indexOfLeftChild = indexOfElFromHeapEnd * 2;
+        int indexOfRightChild = indexOfElFromHeapEnd * 2 + 1;
 
-            if (indexOfLeftChild >= arr.size()) { // true if there are no more children
-                break;
-            }
-
+        while (indexOfLeftChild < arr.size()) { // while has at least one child
             T leftChild = arr.get(indexOfLeftChild);
             T rightChild;
 
@@ -107,12 +113,16 @@ public class MyPriorityQueue<T> implements MyQueueI<T>, MyCollection {
             }
 
             if (comparator.compare(childWithHigherPriority, elFromHeapEnd) < 0) {
-                arr.set(indexOfElFromHeapEnd, childWithHigherPriority);
-                arr.set(indexOfChildWithPriority, elFromHeapEnd);
+                swapParentAndChild(indexOfElFromHeapEnd, elFromHeapEnd,
+                        indexOfChildWithPriority, childWithHigherPriority);
+
                 indexOfElFromHeapEnd = indexOfChildWithPriority;
             } else {
                 break;
             }
+
+            indexOfLeftChild = indexOfElFromHeapEnd * 2;
+            indexOfRightChild = indexOfElFromHeapEnd * 2 + 1;
         }
     }
 

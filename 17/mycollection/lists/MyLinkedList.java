@@ -91,10 +91,9 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
      *
      * @param elIndex index of element to retrieve
      * @return the element at the specified index (elIndex)
-     * @throws Exception specifies that index is out of boundaries
      */
     @Override
-    public T get(int elIndex) throws Exception {
+    public T get(int elIndex) {
         checkForBoundaries(elIndex);
 
         ListNode currentNode = firstNode;
@@ -112,7 +111,7 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
      * @throws Exception specifies that index is out of boundaries
      */
     @Override
-    public void set(int elIndex, T element) throws Exception {
+    public void set(int elIndex, T element) {
         checkForBoundaries(elIndex);
 
         ListNode currentNode = firstNode;
@@ -126,10 +125,9 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
      * deletes an element at the specified index (elIndex)
      *
      * @param elIndex index of an element to remove
-     * @throws Exception specifies that index is out of boundaries
      */
     @Override
-    public void remove(int elIndex) throws Exception {
+    public void remove(int elIndex) {
         checkForBoundaries(elIndex);
 
         if (elIndex == 0) { // true when we remove at the beginning
@@ -158,11 +156,11 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
      * checks if index of an element is within the boundaries of our list
      *
      * @param elIndex index of the element
-     * @throws Exception specifies that index is out of boundaries
      */
-    private void checkForBoundaries(int elIndex) throws Exception {
+    private void checkForBoundaries(int elIndex) {
         if (elIndex >= size || elIndex < 0 || firstNode == null) {
-            throw new Exception("Index " + elIndex + " is out of boundaries. Last index in the List is " + (size - 1));
+            String errMsg = "Index " + elIndex + " is out of boundaries. Last index in the List is " + (size - 1);
+            throw new IndexOutOfBoundsException(errMsg);
         }
     }
 
@@ -233,7 +231,6 @@ public class MyLinkedList<T> implements MyList<T>, Iterable<T>, MyCollection {
     public Iterator<T> iterator() {
         return new MyLinkedListIterator<>();
     }
-
 
     @Override
     public String toString() {

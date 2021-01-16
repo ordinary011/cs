@@ -18,6 +18,10 @@ public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
     }
 
     public MyArrayList(int initialSize) {
+        if (initialSize < 1) {
+            throw new IllegalArgumentException("Failed to create a list. Capacity should be greater than zero");
+        }
+
         this.array = new Object[initialSize];
     }
 
@@ -33,14 +37,11 @@ public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
             Object[] enhancedArray = new Object[array.length + halfOfArrSize];
 
             // copy existed arr to the enhanced
-            for (int i = 0; i < array.length; i++) {
-                enhancedArray[i] = array[i];
-            }
+            System.arraycopy(array, 0, enhancedArray, 0, array.length);
             array = enhancedArray;
         }
 
-        array[arrIndexForInsertion] = element;
-        arrIndexForInsertion++;
+        array[arrIndexForInsertion++] = element;
     }
 
     /**
@@ -60,9 +61,7 @@ public class MyArrayList<T> implements MyList<T>, MyCollection, Iterable<T> {
             Object[] enhancedArray = new Object[arrIndexForInsertion + 1];
 
             // copy array before pasteIndex
-            for (int i = 0; i < pasteIndex; i++) {
-                enhancedArray[i] = array[i];
-            }
+            System.arraycopy(array, 0, enhancedArray, 0, pasteIndex);
 
             // add element to the enhanced array
             enhancedArray[pasteIndex] = element;
