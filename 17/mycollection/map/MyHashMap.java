@@ -9,8 +9,7 @@ import com.shpp.p2p.cs.ldebryniuk.assignment17.mycollection.lists.MyLinkedList;
 public class MyHashMap<K, V> implements MyMap<K, V>, MyCollection {
 
     private int insertedElements = 0;
-    private int arrCapacity = 16;
-    private MyLinkedList<MyMapEntry>[] arrOfChains = new MyLinkedList[arrCapacity];
+    private MyLinkedList<MyMapEntry>[] arrOfChains = new MyLinkedList[16];
 
     private class MyMapEntry implements MyMap.Entry<K, V> {
         private final K key;
@@ -40,8 +39,8 @@ public class MyHashMap<K, V> implements MyMap<K, V>, MyCollection {
      */
     @Override
     public void put(K key, V value) {
-        if (insertedElements == arrCapacity) {
-            extendArrSize();
+        if (insertedElements == arrOfChains.length) {
+            extendArrCapacity();
         }
 
         addElement(key, value);
@@ -96,9 +95,8 @@ public class MyHashMap<K, V> implements MyMap<K, V>, MyCollection {
      * increases size of the array (x2)
      * and copies all the elements to the new arr that is two times bigger than before
      */
-    private void extendArrSize() {
-        arrCapacity *= 2;
-        MyLinkedList<MyMapEntry>[] extendedArr = new MyLinkedList[arrCapacity];
+    private void extendArrCapacity() {
+        MyLinkedList<MyMapEntry>[] extendedArr = new MyLinkedList[arrOfChains.length * 2];
 
         for (MyLinkedList<MyMapEntry> chainOfEntries : arrOfChains) {
             if (chainOfEntries != null) {
@@ -124,7 +122,7 @@ public class MyHashMap<K, V> implements MyMap<K, V>, MyCollection {
      */
     private int findArrIndexForTheKey(K key) {
         int hashCode = (key == null) ? 0 : key.hashCode();
-        return Math.abs(hashCode % arrCapacity);
+        return Math.abs(hashCode % arrOfChains.length);
     }
 
     /**
