@@ -32,7 +32,7 @@ class HuffCompressor extends CommonUtils {
      * @throws IOException can be caused by reading or writing the file
      */
     void compressFile(FileChannel inputFChan, FileChannel outputFChan, long inputFileSize) throws IOException {
-        countUniqueBytes(inputFChan);
+        countWeightOfUniqueBytes(inputFChan);
 
         PriorityQueue<TreeLeaf> orderedByEncodingLengthDesc = new BTree().prioritizeAndBuildTree(byteToItsTreeLeaf);
 
@@ -51,7 +51,7 @@ class HuffCompressor extends CommonUtils {
      * @param inputFChan reference to the input channel between our process and OS
      * @throws IOException can be caused by reading or writing the file
      */
-    private void countUniqueBytes(FileChannel inputFChan) throws IOException {
+    private void countWeightOfUniqueBytes(FileChannel inputFChan) throws IOException {
         // read the whole input file by chunks and search for unique bytes
         int bytesInsideReadBuffer;
         while ((bytesInsideReadBuffer = inputFChan.read(readBuff)) != -1) { // read file till end; -1 means end of file
@@ -93,7 +93,7 @@ class HuffCompressor extends CommonUtils {
             if (encodingLengthOfCurrentByte > Byte.SIZE) {
                 int secondLowerByteInInt = byteAsATreeLeaf.getEncodingOfTheByte() & 0xFF00;
                 secondLowerByteInInt >>>= Byte.SIZE;
-                table.add((byte) secondLowerByteInInt); // get second lower byte from int
+                table.add((byte) secondLowerByteInInt); // add second lower byte from int
             }
             table.add((byte) byteAsATreeLeaf.getEncodingOfTheByte());
 

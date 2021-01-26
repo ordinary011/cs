@@ -40,8 +40,8 @@ public class Kernel {
 
         for (int i = 1; i < formula.length(); i++) {
             char ch = formula.charAt(i);
-            if (isOp(ch)) {
-                if (isOp(formula.charAt(i - 1))) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
+            if (isOperation(ch)) {
+                if (isOperation(formula.charAt(i - 1))) continue; // e.g. 10*-3. Here "i" points to "-" after "*"
                 numInd = whenChIsOp(formula, numInd, i);
             } else if (ch == '(') {
                 if (i > 2 && isFunc(formula.substring(numInd, i))) { // parentheses after function e.g. sin(3+3)
@@ -69,12 +69,13 @@ public class Kernel {
      * @return number of characters from the opening to the closing of parentheses
      */
     private int parseFunction(String formula, int numInd, int i) throws Exception {
-        int chNumTillClosing = findChNumTillClosing(formula.substring(i));
+        int chNumTillClosing = findCharNumTillClosing(formula.substring(i));
 
-        parseFormula(formula.substring(i, (i + chNumTillClosing + 1)));
-        // after parseFormula at the top of the stack will find the result of calculations within brackets
-        String res = nums.pop(); // e.g. cos(3+3). 6 is at top of the stack
-        res = calcFunc(formula.substring(numInd, i), res);
+        String withinParantheses = formula.substring(i, (i + chNumTillClosing + 1));
+        parseFormula(withinParantheses);
+        // after parseFormula at the top of the stack we will find the result of calculations within brackets
+        String res = nums.pop();
+        res = calcFunc(formula.substring(numInd, i), res); // e.g. cos(3+3). 6 is at top of the stack
         nums.push(res);
 
         return chNumTillClosing;
@@ -96,7 +97,7 @@ public class Kernel {
 
     /**
      * The following method will extract 2 nums from numbers stack then it will perform the operation on them
-     * and will pop and return the next operation from op stack
+     * and will pop and return the next operation from operation stack
      */
     private String doStackIteration(String operation) {
         String n2 = nums.pop();
@@ -114,22 +115,22 @@ public class Kernel {
     private int whenChIsOp(String formula, int numInd, int i) throws Exception {
         pushToNumsStack(formula, numInd, i);
 
-        String formulaOp = formula.substring(i, i + 1);
+        String operationFromFormula = formula.substring(i, i + 1);
         if (!operators.empty()) {
-            int formOpPriority = getPriority(formulaOp);
-            String topOfStackOp = operators.peek();
-            int topOfStackOpPriority = getPriority(topOfStackOp);
+            int formulaOperationPriority = getPriority(operationFromFormula);
+            String topOfStackOperation = operators.peek();
+            int topOfStackOperationPriority = getPriority(topOfStackOperation);
 
-            while (formOpPriority <= topOfStackOpPriority) {
-                doStackIteration(topOfStackOp);
+            while (formulaOperationPriority <= topOfStackOperationPriority) {
+                doStackIteration(topOfStackOperation);
 
                 if (!operators.empty()) {
-                    topOfStackOp = operators.peek();
-                    topOfStackOpPriority = getPriority(topOfStackOp);
+                    topOfStackOperation = operators.peek();
+                    topOfStackOperationPriority = getPriority(topOfStackOperation);
                 } else break; // if stack is empty we break
             }
         }
-        operators.push(formulaOp);
+        operators.push(operationFromFormula);
 
         numInd = i + 1; // i points to the сurrent operator e.g. "*". next num will have an index of i + 1;
         return numInd;
@@ -193,7 +194,7 @@ public class Kernel {
     /**
      * The following method determines if ch is an operation
      */
-    private boolean isOp(char ch) {
+    private boolean isOperation(char ch) {
         return String.valueOf(ch).matches("[\\^*/+-]");
     }
 
@@ -291,7 +292,7 @@ public class Kernel {
      *
      * @return amount of characters from opening to the closing parentheses
      */
-    private int findChNumTillClosing(String parentheses) { // cos(2+3+cos(2+3)*2) -> (2+3+cos(2+3)*2)
+    private int findCharNumTillClosing(String parentheses) { // cos(2+3+cos(2+3)*2) -> (2+3+cos(2+3)*2)
         int needToClose = 0;
 
         for (int i = 0; i < parentheses.length(); i++) {

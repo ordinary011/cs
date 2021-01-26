@@ -8,8 +8,9 @@ import java.nio.file.StandardOpenOption;
 
 /**
  * This class comprises all the preliminary logic before compression or decompression
+ * The entry method is determineOperation(). Based on parameters it determines which operation is to be completed.
  */
-public class HuffmanArchiver {
+class HuffmanArchiver {
 
     private final String DEFAULT_INPUT_FILENAME = "test.txt";
     private final String DEFAULT_OUTPUT_FILENAME = "test.txt.par";

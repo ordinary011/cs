@@ -1,5 +1,8 @@
 package com.shpp.p2p.cs.ldebryniuk.assignment15;
 
+/**
+ * The following class is a starting point of our program
+ */
 public class Assignment15Part1 {
 
     /**

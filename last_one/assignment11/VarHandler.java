@@ -44,7 +44,9 @@ public class VarHandler {
      * @param varName can be: a || -a || fsdfsdf
      */
     public String findVar(String varName) {
-        if (varName.charAt(0) == '-') varName = varName.substring(1);
+        if (varName.charAt(0) == '-') {
+            varName = varName.substring(1);
+        }
 
         return vars.get(varName);
     }

@@ -9,9 +9,10 @@ public class Assignment11Part1 {
 //        }
 
 //        args = new String[]{"1+(2+3*(4+5-sin(45*cos(a))))/7", "a=55"}; //, {"4.78322"},
-//        System.out.println(new Calculator().runCalc(args));
+        args = new String[]{"(3+3)"}; //, {"4.78322"},
+        System.out.println(new Calculator().runCalc(args));
 
-        new Tester().runTests(); // todo uncomment for tests
+//        new Tester().runTests(); // todo uncomment for tests
     }
 
 }

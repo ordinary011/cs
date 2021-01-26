@@ -12,7 +12,7 @@ import java.util.ArrayList;
 /**
  * The following class contains all the logic that is needed for decompression
  */
-public class HuffDecompressor extends CommonUtils {
+class HuffDecompressor extends CommonUtils {
 
     private final byte[] decompressedDataChunk = new byte[MEGABYTE * 4];
     private int redundantBitsInLastCompressedByte;
@@ -80,8 +80,7 @@ public class HuffDecompressor extends CommonUtils {
             for (int shiftBitsToRight = (Byte.SIZE - 1); shiftBitsToRight >= offsetFromRight; shiftBitsToRight--) {
                 currentNode = ((InternalTreeNode) currentNode).findEncodedByte(compressedByte, shiftBitsToRight);
                 if (currentNode.isTreeLeaf()) {
-                    decompressedDataChunk[decompressedDataChunkIndex] = ((TreeLeaf) currentNode).getByteValue();
-                    decompressedDataChunkIndex++;
+                    decompressedDataChunk[decompressedDataChunkIndex++] = ((TreeLeaf) currentNode).getByteValue();
                     currentNode = rootNode;
                 }
             }
@@ -125,7 +124,7 @@ public class HuffDecompressor extends CommonUtils {
 
         for (int i = 0; i < (tableInfoSize / 2); i++) {
             int bytesCountWithTheSameEncodingLength = readBuff.get() & 0xff; // byte to unsigned byte in the integer
-            int encodingLenOfBytesCount = readBuff.get(); // byte to unsigned byte in the integer
+            int encodingLenOfBytesCount = readBuff.get();
 
             for (int j = 0; j < bytesCountWithTheSameEncodingLength; j++) {
                 lengthsOfEncodings.add(encodingLenOfBytesCount);
